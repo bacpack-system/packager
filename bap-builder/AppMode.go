@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bringauto/modules/bringauto_config"
 	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_context"
 	"bringauto/modules/bringauto_log"
@@ -70,6 +71,9 @@ func buildAllApps(
 	count := int32(0)
 	for appName := range defsMap {
 		for _, config := range defsMap[appName] {
+			if isDepsInConfig(config) {
+				return fmt.Errorf("App has non-empty DependsOn")
+			}
 			buildConfigs := config.GetBuildStructure(imageName, platformString)
 			if len(buildConfigs) == 0 {
 				continue
@@ -109,6 +113,9 @@ func buildSingleApp(
 		return fmt.Errorf("nothing to build")
 	}
 	for _, config := range configList {
+		if isDepsInConfig(config) {
+			return fmt.Errorf("App has non-empty DependsOn")
+		}
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
 		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
@@ -116,4 +123,10 @@ func buildSingleApp(
 		}
 	}
 	return nil
+}
+
+// isDepsInConfig
+// Returns true if given config has non-empty DependsOn array, else returns false.
+func isDepsInConfig(config *bringauto_config.Config) bool {
+	return len(config.DependsOn) > 0
 }
