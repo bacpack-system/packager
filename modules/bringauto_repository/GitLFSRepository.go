@@ -6,6 +6,7 @@ import (
 	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_context"
 	"bringauto/modules/bringauto_config"
+	"bringauto/modules/bringauto_const"
 	"bytes"
 	"fmt"
 	"io/fs"
@@ -16,7 +17,7 @@ import (
 	"slices"
 )
 
-// GitLFSRepository represents Package repository based on Git LFS
+// GitLFSRepository represents Package/App repository based on Git LFS
 type GitLFSRepository struct {
 	GitRepoPath string
 }
@@ -100,54 +101,111 @@ func dividePackagesForCurrentImage(allConfigs []*bringauto_config.Config, imageN
 	return packagesForImage, packagesNotForImage
 }
 
-// CheckGitLfsConsistency
-// Checks Git Lfs consistency based on Context. Prints and returns errors if in Git Lfs is any
-// Package which is not in Context. Prints warnings if the Git Lfs is missing any Packages present
-// in Context and prints warnings if any Package won't build for current imageName.
-func (lfs *GitLFSRepository) CheckGitLfsConsistency(contextManager *bringauto_context.ContextManager, platformString *bringauto_package.PlatformString, imageName string) error {
-	packConfigs, err := contextManager.GetAllPackagesConfigs(platformString)
-	if err != nil {
-		return err
-	}
+// compareConfigsAndGitLfs
+// Compares Packages/Apps (depends on packageOrApp string) in Context and in Git Lfs and returns
+// three arrays of strings - error Paths, expected Paths for imageName and expected paths not for
+// imageName.
+func (lfs *GitLFSRepository) compareConfigsAndGitLfs(
+	platformString *bringauto_package.PlatformString,
+	configs []*bringauto_config.Config,
+	imageName string,
+	packageOrApp string,
+) (error, []string, []string, []string) {
+	packagesForImage, packagesNotForImage := dividePackagesForCurrentImage(configs, imageName)
 
-	packagesForImage, packagesNotForImage := dividePackagesForCurrentImage(packConfigs, imageName)
-
-	var expectedPackForImagePaths, expectedPackNotForImagePaths []string
+	var errorPaths, expectedPathsForImage, expectedPathsNotForImage []string
 	for _, pack := range packagesForImage {
-		packPath := filepath.Join(lfs.CreatePackagePath(pack) + "/" + pack.GetFullPackageName() + ".zip")
-		expectedPackForImagePaths = append(expectedPackForImagePaths, packPath)
+		packPath := filepath.Join(lfs.CreatePath(pack, packageOrApp) + "/" + pack.GetFullPackageName() + ".zip")
+		expectedPathsForImage = append(expectedPathsForImage, packPath)
 	}
 	for _, pack := range packagesNotForImage {
-		packPath := filepath.Join(lfs.CreatePackagePath(pack) + "/" + pack.GetFullPackageName() + ".zip")
-		expectedPackNotForImagePaths = append(expectedPackNotForImagePaths, packPath)
+		packPath := filepath.Join(lfs.CreatePath(pack, packageOrApp) + "/" + pack.GetFullPackageName() + ".zip")
+		expectedPathsNotForImage = append(expectedPathsNotForImage, packPath)
 	}
 
-	lookupPath := filepath.Join(lfs.GitRepoPath, platformString.String.DistroName, platformString.String.DistroRelease, platformString.String.Machine)
+	lookupPath := filepath.Join(
+		lfs.GitRepoPath,
+		packageOrApp,
+		platformString.String.DistroName,
+		platformString.String.DistroRelease,
+		platformString.String.Machine,
+	)
 
-	var errorPackPaths []string
-	_, err = os.Stat(lookupPath)
+	_, err := os.Stat(lookupPath)
 	if !os.IsNotExist(err) {
 		err = filepath.WalkDir(lookupPath, func(path string, d fs.DirEntry, err error) error {
 			if d.Name() == ".git" && d.IsDir() {
 				return filepath.SkipDir
 			}
 			if !d.IsDir() {
-				if !slices.Contains(expectedPackForImagePaths, path) {
-					errorPackPaths = append(errorPackPaths, path)
+				if !slices.Contains(expectedPathsForImage, path) {
+					errorPaths = append(errorPaths, path)
 				} else {
 					// Remove element from expected package paths
-					index := slices.Index(expectedPackForImagePaths, path)
-					expectedPackForImagePaths[index] = expectedPackForImagePaths[len(expectedPackForImagePaths) - 1]
-					expectedPackForImagePaths = expectedPackForImagePaths[:len(expectedPackForImagePaths) - 1]
+					index := slices.Index(expectedPathsForImage, path)
+					expectedPathsForImage[index] = expectedPathsForImage[len(expectedPathsForImage) - 1]
+					expectedPathsForImage = expectedPathsForImage[:len(expectedPathsForImage) - 1]
 				}
 			}
 			return nil
 		})
 		if err != nil {
-			return err
+			return err, []string{}, []string{}, []string{}
 		}
 	}
-	err = printErrors(errorPackPaths, expectedPackForImagePaths, expectedPackNotForImagePaths)
+
+	return nil, errorPaths, expectedPathsForImage, expectedPathsNotForImage
+}
+
+// comparePackagesAndGitLfs
+// Compares Packages in Context and in Git Lfs and returns three arrays of strings - error Paths,
+// expected Paths for imageName and expected paths not for imageName.
+func (lfs *GitLFSRepository) comparePackagesAndGitLfs(
+	contextManager *bringauto_context.ContextManager,
+	platformString *bringauto_package.PlatformString,
+	imageName string,
+) (error, []string, []string, []string) {
+	configs, err := contextManager.GetAllConfigs(platformString, bringauto_const.PackageDirName)
+	if err != nil {
+		return err, []string{}, []string{}, []string{}
+	}
+
+	return lfs.compareConfigsAndGitLfs(platformString, configs, imageName, bringauto_const.PackageDirName)
+}
+
+// compareAppsAndGitLfs
+// Compares Apps in Context and in Git Lfs and returns three arrays of strings - error Paths,
+// expected Paths for imageName and expected paths not for imageName.
+func (lfs *GitLFSRepository) compareAppsAndGitLfs(
+	contextManager *bringauto_context.ContextManager,
+	platformString *bringauto_package.PlatformString,
+	imageName string,
+) (error, []string, []string, []string) {
+	configs, err := contextManager.GetAllConfigs(platformString, bringauto_const.AppDirName)
+	if err != nil {
+		return err, []string{}, []string{}, []string{}
+	}
+
+	return lfs.compareConfigsAndGitLfs(platformString, configs, imageName, bringauto_const.AppDirName)
+}
+
+// CheckGitLfsConsistency
+// Checks Git Lfs consistency based on Context. Prints and returns errors if in Git Lfs is any
+// Package/App which is not in Context. Prints warnings if the Git Lfs is missing any Packages/Apps
+// present in Context and prints warnings if any Package/App won't build for current imageName.
+func (lfs *GitLFSRepository) CheckGitLfsConsistency(contextManager *bringauto_context.ContextManager, platformString *bringauto_package.PlatformString, imageName string) error {
+	err, errorPaths, expectedPathsForImage, expectedPathsNotForImage := lfs.comparePackagesAndGitLfs(contextManager, platformString, imageName)
+	if err != nil {
+		return err
+	}
+
+	err, errorPaths_Apps, expectedPathsForImage_Apps, expectedPathsNotForImage_Apps := lfs.compareAppsAndGitLfs(contextManager, platformString, imageName)
+
+	errorPaths = append(errorPaths, errorPaths_Apps...)
+	expectedPathsForImage = append(expectedPathsForImage, expectedPathsForImage_Apps...)
+	expectedPathsNotForImage = append(expectedPathsNotForImage, expectedPathsNotForImage_Apps...)
+
+	err = printErrors(errorPaths, expectedPathsForImage, expectedPathsNotForImage)
 	if err != nil {
 		return err
 	}
@@ -156,58 +214,60 @@ func (lfs *GitLFSRepository) CheckGitLfsConsistency(contextManager *bringauto_co
 
 // printErrors
 // Prints errors and warnings for Git Lfs consistency check.
-func printErrors(errorPackPaths []string, expectedPackForImagePaths []string, expectedPackNotForImagePaths []string) error {
+func printErrors(errorPaths []string, expectedPathsForImage []string, expectedPathsNotForImage []string) error {
 	logger := bringauto_log.GetLogger()
-	if len(errorPackPaths) > 0 {
-		logger.Error("%d packages are not in Json definitions but are in Git Lfs (listing first %d):", len(errorPackPaths), listFileCount)
-		for i, errorPackPath := range errorPackPaths {
+	if len(errorPaths) > 0 {
+		logger.Error("%d Packages/Apps are not in Json definitions but are in Git Lfs (listing first %d):", len(errorPaths), listFileCount)
+		for i, errorPath := range errorPaths {
 			if i > listFileCount - 1 {
 				break
 			}
-			logger.ErrorIndent("%s", errorPackPath)
+			logger.ErrorIndent("%s", errorPath)
 		}
-		return fmt.Errorf("packages in Git Lfs are not subset of packages in Json definitions")
+		return fmt.Errorf("Packages/Apps in Git Lfs are not subset of Packages/Apps in Json definitions")
 	}
 
-	if len(expectedPackForImagePaths) > 0 {
-		logger.Warn("Expected %d packages (built for target image) to be in git lfs (listing first %d):", len(expectedPackForImagePaths), listFileCount)
-		for i, expectedPackForImagePath := range expectedPackForImagePaths {
+	if len(expectedPathsForImage) > 0 {
+		logger.Warn("Expected %d Packages/Apps (built for target image) to be in Git Lfs (listing first %d):", len(expectedPathsForImage), listFileCount)
+		for i, expectedPathForImage := range expectedPathsForImage {
 			if i > listFileCount - 1 {
 				break
 			}
-			logger.WarnIndent("%s", expectedPackForImagePath)
+			logger.WarnIndent("%s", expectedPathForImage)
 		}
 	}
-	if len(expectedPackNotForImagePaths) > 0 {
-		logger.Warn("%d packages are in context but are not built for target image (listing first %d):", len(expectedPackNotForImagePaths), listFileCount)
-		for i, expectedPackNotForImagePath := range expectedPackNotForImagePaths {
+	if len(expectedPathsNotForImage) > 0 {
+		logger.Warn("%d Packages/Apps are in context but are not built for target image (listing first %d):", len(expectedPathsNotForImage), listFileCount)
+		for i, expectedPathNotForImage := range expectedPathsNotForImage {
 			if i > listFileCount - 1 {
 				break
 			}
-			logger.WarnIndent("%s", expectedPackNotForImagePath)
+			logger.WarnIndent("%s", expectedPathNotForImage)
 		}
 	}
 	return nil
 }
 
-// CreatePackagePath
-// Returns path for specific pack inside Git Lfs.
-func (lfs *GitLFSRepository) CreatePackagePath(pack bringauto_package.Package) string {
+// CreatePath
+// Returns path for specific pack inside Git Lfs. The path depends on packageOrApp string which
+// should be either "package" or "app".
+func (lfs *GitLFSRepository) CreatePath(pack bringauto_package.Package, packageOrApp string) string {
 	repositoryPath := path.Join(
 		pack.PlatformString.String.DistroName,
 		pack.PlatformString.String.DistroRelease,
 		pack.PlatformString.String.Machine,
 		pack.Name,
 	)
-	return path.Join(lfs.GitRepoPath, repositoryPath)
+	return path.Join(lfs.GitRepoPath, packageOrApp, repositoryPath)
 }
 
 // CopyToRepository
-// Copies the pack to the Git LFS repository. Each package is stored in different directory
-// structure represented by
-// PlatformString.DistroName / PlatformString.DistroRelease / PlatformString.Machine / <package>
-func (lfs *GitLFSRepository) CopyToRepository(pack bringauto_package.Package, sourceDir string) error {
-	archiveDirectory := lfs.CreatePackagePath(pack)
+// Copies the pack to the Git LFS repository. packageOrApp is a string representing type of
+// Package, it should be either "package" or "app". Each Package/App is stored in different
+// directory structure represented by
+// packageOrApp / PlatformString.DistroName / PlatformString.DistroRelease / PlatformString.Machine / <package>
+func (lfs *GitLFSRepository) CopyToRepository(pack bringauto_package.Package, sourceDir string, packageOrApp string) error {
+	archiveDirectory := lfs.CreatePath(pack, packageOrApp)
 
 	var err error
 	err = os.MkdirAll(archiveDirectory, 0755)

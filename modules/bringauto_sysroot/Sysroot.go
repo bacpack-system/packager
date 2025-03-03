@@ -197,3 +197,7 @@ func getExistingFilesInDir(dirPath string) []string {
 
 	return existingFiles
 }
+
+func RemoveInstallSysroot() {
+	os.RemoveAll(sysrootDirectoryName)
+}

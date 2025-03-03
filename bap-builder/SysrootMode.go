@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_context"
 	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_package"
@@ -69,7 +70,7 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 func unzipAllPackagesToDir(packages []bringauto_package.Package, repo *bringauto_repository.GitLFSRepository, dirPath string) error {
 	anyPackageCopied := false
 	for _, pack := range packages {
-		packPath := path.Join(repo.CreatePackagePath(pack), pack.GetFullPackageName() + bringauto_package.ZipExt)
+		packPath := path.Join(repo.CreatePath(pack, bringauto_const.PackageDirName), pack.GetFullPackageName() + bringauto_package.ZipExt)
 		_, err := os.Stat(packPath)
 		if err == nil { // Package exists in Git Lfs
 			var sysrootPath string

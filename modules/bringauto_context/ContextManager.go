@@ -19,16 +19,16 @@ type ContextManager struct {
 	ContextPath string
 }
 
-// GetAllPackagesJsonDefPaths
-// Returns all Package Configs in the context directory.
-func (context *ContextManager) GetAllPackagesJsonDefPaths() (map[string][]string, error) {
+// GetAllJsonDefPaths
+// Returns all Package or App Configs (depends on packageOrApp) in the Context directory.
+func (context *ContextManager) GetAllConfigJsonPaths(packageOrApp string) (map[string][]string, error) {
 	var err error
 	err = context.validateContextPath()
 	if err != nil {
 		return nil, err
 	}
 
-	packageDir := path.Join(context.ContextPath, bringauto_const.PackageDirName)
+	packageDir := path.Join(context.ContextPath, packageOrApp)
 
 	reg, err := regexp.CompilePOSIX("^.*\\.json$")
 	if err != nil {
@@ -39,38 +39,38 @@ func (context *ContextManager) GetAllPackagesJsonDefPaths() (map[string][]string
 	return packageJsonList, err
 }
 
-// GetAllPackagesConfigs
-// Returns Config structs of all Package Configs. If platformString is not nil, it is added to all
-// Packages.
-func (context *ContextManager) GetAllPackagesConfigs(platformString *bringauto_package.PlatformString) ([]*bringauto_config.Config, error) {
-	var packConfigs []*bringauto_config.Config
-	packageJsonPathMap, err := context.GetAllPackagesJsonDefPaths()
+// GetAllConfigs
+// Returns Config structs of all Package or App Configs (depends on packageOrApp). If
+// platformString is not nil, it is added to all Packages/Apps.
+func (context *ContextManager) GetAllConfigs(platformString *bringauto_package.PlatformString, packageOrApp string) ([]*bringauto_config.Config, error) {
+	var configs []*bringauto_config.Config
+	jsonPathMap, err := context.GetAllConfigJsonPaths(packageOrApp)
 	if err != nil {
 		return nil, err
 	}
 	logger := bringauto_log.GetLogger()
-	for _, packageJsonPaths := range packageJsonPathMap {
-		for _, packageJsonPath := range packageJsonPaths {
+	for _, jsonPaths := range jsonPathMap {
+		for _, jsonPath := range jsonPaths {
 			var config bringauto_config.Config
-			err = config.LoadJSONConfig(packageJsonPath)
+			err = config.LoadJSONConfig(jsonPath)
 			if err != nil {
-				logger.Warn("Couldn't load JSON config from %s path - %s", packageJsonPath, err)
+				logger.Warn("Couldn't load JSON Config from %s path - %s", jsonPath, err)
 				continue
 			}
 			if platformString != nil {
 				config.Package.PlatformString = *platformString
 			}
-			packConfigs = append(packConfigs, &config)
+			configs = append(configs, &config)
 		}
 	}
-	return packConfigs, nil
+	return configs, nil
 }
 
-// GetAllPackagesConfigs
+// GetAllPackagesStructs
 // Returns Package structs of all Package Configs. If platformString is not nil, it is added to all
 // Packages.
 func (context *ContextManager) GetAllPackagesStructs(platformString *bringauto_package.PlatformString) ([]bringauto_package.Package, error) {
-	packConfigs, err := context.GetAllPackagesConfigs(platformString)
+	packConfigs, err := context.GetAllConfigs(platformString, bringauto_const.PackageDirName)
 	if err != nil {
 		return []bringauto_package.Package{}, err
 	}
@@ -104,22 +104,22 @@ func (context *ContextManager) GetAllImagesDockerfilePaths() (map[string][]strin
 	return dockerfileList, err
 }
 
-// GetPackageJsonDefPaths
-// Returns all Config for given Package.
-func (context *ContextManager) GetPackageJsonDefPaths(packageName string) ([]string, error) {
+// GetConfigJsonPaths
+// Returns Config paths of all Packages or Apps (depends on packageOrApp).
+func (context *ContextManager) GetConfigJsonPaths(packageName string, packageOrApp string) ([]string, error) {
 	var err error
 	err = context.validateContextPath()
 	if err != nil {
 		return []string{}, err
 	}
-	packageBasePath := path.Join(context.ContextPath, bringauto_const.PackageDirName, packageName)
+	packageBasePath := path.Join(context.ContextPath, packageOrApp, packageName)
 
 	packageBasePathStat, err := os.Stat(packageBasePath)
 	if os.IsNotExist(err) {
-		return []string{}, fmt.Errorf("package does not exist, please check the name")
+		return []string{}, fmt.Errorf("Package/App does not exist, please check the name")
 	}
 	if !packageBasePathStat.IsDir() {
-		return []string{}, fmt.Errorf("package does not exist. It seems like an ordinary file")
+		return []string{}, fmt.Errorf("Package/App does not exist. It seems like an ordinary file")
 	}
 
 	reg, err := regexp.CompilePOSIX("^.*\\.json$")
@@ -129,7 +129,7 @@ func (context *ContextManager) GetPackageJsonDefPaths(packageName string) ([]str
 
 	packageDefs, err := getAllFilesInDirByRegexp(packageBasePath, reg)
 	if err != nil {
-		return []string{}, fmt.Errorf("cannot get definitions for package '%s'", packageName)
+		return []string{}, fmt.Errorf("cannot get definitions for Package/App '%s'", packageName)
 	}
 
 	return packageDefs, nil
@@ -149,7 +149,7 @@ func (context *ContextManager) getAllDepsJsonPaths(packageJsonPath string, visit
 	addedPackages := 0
 	var jsonPathListWithDeps []string
 	for _, packageDep := range config.DependsOn {
-		packageDepsJsonPaths, err := context.GetPackageJsonDefPaths(packageDep)
+		packageDepsJsonPaths, err := context.GetConfigJsonPaths(packageDep, bringauto_const.PackageDirName)
 		if err != nil {
 			return []string{}, fmt.Errorf("couldn't get Json Path of %s package", packageDep)
 		}
@@ -188,7 +188,7 @@ func (context *ContextManager) getAllDepsJsonPaths(packageJsonPath string, visit
 // recursively is set to true, it is done recursively. For tracking of circular dependencies,
 // the visited map must be initialized before function call.
 func (context *ContextManager) getAllDepsOnJsonPaths(config bringauto_config.Config, visited map[string]struct{}, recursively bool) ([]string, error) {
-	packConfigs, err := context.GetAllPackagesConfigs(nil)
+	packConfigs, err := context.GetAllConfigs(nil, bringauto_const.PackageDirName)
 	if err != nil {
 		return []string{}, err
 	}
@@ -236,7 +236,7 @@ func (context *ContextManager) addDependsOnPackagesToBuild(packsToBuild *[]strin
 // GetPackageWithDepsJsonDefPaths
 // Returns all Config paths for given Package and all its dependencies Config paths recursively.
 func (context *ContextManager) GetPackageWithDepsJsonDefPaths(packageName string) ([]string, error) {
-	packageDefs, err := context.GetPackageJsonDefPaths(packageName)
+	packageDefs, err := context.GetConfigJsonPaths(packageName, bringauto_const.PackageDirName)
 	if err != nil {
 		return []string{}, fmt.Errorf("cannot get config paths for package '%s' - %s", packageName, err)
 	}
@@ -260,7 +260,7 @@ func (context *ContextManager) GetPackageWithDepsJsonDefPaths(packageName string
 // without package (packageName) itself and its dependencies. If recursively is set to true, it is
 // done recursively.
 func (context *ContextManager) GetDepsOnJsonDefPaths(packageName string, recursively bool) ([]string, error) {
-	packageDefs, err := context.GetPackageJsonDefPaths(packageName)
+	packageDefs, err := context.GetConfigJsonPaths(packageName, bringauto_const.PackageDirName)
 	if err != nil {
 		return []string{}, err
 	}
@@ -379,6 +379,15 @@ func (context *ContextManager) validateContextPath() error {
 	}
 	if !packageStat.IsDir() {
 		return fmt.Errorf("package path is not a directory - %s\n", packageDirPath)
+	}
+
+	appDirPath := path.Join(context.ContextPath, bringauto_const.AppDirName)
+	appStat, err := os.Stat(appDirPath)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("App path does not exist - %s\n", appDirPath)
+	}
+	if !appStat.IsDir() {
+		return fmt.Errorf("App path is not a directory - %s\n", appDirPath)
 	}
 
 	return nil
