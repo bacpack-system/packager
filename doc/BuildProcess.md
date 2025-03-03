@@ -1,7 +1,7 @@
 
 # Build Process
 
-Each Package has a Config file in the JSON format (Config file details in [Context Structure]).
+Each Package/App has a Config file in the JSON format (Config file details in [Context Structure]).
 
 ## Build All Packages
 

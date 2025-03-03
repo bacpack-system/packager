@@ -292,6 +292,41 @@ packager build-package
   --output ./git-lfs-repo
 ```
 
+## Build App
+
+For apps which manages their own dependencies (e. g. using CMake), the Packager supports different
+workflow - Apps. The Configs for these Apps are in `app` directory in Context and are the same as
+for regular Packages with one exception - DependsOn array must be empty. The Apps do not support
+any dependencies managed by Packager, if the user needs it, the Packages should be used. Building
+Apps also do not support any dependency related flags (`--build-deps`, `--build-deps-on` ...).
+
+### Build App - all Apps
+
+Build all Apps in Context.
+
+**Command**
+
+```bash
+packager build-app
+  --context ./example \
+  --image-name debian \
+  --all \
+  --output ./git-lfs-repo
+```
+
+### Build App - single App
+
+Build single App in Context.
+
+**Command**
+
+```bash
+packager build-app
+  --context ./example \
+  --image-name debian \
+  --name app-name \
+  --output ./git-lfs-repo
+```
 
 ## Create Sysroot
 

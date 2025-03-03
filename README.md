@@ -42,10 +42,11 @@ Additional requirements for `build.sh`:
 The `packager` (`bap-builder`) has these commands:
  - `build-image` for building Docker images
  - `build-package` for building Packages
+ - `build-app` for building Apps
  - `create-sysroot` for creating sysroot from already built Packages
 
-The `build-package` and `create-sysroot` commands are using Git Repository as storage for built
-Packages. Given Git Repository must be created before usage.
+The `build-package`, `build-app` and `create-sysroot` commands are using Git Repository as storage
+for built Packages. Given Git Repository must be created before usage.
 
 **NOTE:** Detailed use case scenarios is decribed in [UseCaseScenarios](./doc/UseCaseScenarios.md) document.
 

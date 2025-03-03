@@ -4,7 +4,7 @@
 Context structure is a directory structure that gathers Configs needed for BAP to
 work.
 
-In the Context the definitions of Packages (Configs) and Docker images are stored.
+In the Context the definitions of Packages/Apps (Configs) and Docker images are stored.
 
 ``` plaintext
 <context_directory>/
@@ -13,6 +13,12 @@ In the Context the definitions of Packages (Configs) and Docker images are store
    Dockerfile
   ...
  package/
+  <package_group_name>/
+   <package_config_a>.json
+   <package_config_b>.json
+   ...
+  ...
+ app/
   <package_group_name>/
    <package_config_a>.json
    <package_config_b>.json
