@@ -84,6 +84,7 @@ func TestCreatePackagePath(t *testing.T) {
 	packPath := repo.CreatePath(pack1, bringauto_const.PackageDirName)
 	expectedPackPath := filepath.Join(
 		RepoName,
+		bringauto_const.PackageDirName,
 		pack1.PlatformString.String.DistroName,
 		pack1.PlatformString.String.DistroRelease,
 		pack1.PlatformString.String.Machine,
