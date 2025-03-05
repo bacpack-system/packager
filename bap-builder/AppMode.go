@@ -84,7 +84,10 @@ func buildAllApps(
 				return fmt.Errorf("cannot build App '%s' - %s", config.Package.Name, err)
 			}
 		}
-		bringauto_sysroot.RemoveInstallSysroot()
+		err = bringauto_sysroot.RemoveInstallSysroot()
+		if err != nil {
+			return fmt.Errorf("cannot remove install sysroot directory")
+		}
 	}
 	if count == 0 {
 		logger.Warn("Nothing to build. Did you enter correct image name?")
