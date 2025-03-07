@@ -4,3 +4,7 @@ install_sysroot
 localInstall
 log
 *.zip
+
+# integration tests
+tests/venv/
+tests/**/__pycache__/
