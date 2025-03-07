@@ -1,18 +1,18 @@
 import pytest
 import subprocess
 import os
-import test_utils.test_utils as test_utils
+import shutil
 
 
-# @pytest.fixture(scope="session")
-# def package_to_image_placer_binary():
-#     """Compile the Go application binary."""
-#     package_to_image_placer_binary = "../package-to-image-placer"
-#     source_file = "../ImageToPackagePlacer.go"
+@pytest.fixture(scope="session")
+def packager_binary():
+    """Compile the Go application binary."""
+    packager_binary = "../bap-builder/bap-builder"
 
-#     subprocess.run(["go", "build", "-o", package_to_image_placer_binary, source_file], check=True)
+    subprocess.run(["go", "get", "bringauto/bap-builder"], check=True)
+    subprocess.run(["go", "build", "-o", packager_binary, "../bap-builder"], check=True)
 
-#     yield package_to_image_placer_binary  # Pass the binary path to tests
+    yield packager_binary  # Pass the binary path to tests
 
 
 @pytest.fixture(autouse=True)
@@ -21,7 +21,7 @@ def clean_up_between_tests():
     test_data_dir = "test_data"
     # remove any previous test data
     if os.path.exists(test_data_dir):
-        test_utils.remove_dir(test_data_dir)
+        shutil.rmtree(test_data_dir)
 
     os.makedirs(test_data_dir, exist_ok=True)
 
@@ -36,13 +36,14 @@ def clean_up_between_tests():
 def setup_environment():
     """Set up the environment before any tests are run."""
     # try:
-         # subprocess.run(["go", "build", "-o", "../package-to-image-placer", "../ImageToPackagePlacer.go"], check=True)
+    # subprocess.run(["go", "build", "-o", "../package-to-image-placer", "../ImageToPackagePlacer.go"], check=True)
 
     # except FileNotFoundError:
     #     pytest.fail("Please make sure the app is built before running the tests.")
 
     print("Checking if all system utilities are installed...")
     try:
+        pass
         # subprocess.run(["go", "version"], check=True, capture_output=True, text=True)
         # subprocess.run(["touch", "--version"], check=True, capture_output=True, text=True)
         # subprocess.run(["rm", "--version"], check=True, capture_output=True, text=True)
