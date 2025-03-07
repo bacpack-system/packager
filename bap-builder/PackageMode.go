@@ -200,7 +200,10 @@ func checkContextDirConsistency(contextPath string) error {
 	return err
 }
 
-func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFSRepository, platformString *bringauto_package.PlatformString) error {
+// performPreBuildChecks
+// Performs Context directory, Git lfs and sysroot consistency checks. This should be called before
+// builds.
+func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFSRepository, platformString *bringauto_package.PlatformString, imageName string) error {
 	logger := bringauto_log.GetLogger()
 	logger.Info("Checking context directory (%s) consistency", contextPath)
 	err := checkContextDirConsistency(contextPath)
@@ -211,7 +214,7 @@ func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFS
 		ContextPath: contextPath,
 	}
 	logger.Info("Checking Git Lfs directory consistency")
-	err = repo.CheckGitLfsConsistency(&contextManager, platformString)
+	err = repo.CheckGitLfsConsistency(&contextManager, platformString, imageName)
 	if err != nil {
 		return err
 	}
@@ -237,24 +240,23 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 	if err != nil {
 		return err
 	}
-	err = performPreBuildChecks(contextPath, &repo, platformString)
+	err = performPreBuildChecks(contextPath, &repo, platformString, *cmdLine.DockerImageName)
 	if err != nil {
 		return err
 	}
 
 	handleRemover := bringauto_process.SignalHandlerAddHandler(repo.RestoreAllChanges)
+	defer handleRemover()
 	if *cmdLine.All {
 		err = buildAllPackages(cmdLine, contextPath, platformString, repo)
 	} else {
 		err = buildSinglePackage(cmdLine, contextPath, platformString, repo)
 	}
 	if err != nil {
-		handleRemover()
 		return err
 	}
-	repo.CommitAllChanges()
-	handleRemover()
-	return nil
+	err = repo.CommitAllChanges()
+	return err
 }
 
 // buildAllPackages
@@ -269,7 +271,7 @@ func buildAllPackages(
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
-	packageJsonPathMap, err := contextManager.GetAllPackagesJsonDefPaths()
+	packageJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
 	if err != nil {
 		return err
 	}
@@ -293,7 +295,7 @@ func buildAllPackages(
 			continue
 		}
 		count++
-		err = buildAndCopyPackage(cmdLine, &buildConfigs, platformString, repo)
+		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
 		}
@@ -320,10 +322,10 @@ func prepareConfigs(packageJsonPaths []string) ([]*bringauto_config.Config, erro
 }
 
 // prepareConfigsNoBuildDeps
-// Returns Config structures only for given package.
-func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_context.ContextManager) ([]*bringauto_config.Config, error) {
+// Returns Config structures only for given Package or App (depends on packageOrApp).
+func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_context.ContextManager, packageOrApp string) ([]*bringauto_config.Config, error) {
 	var configList []*bringauto_config.Config
-	packageJsonPaths, err := contextManager.GetPackageJsonDefPaths(packageName)
+	packageJsonPaths, err := contextManager.GetConfigJsonPaths(packageName, packageOrApp)
 	if err != nil {
 		return []*bringauto_config.Config{}, err
 	}
@@ -355,20 +357,24 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 			return []*bringauto_config.Config{}, err
 		}
 		packageJsonPaths = append(packageJsonPaths, paths...)
-	} else if *cmdLine.BuildDepsOn {
+	} else if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		value, err := isPackageWithDepsInSysroot(packageName, contextManager, platformString)
 		if err != nil {
 			return []*bringauto_config.Config{}, err
 		}
 		if !value {
-			err = fmt.Errorf("--build-deps-on set but base package or its dependencies are not in sysroot")
+			err = fmt.Errorf("--build-deps-on(-recursive) set but base package or its dependencies are not in sysroot")
 			return []*bringauto_config.Config{}, err
 		}
 	}
-	if *cmdLine.BuildDepsOn {
-		paths, err := contextManager.GetDepsOnJsonDefPaths(packageName)
+	if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
+		paths, err := contextManager.GetDepsOnJsonDefPaths(packageName, *cmdLine.BuildDepsOnRecursive)
 		if err != nil {
 			return []*bringauto_config.Config{}, err
+		}
+		if len(paths) == 0 {
+			logger := bringauto_log.GetLogger()
+			logger.Warn("No package depends on %s", packageName)
 		}
 		packageJsonPaths = append(packageJsonPaths, paths...)
 	}
@@ -391,18 +397,20 @@ func buildSinglePackage(
 	var err error
 	var configList []*bringauto_config.Config
 
-	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn {
+	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, &contextManager, platformString)
 	} else {
-		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager)
+		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, bringauto_const.PackageDirName)
 	}
 	if err != nil {
 		return err
 	}
-
+	if len(configList) == 0 {
+		return fmt.Errorf("nothing to build")
+	}
 	for _, config := range configList {
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err = buildAndCopyPackage(cmdLine, &buildConfigs, platformString, repo)
+		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
 		}
@@ -431,17 +439,14 @@ func addConfigsToDefsMap(defsMap *ConfigMapType, packageJsonPathList []string) {
 }
 
 // buildAndCopyPackage
-// Builds single package, takes care of every step of build for single package.
+// Builds single Package or App (depends on packageOrApp), takes care of every step of build for
+// single package.
 func buildAndCopyPackage(
-	cmdLine *BuildPackageCmdLineArgs,
 	build *[]bringauto_build.Build,
 	platformString *bringauto_package.PlatformString,
 	repo bringauto_repository.GitLFSRepository,
+	packageOrApp string,
 ) error {
-	if *cmdLine.OutputDirMode != OutputDirModeGitLFS {
-		return fmt.Errorf("invalid OutputDirmode. Only GitLFS is supported")
-	}
-
 	var err error
 	var removeHandler func()
 
@@ -466,7 +471,7 @@ func buildAndCopyPackage(
 
 		logger.InfoIndent("Copying to Git repository")
 
-		err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath())
+		err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
 		if err != nil {
 			break
 		}
@@ -490,7 +495,7 @@ func buildAndCopyPackage(
 // determinePlatformString
 // Will construct platform string suitable for sysroot.
 func determinePlatformString(dockerImageName string) (*bringauto_package.PlatformString, error) {
-	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](dockerImageName)
 	defaultDocker.ImageName = dockerImageName
 
 	sshCreds := bringauto_prerequisites.CreateAndInitialize[bringauto_ssh.SSHCredentials]()
@@ -526,7 +531,7 @@ func checkSysrootDirs(platformString *bringauto_package.PlatformString) (error) 
 	return nil
 }
 
-// arePackagesInSysroot
+// isPackageWithDepsInSysroot
 // Returns true if packageName an its dependencies are in sysroot, else returns false.
 func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_context.ContextManager, platformString *bringauto_package.PlatformString) (bool, error) {
 	packageJsonPaths, err := contextManager.GetPackageWithDepsJsonDefPaths(packageName)
@@ -543,6 +548,9 @@ func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_co
 		PlatformString: platformString,
 	}
 	err = bringauto_prerequisites.Initialize(&sysroot)
+	if err != nil {
+		return false, err
+	}
 
 	for _, config := range configList {
 		packName := config.Package.GetShortPackageName()

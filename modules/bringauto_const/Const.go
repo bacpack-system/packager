@@ -14,4 +14,6 @@ const (
 	DockerDirName  = "docker"
 	// Name of the package directory
 	PackageDirName = "package"
+	// Name of the app directory
+	AppDirName = "app"
 )

@@ -89,7 +89,7 @@ func (config *Config) GetBuildStructure(imageName string, platformString *bringa
 			continue
 		}
 		build := config.fillBuildStructure(imageName, platformString)
-		defaultBuild := bringauto_prerequisites.CreateAndInitialize[bringauto_build.Build]()
+		defaultBuild := bringauto_prerequisites.CreateAndInitialize[bringauto_build.Build](imageName)
 		err := copier.CopyWithOption(defaultBuild, build, copier.Option{DeepCopy: true, IgnoreEmpty: true})
 		if err != nil {
 			panic(fmt.Errorf("cannot merge default and real build config"))
@@ -100,10 +100,11 @@ func (config *Config) GetBuildStructure(imageName string, platformString *bringa
 	return buildConfigs
 }
 
+// fillBuildStructure
+// Fills and returns Build structure.
 func (config *Config) fillBuildStructure(dockerImageName string, platformString *bringauto_package.PlatformString) bringauto_build.Build {
 	var err error
-	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
-	defaultDocker.ImageName = dockerImageName
+	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](dockerImageName)
 
 	env := &bringauto_build.EnvironmentVariables{
 		Env: config.Env,

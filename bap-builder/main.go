@@ -39,7 +39,14 @@ func main() {
 		}
 		return
 	}
-
+	if args.BuildApp {
+		err = BuildApp(&args.BuildAppArgs, *args.Context)
+		if err != nil {
+			logger.Error("Failed to build App: %s", err)
+			return
+		}
+		return
+	}
 	if args.CreateSysroot {
 		err = CreateSysroot(&args.CreateSysrootArgs, *args.Context)
 		if err != nil {
