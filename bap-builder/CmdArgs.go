@@ -194,6 +194,7 @@ func (cmd *CmdLineArgs) InitFlags() {
 	cmd.BuildImagesArgs.All = cmd.buildImageParser.Flag("", "all",
 		&argparse.Options{
 			Required: false,
+			Help:     "Build all Images in the given context.",
 			Default:  false,
 		},
 	)
