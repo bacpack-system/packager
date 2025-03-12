@@ -24,7 +24,7 @@ def test_app_build_image(test_images, packager_binary):
     context = os.path.abspath(os.path.join("test_data", "example"))
 
     for image in test_images:
-        result = run_packager(packager_binary, "build-image", context=context, image=image)
+        result = run_packager(packager_binary, "build-image", context=context, image_name=image)
         stdout = result.communicate()[0]
 
         assert result.returncode == 0

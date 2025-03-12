@@ -27,7 +27,7 @@ def test_run_with_nonexisting_image(test_images, packager_binary):
     """TODO"""
     context = os.path.abspath(os.path.join("test_data", "example"))
 
-    result = run_packager(packager_binary, "build-image", context=context, image="nonexisting_image")
+    result = run_packager(packager_binary, "build-image", context=context, image_name="nonexisting_image")
     stdout = result.communicate()[0]
 
     assert result.returncode == 0

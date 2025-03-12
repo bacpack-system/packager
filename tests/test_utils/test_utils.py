@@ -40,7 +40,7 @@ def run_packager(
     package_binary: str,
     mode: str,
     context: str = None,
-    image: str = None,
+    image_name: str = None,
     help: bool = False,
     all: bool = False,
 ) -> subprocess.CompletedProcess:
@@ -58,9 +58,9 @@ def run_packager(
         parameters.append("--context")
         parameters.append(context)
 
-    if image:
-        parameters.append("--name")
-        parameters.append(image)
+    if image_name:
+        parameters.append("--image-name")
+        parameters.append(image_name)
 
     # print(parameters)
 
