@@ -1,0 +1,35 @@
+{
+  "Env": {},
+  "Git": {
+    "URI": "https://github.com/bringauto/mission-module.git",
+    "Revision": "v1.2.11"
+  },
+  "Build": {
+    "CMake": {
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BRINGAUTO_INSTALL": "ON"
+      }
+    }
+  },
+  "Package": {
+    "Name": "mission-module",
+    "VersionTag": "v1.2.11",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": false,
+    "IsDevLib": false,
+    "IsDebug": false
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "fleet-os-2",
+      "ubuntu2204",
+      "debian12",
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}
