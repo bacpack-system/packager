@@ -15,7 +15,7 @@
     }
   },
   "Package": {
-    "Name": "curl",
+    "Name": "test_package_2",
     "VersionTag": "v7.79.1",
     "PlatformString": {
       "Mode": "auto"

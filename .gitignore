@@ -8,3 +8,4 @@ log
 # integration tests
 tests/venv/
 tests/**/__pycache__/
+tests/test_data/test_repo

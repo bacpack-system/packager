@@ -1,25 +1,21 @@
 {
   "Env": {},
-  "DependsOn": [
-    "spdlog"
-  ],
+  "DependsOn": [],
   "Git": {
-    "URI": "https://github.com/bringauto/ba-logger.git",
-    "Revision": "v2.0.0"
+    "URI": "https://github.com/nlohmann/json.git",
+    "Revision": "v3.10.5"
   },
   "Build": {
     "CMake": {
       "Defines": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LIB_TYPE": "SPDLOG",
-        "BRINGAUTO_INSTALL": "ON",
-        "BRINGAUTO_SYSTEM_DEP": "ON"
+        "JSON_BuildTests": "OFF"
       }
     }
   },
   "Package": {
-    "Name": "ba-logger",
-    "VersionTag": "v2.0.0",
+    "Name": "test_package_3",
+    "VersionTag": "v3.10.5",
     "PlatformString": {
       "Mode": "auto"
     },
@@ -30,6 +26,7 @@
   "DockerMatrix": {
     "ImageNames": [
       "ubuntu2204",
+      "fleet-os-2",
       "debian12",
       "ubuntu2404",
       "fedora40",
