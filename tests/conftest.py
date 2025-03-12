@@ -3,16 +3,9 @@ import subprocess
 import os
 import shutil
 import docker
+from test_utils.test_utils import get_available_images
 
 packager_binary_path = "../bap-builder/bap-builder"
-test_data_examples = "test_data/example"
-test_apps = os.path.join(test_data_examples, "app")
-test_dockers = os.path.join(test_data_examples, "docker")
-test_packages = os.path.join(test_data_examples, "package")
-
-
-def get_available_images():
-    return sorted(os.listdir(test_dockers))
 
 
 @pytest.fixture(scope="session", autouse=True)
