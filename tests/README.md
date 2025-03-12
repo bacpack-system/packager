@@ -10,7 +10,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Before running the tests, ensure that the application can be built successfully. Follow the build instructions provided in the main documentation.
+Before running the tests, ensure that the application can be built successfully. Follow the build instructions provided in the root `README.md` file.
 
 <!-- ---
 **⚠️ WARNING**  
@@ -34,6 +34,9 @@ To run tests with additional options, you can use the following flags:
 - `-s`: Show print statements in the test functions.
 - `-v`: Show verbose output.
 - `-k <expression>`: Run only tests that match the provided expression.
+- `--collect-only`: List all test cases.
+- `--image <image>`: Specify the Docker image to use for testing. If not provided, the `ubuntu2204` image is used. To use all available images, specify the `all` option.
+- `--remove_images`: Remove the Docker images before running the tests to ensure a clean environment.
 
 Example:
 
@@ -41,7 +44,11 @@ Example:
 pytest -s -v -k "test_function_name"
 ```
 
-In cases where tests are interrupted by user or crash, you may need to manually unmount any devices used during the tests.
+To run all tests with all possible options, use the following command (running it may take hours):
+
+```bash
+pytest -s -v --image all --remove_images
+```
 
 To list all test cases, use the following command:
 
