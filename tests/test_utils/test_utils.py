@@ -7,10 +7,31 @@ from time import sleep
 
 def run_packager(
     package_binary: str,
+    mode: str,
+    context: str = None,
+    image: str = None,
+    help: bool = False,
+    all: bool = False,
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
-    parameters = [package_binary]
+    parameters = [package_binary, mode]
+
+    if help:
+        parameters.append("--help")
+
+    if all:
+        parameters.append("--all")
+
+    if context:
+        parameters.append("--context")
+        parameters.append(context)
+
+    if image:
+        parameters.append("--name")
+        parameters.append(image)
+
+    # print(parameters)
 
     print(parameters)
 
