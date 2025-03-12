@@ -2,12 +2,12 @@ import subprocess
 import os
 from time import sleep
 
-from test_utils.test_utils import run_packager
+from test_utils.test_utils import run_packager, does_image_exist, get_available_images, check_stdout
 import pytest
 
 
 def test_app_show_help(test_images, packager_binary):
-    """Tests if the package_to_image_placer will fail when the paths are invalid"""
+    """TODO"""
 
     for mode in ["build-image", "build-package", "build-app", "create-sysroot"]:
         result = run_packager(packager_binary, mode, help=True)
@@ -20,7 +20,7 @@ def test_app_show_help(test_images, packager_binary):
 
 
 def test_app_build_image(test_images, packager_binary):
-    """Tests if the package_to_image_placer will fail when the paths are invalid"""
+    """TODO"""
     context = os.path.abspath(os.path.join("test_data", "example"))
 
     for image in test_images:
@@ -28,11 +28,12 @@ def test_app_build_image(test_images, packager_binary):
         stdout = result.communicate()[0]
 
         assert result.returncode == 0
-        assert "Build OK" in stdout
+        check_stdout(stdout, True)
+        assert does_image_exist(image)
 
 
 def test_app_build_all_images(test_images, packager_binary):
-    """Tests if the package_to_image_placer will fail when the paths are invalid"""
+    """TODO"""
     context = os.path.abspath(os.path.join("test_data", "example"))
 
     if len(test_images) <= 1:
@@ -46,4 +47,7 @@ def test_app_build_all_images(test_images, packager_binary):
     stdout = result.communicate()[0]
 
     assert result.returncode == 0
-    assert "Can't build image" not in stdout
+    check_stdout(stdout, True)
+
+    for image in get_available_images():
+        assert does_image_exist(image)
