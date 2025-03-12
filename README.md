@@ -63,7 +63,7 @@ for built Packages. Given Git Repository must be created before usage.
 2. Build Docker image needed for the build:
 
     ```bash
-    bap-builder build-image --context ./example --name debian12
+    bap-builder build-image --context ./example --image-name debian12
     ```
 
 3. Build all Packages for the given distro:

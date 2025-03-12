@@ -198,7 +198,7 @@ func (cmd *CmdLineArgs) InitFlags() {
 			Default:  false,
 		},
 	)
-	cmd.BuildImagesArgs.Name = cmd.buildImageParser.String("", "name",
+	cmd.BuildImagesArgs.Name = cmd.buildImageParser.String("", "image-name",
 		&argparse.Options{
 			Required: false,
 			Default:  "",
