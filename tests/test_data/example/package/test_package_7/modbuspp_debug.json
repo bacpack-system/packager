@@ -1,21 +1,22 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_8"
+  ],
   "Git": {
-    "URI": "https://github.com/nlohmann/json.git",
-    "Revision": "v3.10.5"
+    "URI": "https://github.com/bringauto/modbuspp.git",
+    "Revision": "v0.3.1"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "JSON_BuildTests": "OFF"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   },
   "Package": {
-    "Name": "nlohmann-json",
-    "VersionTag": "v3.10.5",
+    "Name": "test_package_7",
+    "VersionTag": "v0.3.1",
     "PlatformString": {
       "Mode": "auto"
     },

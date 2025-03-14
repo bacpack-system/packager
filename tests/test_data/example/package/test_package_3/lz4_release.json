@@ -1,21 +1,23 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_2"
+  ],
   "Git": {
-    "URI": "https://github.com/nlohmann/json.git",
-    "Revision": "v3.10.5"
+    "URI": "https://github.com/bringauto/lz4-cmake-build.git",
+    "Revision": "master"
   },
   "Build": {
     "CMake": {
       "Defines": {
         "CMAKE_BUILD_TYPE": "Release",
-        "JSON_BuildTests": "OFF"
+        "LZ4_VERSION": "1.9.3"
       }
     }
   },
   "Package": {
-    "Name": "nlohmann-json",
-    "VersionTag": "v3.10.5",
+    "Name": "test_package_3",
+    "VersionTag": "v1.9.3",
     "PlatformString": {
       "Mode": "auto"
     },

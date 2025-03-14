@@ -1,6 +1,8 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_7"
+  ],
   "Git": {
     "URI": "https://github.com/mapbox/protozero.git",
     "Revision": "v1.7.1"
@@ -14,7 +16,7 @@
     }
   },
   "Package": {
-    "Name": "protozero",
+    "Name": "test_package_6",
     "VersionTag": "v1.7.1",
     "PlatformString": {
       "Mode": "auto"

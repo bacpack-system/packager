@@ -1,27 +1,28 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_8"
+  ],
   "Git": {
-    "URI": "https://github.com/bringauto/lz4-cmake-build.git",
-    "Revision": "master"
+    "URI": "https://github.com/bringauto/modbuspp.git",
+    "Revision": "v0.3.1"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "LZ4_VERSION": "1.9.3"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   },
   "Package": {
-    "Name": "lz4",
-    "VersionTag": "v1.9.3",
+    "Name": "test_package_7",
+    "VersionTag": "v0.3.1",
     "PlatformString": {
       "Mode": "auto"
     },
     "IsLibrary": true,
     "IsDevLib": true,
-    "IsDebug": true
+    "IsDebug": false
   },
   "DockerMatrix": {
     "ImageNames": [

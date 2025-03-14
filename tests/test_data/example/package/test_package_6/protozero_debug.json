@@ -1,20 +1,23 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_7"
+  ],
   "Git": {
-    "URI": "https://github.com/bringauto/modbuspp.git",
-    "Revision": "v0.3.1"
+    "URI": "https://github.com/mapbox/protozero.git",
+    "Revision": "v1.7.1"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "OFF"
       }
     }
   },
   "Package": {
-    "Name": "modbuspp",
-    "VersionTag": "v0.3.1",
+    "Name": "test_package_6",
+    "VersionTag": "v1.7.1",
     "PlatformString": {
       "Mode": "auto"
     },

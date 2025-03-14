@@ -1,27 +1,28 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_6"
+  ],
   "Git": {
-    "URI": "https://github.com/bringauto/lz4-cmake-build.git",
-    "Revision": "master"
+    "URI": "https://github.com/google/googletest.git",
+    "Revision": "v1.12.1"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "LZ4_VERSION": "1.9.3"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   },
   "Package": {
-    "Name": "lz4",
-    "VersionTag": "v1.9.3",
+    "Name": "test_package_8",
+    "VersionTag": "v1.12.1",
     "PlatformString": {
       "Mode": "auto"
     },
     "IsLibrary": true,
     "IsDevLib": true,
-    "IsDebug": false
+    "IsDebug": true
   },
   "DockerMatrix": {
     "ImageNames": [
