@@ -1,14 +1,39 @@
 import subprocess
 import os
-import shutil
+import git
 import json
 import docker
+import shutil
 from time import sleep
 
-test_data_examples = "test_data/example"
-test_apps = os.path.join(test_data_examples, "app")
-test_dockers = os.path.join(test_data_examples, "docker")
-test_packages = os.path.join(test_data_examples, "package")
+
+test_config = {
+    "test_data_examples": "test_data/example",
+    "test_apps": os.path.join("test_data/example", "app"),
+    "test_dockers": os.path.join("test_data/example", "docker"),
+    "test_packages": os.path.join("test_data/example", "package"),
+    "packager_binary": os.path.abspath("../bap-builder/bap-builder"),
+    "test_repo": os.path.abspath("test_data/test_repo"),
+    "install_sysroot": os.path.abspath("install_sysroot"),
+}
+test_config["test_images"] = sorted(os.listdir(test_config["test_dockers"]))
+
+
+def init_test_repo():
+    if os.path.exists(test_config["test_repo"]):
+        shutil.rmtree(test_config["test_repo"])
+
+    os.makedirs(test_config["test_repo"])
+    git.Repo.init(test_config["test_repo"])
+    return test_config["test_repo"]
+
+
+def clean():
+    if os.path.exists(test_config["install_sysroot"]):
+        shutil.rmtree(test_config["install_sysroot"])
+    init_test_repo()
+
+    pass
 
 
 def does_image_exist(image: str) -> bool:
@@ -21,10 +46,6 @@ def does_image_exist(image: str) -> bool:
         return False
 
 
-def get_available_images():
-    return sorted(os.listdir(test_dockers))
-
-
 def check_stdout(stdout: str, expected_result: bool):
     stdout = stdout.lower()
     if expected_result:
@@ -32,21 +53,45 @@ def check_stdout(stdout: str, expected_result: bool):
         assert "error" not in stdout
         assert "failed to" not in stdout
     else:
-        assert "error" in stdout.upper()
-        assert "failed to build docker image:" in stdout
+        assert "error" in stdout
+        assert "failed to build" in stdout
+
+
+def is_package_tracked(package_name: str, repo_path: str) -> bool:
+    """Check if the package is tracked in the repository."""
+    repo = git.Repo(repo_path)
+    try:
+        files_in_last_commit = repo.git.log("--diff-filter=A", "--name-only", "--pretty=format:").splitlines()
+    except git.exc.GitCommandError:
+        files_in_last_commit = []
+
+    for path in files_in_last_commit:
+        if package_name in path.split("/"):
+            if package_name in path.split("/")[-1]:
+                return True
+            else:
+                return False
+
+    return False
 
 
 def run_packager(
-    package_binary: str,
+    packager_binary: str,
     mode: str,
     context: str = None,
     image_name: str = None,
+    output_dir: str = None,
+    package_name: str = None,
+    build_deps: bool = False,
+    build_deps_on: bool = False,
+    build_deps_on_recursive: bool = False,
     help: bool = False,
     all: bool = False,
+    expected_result: bool = None,
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
-    parameters = [package_binary, mode]
+    parameters = [packager_binary, mode]
 
     if help:
         parameters.append("--help")
@@ -62,7 +107,22 @@ def run_packager(
         parameters.append("--image-name")
         parameters.append(image_name)
 
-    # print(parameters)
+    if output_dir:
+        parameters.append("--output-dir")
+        parameters.append(output_dir)
+
+    if package_name:
+        parameters.append("--name")
+        parameters.append(package_name)
+
+    if build_deps:
+        parameters.append("--build-deps")
+
+    if build_deps_on:
+        parameters.append("--build-deps-on")
+
+    if build_deps_on_recursive:
+        parameters.append("--build-deps-on-recursive")
 
     print(parameters)
 
@@ -76,8 +136,11 @@ def run_packager(
 
     stdout, stdin = result.communicate()
 
-    # this outputs can be inspected when running pytest with -s flag
     print(stdout)
     print(stdin)
 
+    if expected_result is not None:
+        check_stdout(stdout, expected_result)
+
+    assert result.returncode == 0
     return result
