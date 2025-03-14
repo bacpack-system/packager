@@ -33,3 +33,16 @@ def test_run_with_nonexisting_image(test_images, packager_binary):
     assert result.returncode == 0
     assert "ERROR" in stdout
     assert "Failed to build Docker image:" in stdout
+
+
+def test_run_with_nonexisting_package(test_images, packager_binary):
+    """TODO"""
+    context = os.path.abspath(os.path.join("test_data", "example"))
+
+    result = run_packager(
+        packager_binary, "build-package", context=context, image_name=test_images[0], package_name="nonexisting_package"
+    )
+    stdout = result.communicate()[0]
+
+    assert result.returncode == 0
+    assert "ERROR" in stdout
