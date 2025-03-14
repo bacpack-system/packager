@@ -1,32 +1,36 @@
 {
   "Env": {},
+  "DependsOn": [
+    "spdlog"
+  ],
   "Git": {
-    "URI": "https://github.com/madler/zlib.git",
-    "Revision": "v1.2.11"
+    "URI": "https://github.com/bringauto/ba-logger.git",
+    "Revision": "v2.0.0"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIB_TYPE": "SPDLOG",
+        "BRINGAUTO_INSTALL": "ON",
+        "BRINGAUTO_SYSTEM_DEP": "ON"
       }
     }
   },
   "Package": {
-    "Name": "zlib",
-    "VersionTag": "v1.2.11",
+    "Name": "ba-logger",
+    "VersionTag": "v2.0.0",
     "PlatformString": {
       "Mode": "auto"
     },
     "IsLibrary": true,
     "IsDevLib": true,
-    "IsDebug": true
+    "IsDebug": false
   },
   "DockerMatrix": {
     "ImageNames": [
       "ubuntu2204",
-      "fleet-os-2",
       "debian12",
-      "ubuntu1804-aarch64",
       "ubuntu2404",
       "fedora40",
       "fedora41"

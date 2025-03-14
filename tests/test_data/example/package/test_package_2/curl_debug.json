@@ -1,7 +1,7 @@
 {
   "Env": {},
   "DependsOn": [
-    "zlib"
+    "test_package_1"
   ],
   "Git": {
     "URI": "https://github.com/curl/curl.git",
