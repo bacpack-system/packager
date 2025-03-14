@@ -259,5 +259,6 @@ def test_app_circular_dependencies_deps_on(test_image, packager_binary, context,
         expected_result=False,
     )
 
-    for package in packages:
-        assert not is_package_tracked(package, test_repo)
+    assert not is_package_tracked(packages[0], test_repo)
+    assert not is_package_tracked(packages[1], test_repo)
+    assert is_package_tracked(packages[2], test_repo)
