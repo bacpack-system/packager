@@ -3,9 +3,8 @@ import subprocess
 import os
 import shutil
 import docker
-from test_utils.test_utils import get_available_images
-
-packager_binary_path = "../bap-builder/bap-builder"
+from test_utils.test_utils import test_config, init_test_repo, clean
+from git import Repo
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -14,7 +13,7 @@ def setup_environment(request):
     if request.config.getoption("--remove_images"):
         # TODO test this feature
         client = docker.from_env()
-        for image in get_available_images():
+        for image in test_config["test_images"]:
             try:
                 client.images.remove(image, force=True)
             except docker.errors.ImageNotFound:
@@ -39,16 +38,25 @@ def pytest_addoption(parser):
     )
 
 
-@pytest.fixture
-def test_images(request):
-    all_images = get_available_images()
+@pytest.fixture(params=test_config["test_images"])
+def test_image(request):
     image_param = request.config.getoption("--image")
     if image_param == "all":
-        return all_images
-    elif image_param in all_images:
-        return [image_param]
+        return request.param
+    elif image_param == request.param:
+        return request.param
     else:
-        raise ValueError(f"Invalid image: {image_param}. Available images: {all_images}")
+        pytest.skip(f"Skipping test for image {request.param}")
+
+
+@pytest.fixture
+def context():
+    return os.path.abspath(os.path.join("test_data", "example"))
+
+
+@pytest.fixture
+def test_repo():
+    return init_test_repo()
 
 
 @pytest.fixture(scope="session")
@@ -56,13 +64,18 @@ def packager_binary():
     """Compile the Go application binary."""
 
     subprocess.run(["go", "get", "bringauto/bap-builder"], check=True)
-    subprocess.run(["go", "build", "-o", packager_binary_path, "../bap-builder"], check=True)
+    subprocess.run(["go", "build", "-o", test_config["packager_binary"], "../bap-builder"], check=True)
 
-    yield packager_binary_path  # Pass the binary path to tests
+    yield test_config["packager_binary"]  # Pass the binary path to tests
 
 
 @pytest.fixture(autouse=True)
 def clean_up_between_tests():
     """Set up the environment before each test is run and clean up after each test is run."""
 
+    clean()
+
     yield
+
+    # if os.path.exists(test_repo_path):
+    #     shutil.rmtree(test_repo_path)
