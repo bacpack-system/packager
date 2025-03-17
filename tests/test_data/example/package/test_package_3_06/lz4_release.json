@@ -1,7 +1,7 @@
 {
   "Env": {},
   "DependsOn": [
-    "test_package_2"
+    "test_package_2_06"
   ],
   "Git": {
     "URI": "https://github.com/bringauto/lz4-cmake-build.git",
@@ -16,7 +16,7 @@
     }
   },
   "Package": {
-    "Name": "test_package_3",
+    "Name": "test_package_3_06",
     "VersionTag": "v1.9.3",
     "PlatformString": {
       "Mode": "auto"

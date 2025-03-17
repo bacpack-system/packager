@@ -1,23 +1,22 @@
 {
   "Env": {},
   "DependsOn": [
-    "test_package_2"
+    "test_package_3_06"
   ],
   "Git": {
-    "URI": "https://github.com/bringauto/lz4-cmake-build.git",
-    "Revision": "master"
+    "URI": "https://github.com/bringauto/bzip2.git",
+    "Revision": "1ea1ac188ad4b9cb662e3f8314673c63df95a589"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "LZ4_VERSION": "1.9.3"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   },
   "Package": {
-    "Name": "test_package_3",
-    "VersionTag": "v1.9.3",
+    "Name": "test_package_4_06",
+    "VersionTag": "v1.0.8",
     "PlatformString": {
       "Mode": "auto"
     },
@@ -27,8 +26,8 @@
   },
   "DockerMatrix": {
     "ImageNames": [
-      "ubuntu2204",
       "fleet-os-2",
+      "ubuntu2204",
       "debian12",
       "ubuntu2404",
       "fedora40",
