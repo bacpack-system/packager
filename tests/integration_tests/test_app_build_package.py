@@ -338,3 +338,30 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
     assert not is_package_tracked(packages[2], test_repo)
     assert not is_package_tracked(packages[3], test_repo)
     assert is_package_tracked(packages[4], test_repo)
+
+
+def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
+    packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4", "test_package_9"]
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=packages[0],
+        expected_result=True,
+    )
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=packages[0],
+        build_deps_on_recursive=True,
+        expected_result=True,
+    )
+
+    for package in packages:
+        assert is_package_tracked(package, test_repo)
