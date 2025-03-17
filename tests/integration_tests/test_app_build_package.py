@@ -365,3 +365,69 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
 
     for package in packages:
         assert is_package_tracked(package, test_repo)
+
+
+def test_17_only_debug(test_image, packager_binary, context, test_repo):
+    package = "test_package_1_17"
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=package,
+        expected_result=True,
+    )
+    assert is_package_tracked(package, test_repo)
+
+
+def test_18_only_release(test_image, packager_binary, context, test_repo):
+    package = "test_package_2_17"
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=package,
+        expected_result=True,
+    )
+    assert is_package_tracked(package, test_repo)
+
+
+def test_19_missing_release_debug_packages_build_deps(test_image, packager_binary, context, test_repo):
+    packages = ["test_package_1_17", "test_package_2_17"]
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=packages[1],
+        build_deps=True,
+        expected_result=False,
+    )
+
+    for package in packages:
+        assert not is_package_tracked(package, test_repo)
+
+
+def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_binary, context, test_repo):
+    packages = ["test_package_1_17", "test_package_2_17"]
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        package_name=packages[1],
+        # build_deps_on=True,
+        expected_result=True,
+    )
+
+    assert not is_package_tracked(packages[0], test_repo)
+    assert is_package_tracked(packages[1], test_repo)
