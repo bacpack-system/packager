@@ -1,6 +1,10 @@
 {
   "Env": {},
-  "DependsOn": [],
+  "DependsOn": [
+    "test_package_1",
+    "test_package_2",
+    "test_package_4"
+  ],
   "Git": {
     "URI": "https://github.com/gabime/spdlog.git",
     "Revision": "v1.14.1"
@@ -8,21 +12,21 @@
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Debug",
         "SPDLOG_BUILD_EXAMPLE": "OFF",
         "CPACK_PACKAGE_GENERATOR": "ZIP"
       }
     }
   },
   "Package": {
-    "Name": "spdlog",
+    "Name": "test_package_9",
     "VersionTag": "v1.14.1",
     "PlatformString": {
       "Mode": "auto"
     },
     "IsLibrary": true,
     "IsDevLib": true,
-    "IsDebug": false
+    "IsDebug": true
   },
   "DockerMatrix": {
     "ImageNames": [
