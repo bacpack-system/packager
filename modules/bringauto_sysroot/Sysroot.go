@@ -11,7 +11,6 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
-	"slices"
 )
 
 const (
@@ -19,6 +18,7 @@ const (
 	// Constant for number of problematic files which will be printed when trying to overwrite files
 	// in sysroot
 	listFilesCount = 10
+	debugName = "_debug"
 )
 
 // Sysroot represents a standard Linux sysroot with all needed libraries installed.
@@ -51,7 +51,7 @@ func (sysroot *Sysroot) CheckPrerequisites(args *bringauto_prerequisites.Args) e
 }
 
 // CopyToSysroot copy source to a sysroot
-func (sysroot *Sysroot) CopyToSysroot(source string, packageName string) error {
+func (sysroot *Sysroot) CopyToSysroot(source string, pack BuiltPackage) error {
 	err := sysroot.checkForOverwritingFiles(source)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (sysroot *Sysroot) CopyToSysroot(source string, packageName string) error {
 	if err != nil {
 		return err
 	}
-	err = sysroot.builtPackages.AddToBuiltPackages(packageName)
+	err = sysroot.builtPackages.AddToBuiltPackages(pack)
 	if err != nil {
 		return err
 	}
@@ -73,12 +73,10 @@ func (sysroot *Sysroot) CopyToSysroot(source string, packageName string) error {
 }
 
 // IsPackageInSysroot
-// Returns true if packageName is built in sysroot, else false.
-func (sysroot *Sysroot) IsPackageInSysroot(packageName string) bool {
-	if slices.Contains(sysroot.builtPackages.Packages, packageName) {
-		return true
-	}
-	return false
+// Returns true if Package specified by BuiltPackage struct is built in
+// sysroot, else false. If gitCommitHash is empty, it is not checked.
+func (sysroot *Sysroot) IsPackageInSysroot(pack BuiltPackage) bool {
+	return sysroot.builtPackages.Contains(pack)
 }
 
 // checkForOverwritingFiles
@@ -119,6 +117,16 @@ func (sysroot *Sysroot) printOverwriteFilesError(problematicFiles []string, n in
 	}
 }
 
+// GetDirNameInSysroot
+// Returns name of the directory inside Sysroot directory.
+func (sysroot *Sysroot) GetDirNameInSysroot() string {
+	dirInSysrootName := sysroot.PlatformString.Serialize()
+	if sysroot.IsDebug {
+		dirInSysrootName += debugName
+	}
+	return dirInSysrootName
+}
+
 // GetSysrootPath
 // Returns absolute path to the sysroot.
 func (sysroot *Sysroot) GetSysrootPath() string {
@@ -127,13 +135,9 @@ func (sysroot *Sysroot) GetSysrootPath() string {
 		panic(fmt.Errorf("cannot call Getwd - %s", err))
 	}
 
-	platformString := sysroot.PlatformString.Serialize()
-	sysrootDirName := platformString
-	if sysroot.IsDebug {
-		sysrootDirName += "_debug"
-	}
+	dirInSysrootName := sysroot.GetDirNameInSysroot()
 
-	sysrootDir := filepath.Join(workingDir, sysrootDirectoryName, sysrootDirName)
+	sysrootDir := filepath.Join(workingDir, sysrootDirectoryName, dirInSysrootName)
 	return sysrootDir
 }
 
