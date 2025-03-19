@@ -51,14 +51,14 @@ func (lfs *GitLFSRepository) CheckPrerequisites(*bringauto_prerequisites.Args) e
 	return nil
 }
 
-// CommitAllChanges
-// Adds all changes to staged and then makes a commit.
-func (lfs *GitLFSRepository) CommitAllChanges() error {
+// commitPackage
+// Adds all changes to staged and then makes a commit with packageName description.
+func (lfs *GitLFSRepository) commitPackage(packageName string) error {
 	err := lfs.gitAddAll()
 	if err != nil {
 		return err
 	}
-	err = lfs.gitCommit()
+	err = lfs.gitCommit(packageName)
 	if err != nil {
 		return err
 	}
@@ -280,6 +280,11 @@ func (lfs *GitLFSRepository) CopyToRepository(pack bringauto_package.Package, so
 		return err
 	}
 
+	err = lfs.commitPackage(pack.GetFullPackageName())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -315,12 +320,12 @@ func (lfs *GitLFSRepository) gitAddAll() error {
 }
 
 // gitCommit
-// Commits all in Git Lfs.
-func (lfs *GitLFSRepository) gitCommit() error {
+// Commits Git Lfs with packageName description.
+func (lfs *GitLFSRepository) gitCommit(packageName string) error {
 	var ok, _ = lfs.prepareAndRun([]string{
 		"commit",
 		"-m",
-		"Build packages",
+		"Build package " + packageName,
 	},
 	)
 	if !ok {

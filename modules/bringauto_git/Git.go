@@ -19,6 +19,10 @@ type GitCheckout struct {
 	Git
 }
 
+type GitGetHash struct {
+	Git
+}
+
 type GitSubmoduleUpdate struct {
 	Git
 }
@@ -45,6 +49,21 @@ func (args *GitCheckout) ConstructCMDLine() []string {
 		GitExecutablePath,
 		"checkout",
 		args.Revision,
+	}
+	return []string{
+		"pushd " + args.ClonePath,
+		strings.Join(cmd, " "),
+		"popd",
+	}
+}
+
+func (args *GitGetHash) ConstructCMDLine() []string {
+	validateGITPath(args.ClonePath)
+	cmd := []string{
+		GitExecutablePath,
+		"log",
+		"--pretty=format:'%H'",
+		"-1",
 	}
 	return []string{
 		"pushd " + args.ClonePath,
