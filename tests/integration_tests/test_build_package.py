@@ -16,7 +16,7 @@ def test_01_build_package(test_image, packager_binary, context, test_repo):
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         expected_result=True,
     )
 
@@ -33,7 +33,7 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=depends_on_package,
+        name=depends_on_package,
         expected_result=True,
     )
     assert not is_package_tracked(package, test_repo)
@@ -45,7 +45,7 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         expected_result=True,
     )
     assert is_package_tracked(package, test_repo)
@@ -64,7 +64,7 @@ def test_03_build_package_dependency_with_build_deps(test_image, packager_binary
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         build_deps=True,
         expected_result=True,
     )
@@ -82,7 +82,7 @@ def test_04_build_multiple_package_dependency_with_build_deps(test_image, packag
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[-1],
+        name=packages[-1],
         build_deps=True,
         expected_result=True,
     )
@@ -102,7 +102,7 @@ def test_05_build_package_dependency_with_build_deps_on(test_image, packager_bin
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=depends_on_package,
+        name=depends_on_package,
         expected_result=True,
     )
     assert not is_package_tracked(package, test_repo)
@@ -114,7 +114,7 @@ def test_05_build_package_dependency_with_build_deps_on(test_image, packager_bin
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=depends_on_package,
+        name=depends_on_package,
         build_deps_on=True,
         expected_result=True,
     )
@@ -132,7 +132,7 @@ def test_06_build_multiple_package_dependency_with_build_deps_on(test_image, pac
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         expected_result=True,
     )
 
@@ -142,7 +142,7 @@ def test_06_build_multiple_package_dependency_with_build_deps_on(test_image, pac
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on=True,
         expected_result=True,
     )
@@ -165,7 +165,7 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         expected_result=True,
     )
     run_packager(
@@ -174,7 +174,7 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on_recursive=True,
         expected_result=True,
     )
@@ -192,7 +192,7 @@ def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, con
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         build_deps=True,
         expected_result=False,
     )
@@ -209,7 +209,7 @@ def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, 
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         build_deps_on=True,
         expected_result=False,
     )
@@ -226,7 +226,7 @@ def test_10_has_itself_as_dependency_build_deps_on_recursive(test_image, package
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         build_deps_on_recursive=True,
         expected_result=False,
     )
@@ -243,7 +243,7 @@ def test_11_circular_dependencies_deps(test_image, packager_binary, context, tes
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps=True,
         expected_result=False,
     )
@@ -262,7 +262,7 @@ def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, 
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[-1],
+        name=packages[-1],
         expected_result=True,
     )
 
@@ -272,7 +272,7 @@ def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, 
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on=True,
         expected_result=False,
     )
@@ -292,7 +292,7 @@ def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary,
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[-1],
+        name=packages[-1],
         expected_result=True,
     )
 
@@ -302,7 +302,7 @@ def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary,
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on_recursive=True,
         expected_result=False,
     )
@@ -322,7 +322,7 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps=True,
         expected_result=True,
     )
@@ -353,7 +353,7 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         expected_result=True,
     )
 
@@ -363,7 +363,7 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on=True,
         expected_result=True,
     )
@@ -385,7 +385,7 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         expected_result=True,
     )
 
@@ -395,7 +395,7 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[0],
+        name=packages[0],
         build_deps_on_recursive=True,
         expected_result=True,
     )
@@ -414,7 +414,7 @@ def test_17_only_debug(test_image, packager_binary, context, test_repo):
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         expected_result=True,
     )
     assert is_package_tracked(package, test_repo)
@@ -430,7 +430,7 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
         expected_result=True,
     )
     assert is_package_tracked(package, test_repo)
@@ -446,7 +446,7 @@ def test_19_missing_release_debug_packages_build_deps(test_image, packager_binar
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[1],
+        name=packages[1],
         build_deps=True,
         expected_result=False,
     )
@@ -466,7 +466,7 @@ def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_bi
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=packages[1],
+        name=packages[1],
         build_deps_on=True,
         expected_result=False,
     )

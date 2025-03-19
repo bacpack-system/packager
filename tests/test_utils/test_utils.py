@@ -94,7 +94,7 @@ def run_packager(
     context: str = None,
     image_name: str = None,
     output_dir: str = None,
-    package_name: str = None,
+    name: str = None,
     build_deps: bool = False,
     build_deps_on: bool = False,
     build_deps_on_recursive: bool = False,
@@ -124,9 +124,9 @@ def run_packager(
         parameters.append("--output-dir")
         parameters.append(output_dir)
 
-    if package_name:
+    if name:
         parameters.append("--name")
-        parameters.append(package_name)
+        parameters.append(name)
 
     if build_deps:
         parameters.append("--build-deps")

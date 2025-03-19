@@ -12,9 +12,9 @@ def test_01_build_app(test_image, packager_binary, context, test_repo):
 
     run_packager(
         packager_binary,
-        "build-package",
+        "build-app",
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        package_name=package,
+        name=package,
     )

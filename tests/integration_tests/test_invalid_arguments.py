@@ -37,7 +37,7 @@ def test_04_run_with_nonexisting_package(test_image, packager_binary):
     context = os.path.abspath(os.path.join("test_data", "example"))
 
     result = run_packager(
-        packager_binary, "build-package", context=context, image_name=test_image, package_name="nonexisting_package"
+        packager_binary, "build-package", context=context, image_name=test_image, name="nonexisting_package"
     )
     stdout = result.communicate()[0]
 
