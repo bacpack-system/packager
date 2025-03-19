@@ -2,7 +2,8 @@
   "Env": {},
   "DependsOn": [
     "test_package_1",
-    "test_package_2"
+    "test_package_2",
+    "test_package_4"
   ],
   "Git": {
     "URI": "https://github.com/gabime/spdlog.git",
