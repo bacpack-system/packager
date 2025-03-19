@@ -29,7 +29,7 @@ def setup_environment(request):
 
 
 def pytest_addoption(parser):
-    parser.addoption("--image", action="store", default="ubuntu2204", help="The image to use for testing")
+    parser.addoption("--image", action="store", default="fedora41", help="The image to use for testing")
     parser.addoption(
         "--remove_images",
         action="store_true",
