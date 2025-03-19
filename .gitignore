@@ -10,3 +10,4 @@ log
 tests/venv/
 tests/**/__pycache__/
 tests/test_data/test_repo
+tests/test_data/example/package
