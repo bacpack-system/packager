@@ -32,12 +32,34 @@ def test_03_run_with_nonexisting_image(packager_binary):
     assert "Failed to build Docker image:" in stdout
 
 
-def test_04_run_with_nonexisting_package(test_image, packager_binary):
+def test_04_run_with_nonexisting_package(test_image, packager_binary, test_repo):
     """TODO"""
     context = os.path.abspath(os.path.join("test_data", "example"))
 
     result = run_packager(
-        packager_binary, "build-package", context=context, image_name=test_image, name="nonexisting_package"
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        name="nonexisting_package",
+        output_dir=test_repo,
+    )
+    stdout = result.communicate()[0]
+
+    assert "ERROR" in stdout
+
+
+def test_05_run_with_nonexisting_app(test_image, packager_binary, test_repo):
+    """TODO"""
+    context = os.path.abspath(os.path.join("test_data", "example"))
+
+    result = run_packager(
+        packager_binary,
+        "build-app",
+        context=context,
+        image_name=test_image,
+        name="nonexisting_app",
+        output_dir=test_repo,
     )
     stdout = result.communicate()[0]
 

@@ -473,3 +473,21 @@ def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_bi
 
     assert not is_package_tracked(packages[0], test_repo)
     assert not is_package_tracked(packages[1], test_repo)
+
+
+def test_21_build_packages_with_no_images(test_image, packager_binary, context, test_repo):
+    """TODO"""
+    packages = "test_package_1_21"
+    prepare_packages([packages])
+
+    result = run_packager(
+        packager_binary,
+        "build-package",
+        image_name=test_image,
+        context=context,
+        output_dir=test_repo,
+        name=packages,
+        expected_result=False,
+    )
+
+    assert not is_package_tracked(packages, test_repo)
