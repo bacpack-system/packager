@@ -5,7 +5,7 @@ from time import sleep
 from test_utils.test_utils import run_packager, does_image_exist, check_stdout, is_package_tracked, prepare_packages
 
 
-def test_01_build_package(test_image, packager_binary, context, test_repo, expected_result=True):
+def test_01_build_package(test_image, packager_binary, context, test_repo):
     """TODO"""
     package = "test_package_1"
     prepare_packages([package])
@@ -17,10 +17,11 @@ def test_01_build_package(test_image, packager_binary, context, test_repo, expec
         image_name=test_image,
         output_dir=test_repo,
         package_name=package,
+        expected_result=True,
     )
 
 
-def test_02_build_package_with_dependency(test_image, packager_binary, context, test_repo, expected_result=True):
+def test_02_build_package_with_dependency(test_image, packager_binary, context, test_repo):
     """TODO"""
     package = "test_package_2"
     depends_on_package = "test_package_1"
@@ -33,6 +34,7 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         image_name=test_image,
         output_dir=test_repo,
         package_name=depends_on_package,
+        expected_result=True,
     )
     assert not is_package_tracked(package, test_repo)
     assert is_package_tracked(depends_on_package, test_repo)
@@ -332,7 +334,17 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
 def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test_repo):
     """FIXME"""
 
-    packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4", "test_package_9"]
+    packages = [
+        "test_package_1",
+        "test_package_2",
+        "test_package_3",
+        "test_package_4",
+        "test_package_9",
+        "test_package_5",
+        "test_package_6",
+        "test_package_7",
+        "test_package_8",
+    ]
     prepare_packages(packages)
 
     run_packager(
@@ -356,11 +368,11 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
         expected_result=True,
     )
 
-    assert is_package_tracked(packages[0], test_repo)
-    assert is_package_tracked(packages[1], test_repo)
-    assert not is_package_tracked(packages[2], test_repo)
-    assert not is_package_tracked(packages[3], test_repo)
-    assert is_package_tracked(packages[4], test_repo)
+    for package in packages[:5]:
+        assert is_package_tracked(package, test_repo)
+
+    for package in packages[5:]:
+        assert not is_package_tracked(package, test_repo)
 
 
 def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
