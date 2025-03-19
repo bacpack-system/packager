@@ -3,8 +3,9 @@
 ## TODO
 
 - [ ] Add test documentation
-- [ ] Add another specific testing image
 - [ ] Test if docker remove works
+- [ ] remove dependency on port 1122
+- [ ] check repo consistency on the start of process
 
 ## Requirements
 
