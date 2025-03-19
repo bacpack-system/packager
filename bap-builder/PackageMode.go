@@ -271,7 +271,7 @@ func buildAllPackages(
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
-	packageJsonPathMap, err := contextManager.GetAllPackagesJsonDefPaths()
+	packageJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
 	if err != nil {
 		return err
 	}
@@ -295,7 +295,7 @@ func buildAllPackages(
 			continue
 		}
 		count++
-		err = buildAndCopyPackage(&buildConfigs, platformString, repo)
+		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
 		}
@@ -322,10 +322,10 @@ func prepareConfigs(packageJsonPaths []string) ([]*bringauto_config.Config, erro
 }
 
 // prepareConfigsNoBuildDeps
-// Returns Config structures only for given package.
-func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_context.ContextManager) ([]*bringauto_config.Config, error) {
+// Returns Config structures only for given Package or App (depends on packageOrApp).
+func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_context.ContextManager, packageOrApp string) ([]*bringauto_config.Config, error) {
 	var configList []*bringauto_config.Config
-	packageJsonPaths, err := contextManager.GetPackageJsonDefPaths(packageName)
+	packageJsonPaths, err := contextManager.GetConfigJsonPaths(packageName, packageOrApp)
 	if err != nil {
 		return []*bringauto_config.Config{}, err
 	}
@@ -400,7 +400,7 @@ func buildSinglePackage(
 	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, &contextManager, platformString)
 	} else {
-		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager)
+		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, bringauto_const.PackageDirName)
 	}
 	if err != nil {
 		return err
@@ -410,7 +410,7 @@ func buildSinglePackage(
 	}
 	for _, config := range configList {
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err = buildAndCopyPackage(&buildConfigs, platformString, repo)
+		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
 		}
@@ -439,11 +439,13 @@ func addConfigsToDefsMap(defsMap *ConfigMapType, packageJsonPathList []string) {
 }
 
 // buildAndCopyPackage
-// Builds single package, takes care of every step of build for single package.
+// Builds single Package or App (depends on packageOrApp), takes care of every step of build for
+// single package.
 func buildAndCopyPackage(
 	build *[]bringauto_build.Build,
 	platformString *bringauto_package.PlatformString,
 	repo bringauto_repository.GitLFSRepository,
+	packageOrApp string,
 ) error {
 	var err error
 	var removeHandler func()
@@ -469,7 +471,7 @@ func buildAndCopyPackage(
 
 		logger.InfoIndent("Copying to Git repository")
 
-		err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath())
+		err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
 		if err != nil {
 			break
 		}

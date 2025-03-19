@@ -36,6 +36,22 @@ type BuildPackageCmdLineArgs struct {
 	OutputDir *string
 }
 
+// BuildAppCmdLineArgs
+// Options/setting for App mode
+type BuildAppCmdLineArgs struct {
+	// All build all Apps in app/ directory
+	All *bool
+	// Name of the App to build (name of the directory in app/ dir)
+	Name *string
+	// DockerImageName is a name of docker image to which Apps will be build.
+	// If empty all docker images from DockerMatrix in config file are used for a given App.
+	// If not empty, only Apps which contains DockerImageName in DockerMatrix will be built.
+	// If not empty, Apps are built only by toolchain represented by DockerImageName
+	DockerImageName *string
+	// OutputDir relative (to program working dir) ot absolute path where the App will be stored
+	OutputDir *string
+}
+
 // CreateSysrootCmdLineArgs
 // Options/setting for Sysroot mode
 type CreateSysrootCmdLineArgs struct {
@@ -63,12 +79,16 @@ type CmdLineArgs struct {
 	BuildImagesArgs BuildImageCmdLineArgs
 	// If true the program is in the "Package" mode
 	BuildPackage        bool
+	// If true the program is in the "App" mode
+	BuildApp        bool
 	// If true the program is in the "Sysroot" mode
 	CreateSysroot       bool
 	BuildPackageArgs    BuildPackageCmdLineArgs
+	BuildAppArgs        BuildAppCmdLineArgs
 	CreateSysrootArgs   CreateSysrootCmdLineArgs
 	buildImageParser    *argparse.Command
 	buildPackageParser  *argparse.Command
+	buildAppParser      *argparse.Command
 	createSysrootParser *argparse.Command
 	parser              *argparse.Parser
 }
@@ -139,6 +159,37 @@ func (cmd *CmdLineArgs) InitFlags() {
 		},
 	)
 
+	cmd.buildAppParser = cmd.parser.NewCommand("build-app", "Build App")
+	cmd.BuildAppArgs.All = cmd.buildAppParser.Flag("", "all",
+		&argparse.Options{
+			Required: false,
+			Help:     "Build all Apps in the given context",
+			Default:  false,
+		},
+	)
+	cmd.BuildAppArgs.Name = cmd.buildAppParser.String("", "name",
+		&argparse.Options{
+			Required: false,
+			Default:  "",
+			Help:     "Name of the App to build",
+		},
+	)
+	cmd.BuildAppArgs.OutputDir = cmd.buildAppParser.String("", "output-dir",
+		&argparse.Options{
+			Required: true,
+			Help:     "Directory where to store built Apps",
+		},
+	)
+	cmd.BuildAppArgs.DockerImageName = cmd.buildAppParser.String("", "image-name",
+		&argparse.Options{
+			Required: true,
+			Validate: checkForEmpty,
+			Help: "Docker image name for which the Apps will be build. " +
+			"Only Apps that contains image-name in the DockerMatrix will be built. " +
+			"Given Apps will be build by toolchain represented by image-name",
+		},
+	)
+
 	cmd.buildImageParser = cmd.parser.NewCommand("build-image", "Build Docker image")
 	cmd.BuildImagesArgs.All = cmd.buildImageParser.Flag("", "all",
 		&argparse.Options{
@@ -199,6 +250,7 @@ func (cmd *CmdLineArgs) ParseArgs(args []string) error {
 
 	cmd.BuildImage = cmd.buildImageParser.Happened()
 	cmd.BuildPackage = cmd.buildPackageParser.Happened()
+	cmd.BuildApp = cmd.buildAppParser.Happened()
 	cmd.CreateSysroot = cmd.createSysrootParser.Happened()
 
 	if *cmd.BuildPackageArgs.All {

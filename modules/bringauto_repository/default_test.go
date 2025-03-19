@@ -4,6 +4,7 @@ import (
 	"bringauto/modules/bringauto_testing"
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
+	"bringauto/modules/bringauto_const"
 	"fmt"
 	"os"
 	"os/exec"
@@ -80,9 +81,10 @@ func TestCreatePackagePath(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	packPath := repo.CreatePackagePath(pack1)
+	packPath := repo.CreatePath(pack1, bringauto_const.PackageDirName)
 	expectedPackPath := filepath.Join(
 		RepoName,
+		bringauto_const.PackageDirName,
 		pack1.PlatformString.String.DistroName,
 		pack1.PlatformString.String.DistroRelease,
 		pack1.PlatformString.String.Machine,
@@ -105,12 +107,12 @@ func TestCopyToRepositoryOnePackage(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name)
+	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}
 
-	packFilePath := filepath.Join(repo.CreatePackagePath(pack1), pack1.GetFullPackageName() + ZipExtension)
+	packFilePath := filepath.Join(repo.CreatePath(pack1, bringauto_const.PackageDirName), pack1.GetFullPackageName() + ZipExtension)
 	_, err = os.ReadFile(packFilePath)
 	if os.IsNotExist(err) {
 		t.Fail()
@@ -128,34 +130,34 @@ func TestCopyToRepositoryMultiplePackages(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack1, bringauto_testing.Pack2Name)
+	err = repo.CopyToRepository(pack1, bringauto_testing.Pack2Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack2, bringauto_testing.Pack2Name)
+	err = repo.CopyToRepository(pack2, bringauto_testing.Pack2Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack3, bringauto_testing.Pack3Name)
+	err = repo.CopyToRepository(pack3, bringauto_testing.Pack3Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}
 
-	pack1FilePath := filepath.Join(repo.CreatePackagePath(pack1), pack1.GetFullPackageName() + ZipExtension)
+	pack1FilePath := filepath.Join(repo.CreatePath(pack1, bringauto_const.PackageDirName), pack1.GetFullPackageName() + ZipExtension)
 	_, err = os.ReadFile(pack1FilePath)
 	if os.IsNotExist(err) {
 		t.Fail()
 	}
 
-	pack2FilePath := filepath.Join(repo.CreatePackagePath(pack2), pack2.GetFullPackageName() + ZipExtension)
+	pack2FilePath := filepath.Join(repo.CreatePath(pack2, bringauto_const.PackageDirName), pack2.GetFullPackageName() + ZipExtension)
 	_, err = os.ReadFile(pack2FilePath)
 	if os.IsNotExist(err) {
 		t.Fail()
 	}
 
-	pack3FilePath := filepath.Join(repo.CreatePackagePath(pack3), pack3.GetFullPackageName() + ZipExtension)
+	pack3FilePath := filepath.Join(repo.CreatePath(pack3, bringauto_const.PackageDirName), pack3.GetFullPackageName() + ZipExtension)
 	_, err = os.ReadFile(pack3FilePath)
 	if os.IsNotExist(err) {
 		t.Fail()
@@ -173,7 +175,7 @@ func TestCommitAllChanges(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name)
+	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}
@@ -219,7 +221,7 @@ func TestRestoreAllChanges(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name)
+	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
 	}

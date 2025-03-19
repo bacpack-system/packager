@@ -52,9 +52,9 @@ func TestGetAllPackagesJsonDefPaths(t *testing.T) {
 		ContextPath: Set1DirPath,
 	}
 
-	jsonPaths, err := context.GetAllPackagesJsonDefPaths()
+	jsonPaths, err := context.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
 	if err != nil {
-		t.Fatalf("GetAllPackagesJsonDefPaths failed - %s", err)
+		t.Fatalf("GetAllConfigJsonPaths failed - %s", err)
 	}
 
 	pack1Paths, ok1 := jsonPaths[Pack1Name]
@@ -84,9 +84,9 @@ func TestGetPackageJsonDefPaths(t *testing.T) {
 		ContextPath: Set1DirPath,
 	}
 
-	pack1Paths, err := context.GetPackageJsonDefPaths(Pack1Name)
+	pack1Paths, err := context.GetConfigJsonPaths(Pack1Name, bringauto_const.PackageDirName)
 	if err != nil {
-		t.Fatalf("GetPackageJsonDefPaths failed - %s", err)
+		t.Fatalf("GetConfigJsonPaths failed - %s", err)
 	}
 
 	commonPath := filepath.Join(Set1DirPath, bringauto_const.PackageDirName)
@@ -104,9 +104,9 @@ func TestGetAllPackagesConfigs(t *testing.T) {
 		ContextPath: Set1DirPath,
 	}
 
-	configs, err := context.GetAllPackagesConfigs(&defaultPlatformString)
+	configs, err := context.GetAllConfigs(&defaultPlatformString, bringauto_const.PackageDirName)
 	if err != nil {
-		t.Fatalf("GetAllPackagesConfigs failed - %s", err)
+		t.Fatalf("GetAllConfigs failed - %s", err)
 	}
 
 	if len(configs) != 4 {

@@ -12,7 +12,7 @@ Not all fields are required, and some fields have default values.
     "ENV_A": "Value A",
     "ENV_B": "Value B"
   },
-  "DependsOn": [ // List of external dependencies required for this project
+  "DependsOn": [ // List of external dependencies required for this project, for Apps must be empty
     "protobuf",
     "fleet-protocol-interface",
     "zlib"

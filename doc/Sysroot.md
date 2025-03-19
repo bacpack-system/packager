@@ -8,10 +8,10 @@ introduced to BAP.
 
 ## Sysroot consistency mechanisms
 
-- At the start of `build-package` command the both debug and release sysroots are checked. If it
-isn't empty, the warning is printed.
+- At the start of `build-package` and `build-app` command the both debug and release sysroots are
+checked. If it isn't empty, the warning is printed.
 
-- During Package builds, the Package build files are copied to the sysroot directory
+- During Package/App builds, the Package/App build files are copied to the sysroot directory
 (`install_sysroot`). If any of the file is already present in the sysroot, the error is printed
 that the Package tries to overwrite files in sysroot, which would corrupt consistency of sysroot
 directory. If Package doesn't try to overwrite any files, the build proceeds and Package files are
@@ -25,11 +25,13 @@ with its dependencies are already in sysroot. If it is not (the Package is not i
 files are copied to new sysroot directory. Because of the sysroot consistency mechanism this new
 sysroot will also be consistent.
 
+- When `build-app` command with `--all` option is used, the sysroot directory is deleted after each
+build (with Apps the sysroot does not have to be shared between builds). If single App is being
+build, the sysroot is not deleted so the user can check the sysroot after build.
+
 ## Notes
 
 - The `install_sysroot` directory is not being deleted at the end of BAP execution (for a backup
 reason). If the user wants to build the same Packages again, it is a common practice to delete this
 directory manually. If it is not deleted and same Packages are build, the build obviously fails
 because same Package wants to overwrite its own files, which are already present in sysroot.
-
-
