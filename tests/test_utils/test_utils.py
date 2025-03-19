@@ -137,7 +137,7 @@ def run_packager(
     if build_deps_on_recursive:
         parameters.append("--build-deps-on-recursive")
 
-    print(parameters)
+    print(" ".join(parameters))
 
     result = subprocess.Popen(
         parameters,
