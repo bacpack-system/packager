@@ -33,17 +33,14 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 
 	handleRemover := bringauto_process.SignalHandlerAddHandler(repo.RestoreAllChanges)
 	defer handleRemover()
-	builtPackages := 0
+
 	if *cmdLine.All {
-		err, builtPackages = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo)
+		err = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo)
 	} else {
-		err, builtPackages = buildSingleApp(cmdLine, contextPath, platformString, repo)
+		err = buildSingleApp(cmdLine, contextPath, platformString, repo)
 	}
 	if err != nil {
 		return err
-	}
-	if builtPackages > 0 {
-		return repo.CommitAllChanges()
 	}
 	
 	return nil
@@ -56,14 +53,13 @@ func buildAllApps(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
-) (error, int) {
-	builtPackages := 0
+) error {
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
 	appJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.AppDirName)
 	if err != nil {
-		return err, builtPackages
+		return err
 	}
 
 	defsMap := make(ConfigMapType)
@@ -77,29 +73,28 @@ func buildAllApps(
 	for appName := range defsMap {
 		for _, config := range defsMap[appName] {
 			if isDepsInConfig(config) {
-				return fmt.Errorf("App has non-empty DependsOn"), builtPackages
+				return fmt.Errorf("App has non-empty DependsOn")
 			}
 			buildConfigs := config.GetBuildStructure(imageName, platformString)
 			if len(buildConfigs) == 0 {
 				continue
 			}
 			count++
-			err, packagesNum := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+			err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 			if err != nil {
-				return fmt.Errorf("cannot build App '%s' - %s", config.Package.Name, err), builtPackages
+				return fmt.Errorf("cannot build App '%s' - %s", config.Package.Name, err)
 			}
-			builtPackages += packagesNum
 		}
 		err = bringauto_sysroot.RemoveInstallSysroot()
 		if err != nil {
-			return fmt.Errorf("cannot remove install sysroot directory"), builtPackages
+			return fmt.Errorf("cannot remove install sysroot directory")
 		}
 	}
 	if count == 0 {
 		logger.Warn("Nothing to build. Did you enter correct image name?")
 	}
 
-	return nil, builtPackages
+	return nil
 }
 
 // buildSingleApp
@@ -109,31 +104,29 @@ func buildSingleApp(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
-) (error, int) {
-	builtPackages := 0
+) error{
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
 
 	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, &contextManager, bringauto_const.AppDirName)
 	if err != nil {
-		return err, builtPackages
+		return err
 	}
 	if len(configList) == 0 {
-		return fmt.Errorf("nothing to build"), builtPackages
+		return fmt.Errorf("nothing to build")
 	}
 	for _, config := range configList {
 		if isDepsInConfig(config) {
-			return fmt.Errorf("App has non-empty DependsOn"), builtPackages
+			return fmt.Errorf("App has non-empty DependsOn")
 		}
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err, packagesNum := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", *cmdLine.Name, err), builtPackages
+			return fmt.Errorf("cannot build App '%s' - %s", *cmdLine.Name, err)
 		}
-		builtPackages += packagesNum
 	}
-	return nil, builtPackages
+	return nil
 }
 
 // isDepsInConfig

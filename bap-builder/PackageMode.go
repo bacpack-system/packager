@@ -247,17 +247,14 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 
 	handleRemover := bringauto_process.SignalHandlerAddHandler(repo.RestoreAllChanges)
 	defer handleRemover()
-	builtPackages := 0
+
 	if *cmdLine.All {
-		err, builtPackages = buildAllPackages(cmdLine, contextPath, platformString, repo)
+		err = buildAllPackages(cmdLine, contextPath, platformString, repo)
 	} else {
-		err, builtPackages = buildSinglePackage(cmdLine, contextPath, platformString, repo)
+		err = buildSinglePackage(cmdLine, contextPath, platformString, repo)
 	}
 	if err != nil {
 		return err
-	}
-	if builtPackages > 0 {
-		return repo.CommitAllChanges()
 	}
 
 	return nil
@@ -271,15 +268,13 @@ func buildAllPackages(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
-) (error, int) {
-	builtPackages := 0
-
+) error {
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
 	packageJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
 	if err != nil {
-		return err, builtPackages
+		return err
 	}
 
 	defsMap := make(ConfigMapType)
@@ -289,7 +284,7 @@ func buildAllPackages(
 	depsList := buildDepList{}
 	configList, err := depsList.TopologicalSort(defsMap)
 	if err != nil {
-		return err, builtPackages
+		return err
 	}
 
 	logger := bringauto_log.GetLogger()
@@ -301,17 +296,16 @@ func buildAllPackages(
 			continue
 		}
 		count++
-		err, packagesNum := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err), builtPackages
+			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
 		}
-		builtPackages += packagesNum
 	}
 	if count == 0 {
 		logger.Warn("Nothing to build. Did you enter correct image name?")
 	}
 
-	return nil, builtPackages
+	return nil
 }
 
 // prepareConfigs
@@ -396,7 +390,7 @@ func buildSinglePackage(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
-) (error, int) {
+) error {
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
@@ -404,28 +398,25 @@ func buildSinglePackage(
 	var err error
 	var configList []*bringauto_config.Config
 
-	builtPackages := 0
-
 	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, &contextManager, platformString)
 	} else {
 		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, bringauto_const.PackageDirName)
 	}
 	if err != nil {
-		return err, builtPackages
+		return err
 	}
 	if len(configList) == 0 {
-		return fmt.Errorf("nothing to build"), builtPackages
+		return fmt.Errorf("nothing to build")
 	}
 	for _, config := range configList {
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err, packagesNum := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", packageName, err), builtPackages
+			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
 		}
-		builtPackages += packagesNum
 	}
-	return nil, builtPackages
+	return nil
 }
 
 // addConfigsToDefsMap
@@ -456,13 +447,11 @@ func buildAndCopyPackage(
 	platformString *bringauto_package.PlatformString,
 	repo bringauto_repository.GitLFSRepository,
 	packageOrApp string,
-) (error, int) {
+) error {
 	var err error
 	var removeHandler func()
 
 	logger := bringauto_log.GetLogger()
-
-	builtPackages := 0
 
 	for _, buildConfig := range *build {
 		logger.Info("Build %s", buildConfig.Package.GetFullPackageName())
@@ -478,23 +467,21 @@ func buildAndCopyPackage(
 		removeHandler = bringauto_process.SignalHandlerAddHandler(buildConfig.CleanUp)
 		err, buildPerformed := buildConfig.RunBuild()
 		if err != nil {
-			return err, builtPackages
+			return err
 		}
 
 		if buildPerformed {
-			logger.InfoIndent("Copying to Git repository")
-
-			err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
-			if err != nil {
-				break
-			}
-
 			logger.InfoIndent("Copying to local sysroot directory")
 			err = sysroot.CopyToSysroot(buildConfig.GetLocalInstallDirPath(), *buildConfig.BuiltPackage)
 			if err != nil {
 				break
 			}
-			builtPackages++
+			
+			logger.InfoIndent("Copying to Git repository")
+			err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
+			if err != nil {
+				break
+			}
 		}
 
 		removeHandler()
@@ -504,7 +491,7 @@ func buildAndCopyPackage(
 	if removeHandler != nil {
 		removeHandler()
 	}
-	return err, builtPackages
+	return err
 }
 
 // determinePlatformString
