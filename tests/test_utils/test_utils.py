@@ -1,3 +1,4 @@
+from logging import exception
 import subprocess
 import os
 import git
@@ -88,6 +89,31 @@ def is_package_tracked(package_name: str, repo_path: str) -> bool:
     return False
 
 
+def get_nested(data, keys, default=None):
+    for key in keys:
+        if isinstance(data, dict) and key in data:
+            data = data[key]
+        else:
+            return default
+    return data
+
+
+def does_app_support_image(app: str, image: str) -> bool:
+    """Check if the app supports the given image."""
+    try:
+        for apps in os.listdir(os.path.join(test_config["test_apps"], app)):
+            with open(os.path.join(test_config["test_apps"], app, apps)) as file:
+                metadata = json.load(file)
+                if image not in get_nested(metadata, ["DockerMatrix", "ImageNames"], []):
+                    return False
+        return True
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"App {app} does not exist.")
+    except Exception as e:
+        print(e)
+
+
 def run_packager(
     packager_binary: str,
     mode: str,
@@ -137,7 +163,7 @@ def run_packager(
     if build_deps_on_recursive:
         parameters.append("--build-deps-on-recursive")
 
-    print(" ".join(parameters))
+    print("\033[95m\nRunning command:", " ".join(parameters), "\033[0m")
 
     result = subprocess.Popen(
         parameters,
