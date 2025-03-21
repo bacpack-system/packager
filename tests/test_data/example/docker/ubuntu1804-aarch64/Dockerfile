@@ -5,7 +5,7 @@ RUN echo root:1234 | chpasswd
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      build-essential make libssl-dev coreutils lsb-release wget g++-8 gcc-8 gcc-8-aarch64-linux-gnu g++-8-aarch64-linux-gnu patchelf unzip openssh-server git && \
+      build-essential make libssl-dev coreutils lsb-release wget g++-8 gcc-8 gcc-8-aarch64-linux-gnu g++-8-aarch64-linux-gnu patchelf unzip openssh-server git pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
@@ -16,7 +16,10 @@ RUN wget "https://github.com/Kitware/CMake/releases/download/v3.28.0/cmake-3.28.
     rm ./cmake.sh
 
 RUN git clone https://github.com/cmakelib/cmakelib.git /cmakelib
-RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc
+RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc && \
+    echo "export OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> /root/.bashrc && \
+    echo "export OPENSSL_ROOT_DIR=/usr/lib/ssl" >> /root/.bashrc && \
+    echo "export OPENSSL_LIBRARIES=/usr/lib/x86_64-linux-gnu/" >> /root/.bashrc
 
 RUN sed -ri 's/#?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd

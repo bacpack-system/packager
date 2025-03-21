@@ -22,8 +22,6 @@
     "IsDebug": true
   },
   "DockerMatrix": {
-    "ImageNames": [
-      "ubuntu2404"
-    ]
+    "ImageNames": []
   }
 }
