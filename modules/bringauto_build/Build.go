@@ -162,10 +162,14 @@ func (build *Build) RunBuild() (error, bool) {
 	})
 	defer removeHandler()
 
+	logger.InfoIndent("Starting docker container")
+
 	err = dockerRun.Run()
 	if err != nil {
 		return err, false
 	}
+
+	logger.InfoIndent("Cloning and updating Package git repository inside docker container")
 
 	err = build.prepareBuild(&shellEvaluator)
 	if err != nil {
@@ -191,6 +195,8 @@ func (build *Build) RunBuild() (error, bool) {
 	}
 
 	shellEvaluator.Commands = buildChain.GenerateCommands()
+
+	logger.InfoIndent("Running build inside container")
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {

@@ -463,7 +463,6 @@ func buildAndCopyPackage(
 		err = bringauto_prerequisites.Initialize(&sysroot)
 		buildConfig.SetSysroot(&sysroot)
 
-		logger.InfoIndent("Run build inside container")
 		removeHandler = bringauto_process.SignalHandlerAddHandler(buildConfig.CleanUp)
 		err, buildPerformed := buildConfig.RunBuild()
 		if err != nil {
