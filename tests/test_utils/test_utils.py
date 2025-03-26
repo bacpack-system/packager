@@ -15,6 +15,7 @@ test_config = {
     "test_packages": os.path.abspath("test_data/example/package"),
     "packager_binary": os.path.abspath("../bap-builder/bap-builder"),
     "test_repo": os.path.abspath("test_data/test_repo"),
+    "test_sysroot": os.path.abspath("test_data/test_sysroot"),
     "install_sysroot": os.path.abspath("install_sysroot"),
     "test_packages_source": os.path.abspath("test_data/test_packages"),
 }
@@ -30,9 +31,21 @@ def init_test_repo():
     return test_config["test_repo"]
 
 
-def clean():
+def init_test_sysroot():
+    if os.path.exists(test_config["test_sysroot"]):
+        shutil.rmtree(test_config["test_sysroot"])
+
+    os.makedirs(test_config["test_sysroot"])
+    return test_config["test_sysroot"]
+
+
+def clean_sysroot():
     if os.path.exists(test_config["install_sysroot"]):
         shutil.rmtree(test_config["install_sysroot"])
+
+
+def clean():
+    clean_sysroot()
 
     if os.path.exists(test_config["test_packages"]):
         shutil.rmtree(test_config["test_packages"])
@@ -139,6 +152,8 @@ def run_packager(
     image_name: str = None,
     output_dir: str = None,
     name: str = None,
+    sysroot_dir: str = None,
+    git_lfs: str = None,
     build_deps: bool = False,
     build_deps_on: bool = False,
     build_deps_on_recursive: bool = False,
