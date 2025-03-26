@@ -9,7 +9,7 @@ from time import sleep
 
 
 test_config = {
-    "test_data_examples": "test_data/example",
+    "test_data_examples": os.path.abspath("test_data/example"),
     "test_apps": os.path.abspath("test_data/example/app"),
     "test_dockers": os.path.abspath("test_data/example/docker"),
     "test_packages": os.path.abspath("test_data/example/package"),
@@ -71,7 +71,7 @@ def prepare_packages(packages: list[str]):
         shutil.copytree(os.path.join(test_config["test_packages_source"], package), package_path)
 
 
-def is_package_tracked(package_name: str, repo_path: str) -> bool:
+def is_tracked(name: str, repo_path: str, type: str) -> bool:
     """Check if the package is tracked in the repository."""
     repo = git.Repo(repo_path)
     try:
@@ -79,14 +79,28 @@ def is_package_tracked(package_name: str, repo_path: str) -> bool:
     except git.exc.GitCommandError:
         files_in_last_commit = []
 
-    for path in files_in_last_commit:
-        if package_name in path.split("/"):
-            if package_name in path.split("/")[-1]:
-                return True
-            else:
-                return False
+    if type == "app":
+        source_path = os.path.join(test_config["test_apps"], name)
+    elif type == "package":
+        source_path = os.path.join(test_config["test_packages"], name)
+    else:
+        raise ValueError("Invalid type")
 
-    return False
+    files = os.listdir(source_path)
+    packages_to_detect = len(files)
+
+    for file in files:
+        if "debug" in file:
+            test_name = name + "d-"
+        else:
+            test_name = name + "-"
+
+        for path in files_in_last_commit:
+            if name in path.split("/"):
+                if test_name in path.split("/")[-1]:
+                    packages_to_detect -= 1
+
+    return packages_to_detect == 0
 
 
 def get_nested(data, keys, default=None):
