@@ -10,8 +10,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 #
 RUN apt-get update && \
     apt-get install -y \
-      build-essential xz-utils sed git libssl-dev openssh-server unzip python3 make patchelf wget locales perl file pkg-config\
-      findutils && \
+      build-essential xz-utils sed git libssl-dev openssh-server unzip python3 make patchelf wget locales perl file \
+      findutils lsb-release && \
     rm -rf /var/lib/apt/lists/*
 
 # Generate the locale for en_US.UTF-8
@@ -28,10 +28,7 @@ RUN wget "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.
     rm ./cmake.sh
 
 RUN git clone https://github.com/cmakelib/cmakelib.git /cmakelib
-RUN echo "export CMLIB_DIR=/cmakelib" >> /environment.sh && \
-    echo "export OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> /root/.bashrc && \
-    echo "export OPENSSL_ROOT_DIR=/usr/lib/ssl" >> /root/.bashrc && \
-    echo "export OPENSSL_LIBRARIES=/usr/lib/x86_64-linux-gnu/" >> /root/.bashrc
+RUN echo "export CMLIB_DIR=/cmakelib" >> /environment.sh
 
 RUN sed -ri 's/#?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd
