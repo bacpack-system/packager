@@ -2,7 +2,7 @@ import subprocess
 import os
 from time import sleep
 
-from test_utils.test_utils import run_packager, does_image_exist, check_stdout, is_package_tracked, prepare_packages
+from test_utils.test_utils import run_packager, does_image_exist, check_stdout, is_tracked, prepare_packages
 
 
 def test_01_build_package(test_image, packager_binary, context, test_repo):
@@ -36,8 +36,8 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         name=depends_on_package,
         expected_result=True,
     )
-    assert not is_package_tracked(package, test_repo)
-    assert is_package_tracked(depends_on_package, test_repo)
+    assert not is_tracked(package, test_repo, "package")
+    assert is_tracked(depends_on_package, test_repo, "package")
 
     run_packager(
         packager_binary,
@@ -48,8 +48,8 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         name=package,
         expected_result=True,
     )
-    assert is_package_tracked(package, test_repo)
-    assert is_package_tracked(depends_on_package, test_repo)
+    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(depends_on_package, test_repo, "package")
 
 
 def test_03_build_package_dependency_with_build_deps(test_image, packager_binary, context, test_repo):
@@ -68,11 +68,12 @@ def test_03_build_package_dependency_with_build_deps(test_image, packager_binary
         build_deps=True,
         expected_result=True,
     )
-    assert is_package_tracked(package, test_repo)
-    assert is_package_tracked(depends_on_package, test_repo)
+    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(depends_on_package, test_repo, "package")
 
 
 def test_04_build_multiple_package_dependency_with_build_deps(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
 
@@ -87,7 +88,7 @@ def test_04_build_multiple_package_dependency_with_build_deps(test_image, packag
         expected_result=True,
     )
     for package in packages:
-        assert is_package_tracked(package, test_repo)
+        assert is_tracked(package, test_repo, "package")
 
 
 def test_05_build_package_dependency_with_build_deps_on(test_image, packager_binary, context, test_repo):
@@ -105,8 +106,8 @@ def test_05_build_package_dependency_with_build_deps_on(test_image, packager_bin
         name=depends_on_package,
         expected_result=True,
     )
-    assert not is_package_tracked(package, test_repo)
-    assert is_package_tracked(depends_on_package, test_repo)
+    assert not is_tracked(package, test_repo, "package")
+    assert is_tracked(depends_on_package, test_repo, "package")
 
     run_packager(
         packager_binary,
@@ -118,11 +119,12 @@ def test_05_build_package_dependency_with_build_deps_on(test_image, packager_bin
         build_deps_on=True,
         expected_result=True,
     )
-    assert is_package_tracked(package, test_repo)
-    assert is_package_tracked(depends_on_package, test_repo)
+    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(depends_on_package, test_repo, "package")
 
 
 def test_06_build_multiple_package_dependency_with_build_deps_on(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_1_06", "test_package_2_06", "test_package_3_06", "test_package_4_06"]
     prepare_packages(packages)
 
@@ -147,15 +149,16 @@ def test_06_build_multiple_package_dependency_with_build_deps_on(test_image, pac
         expected_result=True,
     )
 
-    assert is_package_tracked(packages[0], test_repo)
-    assert is_package_tracked(packages[1], test_repo)
-    assert not is_package_tracked(packages[2], test_repo)
-    assert not is_package_tracked(packages[3], test_repo)
+    assert is_tracked(packages[0], test_repo, "package")
+    assert is_tracked(packages[1], test_repo, "package")
+    assert not is_tracked(packages[2], test_repo, "package")
+    assert not is_tracked(packages[3], test_repo, "package")
 
 
 def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
     test_image, packager_binary, context, test_repo
 ):
+    """TODO"""
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
 
@@ -179,10 +182,11 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
         expected_result=True,
     )
     for package in packages:
-        assert is_package_tracked(package, test_repo)
+        assert is_tracked(package, test_repo, "package")
 
 
 def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, context, test_repo):
+    """TODO"""
     package = "test_package_5"
     prepare_packages([package])
 
@@ -196,10 +200,11 @@ def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, con
         build_deps=True,
         expected_result=False,
     )
-    assert not is_package_tracked(package, test_repo)
+    assert not is_tracked(package, test_repo, "package")
 
 
 def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, context, test_repo):
+    """TODO"""
     package = "test_package_5"
     prepare_packages([package])
 
@@ -213,10 +218,12 @@ def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, 
         build_deps_on=True,
         expected_result=False,
     )
-    assert not is_package_tracked(package, test_repo)
+    assert not is_tracked(package, test_repo, "package")
 
 
 def test_10_has_itself_as_dependency_build_deps_on_recursive(test_image, packager_binary, context, test_repo):
+    """TODO"""
+
     package = "test_package_5"
     prepare_packages([package])
 
@@ -230,10 +237,11 @@ def test_10_has_itself_as_dependency_build_deps_on_recursive(test_image, package
         build_deps_on_recursive=True,
         expected_result=False,
     )
-    assert not is_package_tracked(package, test_repo)
+    assert not is_tracked(package, test_repo, "package")
 
 
 def test_11_circular_dependencies_deps(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
 
@@ -249,10 +257,11 @@ def test_11_circular_dependencies_deps(test_image, packager_binary, context, tes
     )
 
     for package in packages:
-        assert not is_package_tracked(package, test_repo)
+        assert not is_tracked(package, test_repo, "package")
 
 
 def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
 
@@ -277,12 +286,14 @@ def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, 
         expected_result=False,
     )
 
-    assert not is_package_tracked(packages[0], test_repo)
-    assert not is_package_tracked(packages[1], test_repo)
-    assert is_package_tracked(packages[2], test_repo)
+    assert not is_tracked(packages[0], test_repo, "package")
+    assert not is_tracked(packages[1], test_repo, "package")
+    assert is_tracked(packages[2], test_repo, "package")
 
 
 def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
+    """TODO"""
+
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
 
@@ -307,12 +318,14 @@ def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary,
         expected_result=False,
     )
 
-    assert not is_package_tracked(packages[0], test_repo)
-    assert not is_package_tracked(packages[1], test_repo)
-    assert is_package_tracked(packages[2], test_repo)
+    assert not is_tracked(packages[0], test_repo, "package")
+    assert not is_tracked(packages[1], test_repo, "package")
+    assert is_tracked(packages[2], test_repo, "package")
 
 
 def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_repo):
+    """TODO"""
+
     packages = ["test_package_9", "test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
 
@@ -328,7 +341,7 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
     )
 
     for package in packages:
-        assert is_package_tracked(package, test_repo)
+        assert is_tracked(package, test_repo, "package")
 
 
 def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test_repo):
@@ -369,13 +382,14 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
     )
 
     for package in packages[:5]:
-        assert is_package_tracked(package, test_repo)
+        assert is_tracked(package, test_repo, "package")
 
     for package in packages[5:]:
-        assert not is_package_tracked(package, test_repo)
+        assert not is_tracked(package, test_repo, "package")
 
 
 def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4", "test_package_9"]
     prepare_packages(packages)
 
@@ -401,10 +415,11 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
     )
 
     for package in packages:
-        assert is_package_tracked(package, test_repo)
+        assert is_tracked(package, test_repo, "package")
 
 
 def test_17_only_debug(test_image, packager_binary, context, test_repo):
+    """TODO"""
     package = "test_package_1_17"
     prepare_packages([package])
 
@@ -417,10 +432,11 @@ def test_17_only_debug(test_image, packager_binary, context, test_repo):
         name=package,
         expected_result=True,
     )
-    assert is_package_tracked(package, test_repo)
+    assert is_tracked(package, test_repo, "package")
 
 
 def test_18_only_release(test_image, packager_binary, context, test_repo):
+    """TODO"""
     package = "test_package_2_17"
     prepare_packages([package])
 
@@ -433,10 +449,11 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
         name=package,
         expected_result=True,
     )
-    assert is_package_tracked(package, test_repo)
+    assert is_tracked(package, test_repo, "package")
 
 
 def test_19_missing_release_debug_packages_build_deps(test_image, packager_binary, context, test_repo):
+    """TODO"""
     packages = ["test_package_1_17", "test_package_2_17"]
     prepare_packages(packages)
 
@@ -452,7 +469,7 @@ def test_19_missing_release_debug_packages_build_deps(test_image, packager_binar
     )
 
     for package in packages:
-        assert not is_package_tracked(package, test_repo)
+        assert not is_tracked(package, test_repo, "package")
 
 
 def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_binary, context, test_repo):
@@ -471,8 +488,8 @@ def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_bi
         expected_result=False,
     )
 
-    assert not is_package_tracked(packages[0], test_repo)
-    assert not is_package_tracked(packages[1], test_repo)
+    assert not is_tracked(packages[0], test_repo, "package")
+    assert not is_tracked(packages[1], test_repo, "package")
 
 
 def test_21_build_packages_with_no_images(test_image, packager_binary, context, test_repo):
@@ -490,4 +507,4 @@ def test_21_build_packages_with_no_images(test_image, packager_binary, context, 
         expected_result=False,
     )
 
-    assert not is_package_tracked(packages, test_repo)
+    assert not is_tracked(packages, test_repo, "package")
