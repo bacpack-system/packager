@@ -81,8 +81,12 @@ def is_tracked(name: str, repo_path: str, type: str) -> bool:
 
     if type == "app":
         source_path = os.path.join(test_config["test_apps"], name)
+        debug_suffix = "d_"
+        release_suffix = "_"
     elif type == "package":
         source_path = os.path.join(test_config["test_packages"], name)
+        debug_suffix = "d-dev_"
+        release_suffix = "-dev_"
     else:
         raise ValueError("Invalid type")
 
@@ -91,9 +95,9 @@ def is_tracked(name: str, repo_path: str, type: str) -> bool:
 
     for file in files:
         if "debug" in file:
-            test_name = name + "d-"
+            test_name = name + debug_suffix
         else:
-            test_name = name + "-"
+            test_name = name + release_suffix
 
         for path in files_in_last_commit:
             if name in path.split("/"):
