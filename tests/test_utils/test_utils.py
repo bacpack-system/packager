@@ -68,7 +68,7 @@ def does_image_exist(image: str) -> bool:
 def check_stdout(stdout: str, expected_result: bool):
     stdout = stdout.lower()
     if expected_result:
-        assert "build ok" in stdout
+        assert "build ok" in stdout or "creating sysroot directory from packages" in stdout
         assert "error" not in stdout
         assert "failed to" not in stdout
     else:
@@ -183,6 +183,14 @@ def run_packager(
         parameters.append("--output-dir")
         parameters.append(output_dir)
 
+    if sysroot_dir:
+        parameters.append("--sysroot-dir")
+        parameters.append(sysroot_dir)
+
+    if git_lfs:
+        parameters.append("--git-lfs")
+        parameters.append(git_lfs)
+
     if name:
         parameters.append("--name")
         parameters.append(name)
@@ -206,10 +214,12 @@ def run_packager(
         text=True,
     )
 
-    stdout, stdin = result.communicate()
+    stdout, stderr = result.communicate()
 
+    print("-" * 10, "Stdout", "-" * 10)
     print(stdout)
-    print(stdin)
+    print("-" * 10, "Stderr", "-" * 10)
+    print(stderr)
 
     if expected_result is not None:
         check_stdout(stdout, expected_result)
