@@ -247,6 +247,7 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 
 	handleRemover := bringauto_process.SignalHandlerAddHandler(repo.RestoreAllChanges)
 	defer handleRemover()
+
 	if *cmdLine.All {
 		err = buildAllPackages(cmdLine, contextPath, platformString, repo)
 	} else {
@@ -255,8 +256,8 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 	if err != nil {
 		return err
 	}
-	err = repo.CommitAllChanges()
-	return err
+
+	return nil
 }
 
 // buildAllPackages
@@ -295,7 +296,7 @@ func buildAllPackages(
 			continue
 		}
 		count++
-		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
 		}
@@ -410,7 +411,7 @@ func buildSinglePackage(
 	}
 	for _, config := range configList {
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
 		}
@@ -462,24 +463,24 @@ func buildAndCopyPackage(
 		err = bringauto_prerequisites.Initialize(&sysroot)
 		buildConfig.SetSysroot(&sysroot)
 
-		logger.InfoIndent("Run build inside container")
 		removeHandler = bringauto_process.SignalHandlerAddHandler(buildConfig.CleanUp)
-		err = buildConfig.RunBuild()
+		err, buildPerformed := buildConfig.RunBuild()
 		if err != nil {
 			return err
 		}
 
-		logger.InfoIndent("Copying to Git repository")
-
-		err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
-		if err != nil {
-			break
-		}
-
-		logger.InfoIndent("Copying to local sysroot directory")
-		err = sysroot.CopyToSysroot(buildConfig.GetLocalInstallDirPath(), buildConfig.Package.GetShortPackageName())
-		if err != nil {
-			break
+		if buildPerformed {
+			logger.InfoIndent("Copying to local sysroot directory")
+			err = sysroot.CopyToSysroot(buildConfig.GetLocalInstallDirPath(), *buildConfig.BuiltPackage)
+			if err != nil {
+				break
+			}
+			
+			logger.InfoIndent("Copying to Git repository")
+			err = repo.CopyToRepository(*buildConfig.Package, buildConfig.GetLocalInstallDirPath(), packageOrApp)
+			if err != nil {
+				break
+			}
 		}
 
 		removeHandler()
@@ -553,8 +554,14 @@ func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_co
 	}
 
 	for _, config := range configList {
-		packName := config.Package.GetShortPackageName()
-		if !sysroot.IsPackageInSysroot(packName) {
+		sysroot.IsDebug = config.Package.IsDebug
+		builtPackage := bringauto_sysroot.BuiltPackage {
+			Name: config.Package.GetShortPackageName(),
+			DirName: sysroot.GetDirNameInSysroot(),
+			GitUrl: config.Git.URI,
+			GitCommitHash: "",
+		}
+		if !sysroot.IsPackageInSysroot(builtPackage) {
 			return false, nil
 		}
 	}

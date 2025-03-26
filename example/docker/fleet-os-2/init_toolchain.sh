@@ -7,7 +7,7 @@ TOOLS_INSTALL_DIR="$2"
 TMP_DIR="/tmp/toolchain-install"
 
 TOOLS_PACKAGE_URI="https://github.com/bringauto/packager/releases/download/v0.3.0/bringauto-packager-tools_v0.3.0_x86-64-linux.zip"
-TOOLCHAIN_PACKAGE_URI="https://gitlab.bringauto.com/bringauto-public/fleet-os-toolchain/-/raw/master/fleet-os/v2.3.0/fleet-os-toolchain_v2.3.0_raspberrypi4-64.zip"
+TOOLCHAIN_PACKAGE_URI="https://gitlab.bringauto.com/bringauto-public/fleet-os-toolchain/-/raw/add-v2.9.0/fleet-os/v2.9.1/fleet-os-toolchain_v2.9.1_raspberrypi4-64.zip?ref_type=heads"
 
 if [[ ${INSTALL_DIR} = "" ]]
 then

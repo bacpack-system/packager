@@ -12,10 +12,16 @@ import (
 
 const (
 	sysrootDir = "test_sysroot"
+	gitUrl = "git.url"
+	gitCommitHash = "hash"
 )
 
 var defaultPlatformString bringauto_package.PlatformString
 var defaultSysroot Sysroot
+
+var builtPackage1 BuiltPackage
+var builtPackage2 BuiltPackage
+var builtPackage3 BuiltPackage
 
 func TestMain(m *testing.M) {
 	stringExplicit := bringauto_package.PlatformStringExplicit {
@@ -34,6 +40,21 @@ func TestMain(m *testing.M) {
 		PlatformString: &defaultPlatformString,
 	}
 	err := bringauto_prerequisites.Initialize(&defaultSysroot)
+	if err != nil {
+		panic(err)
+	}
+
+	err = bringauto_prerequisites.Initialize(&builtPackage1, bringauto_testing.Pack1Name, gitUrl, "")
+	if err != nil {
+		panic(err)
+	}
+
+	err = bringauto_prerequisites.Initialize(&builtPackage2, bringauto_testing.Pack2Name, gitUrl, "")
+	if err != nil {
+		panic(err)
+	}
+
+	err = bringauto_prerequisites.Initialize(&builtPackage3, bringauto_testing.Pack3Name, gitUrl, "")
 	if err != nil {
 		panic(err)
 	}
@@ -100,12 +121,12 @@ func TestCreateSysrootDir(t *testing.T) {
 }
 
 func TestCopyToSysrootOnePackage(t *testing.T) {
-	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, bringauto_testing.Pack1Name)
+	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	pack1Path := filepath.Join(defaultSysroot.GetSysrootPath(), bringauto_testing.Pack1FileName)
+	pack1Path := filepath.Join(defaultSysroot.GetSysrootPath(), bringauto_testing.Pack1FileName, gitUrl, "")
 	_, err = os.ReadFile(pack1Path)
 	if os.IsNotExist(err) {
 		t.Fail()
@@ -118,17 +139,17 @@ func TestCopyToSysrootOnePackage(t *testing.T) {
 }
 
 func TestCopyToSysrootMultiplePackages(t *testing.T) {
-	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, bringauto_testing.Pack1Name)
+	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack2Name, bringauto_testing.Pack2Name)
+	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack2Name, builtPackage2)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack3Name, bringauto_testing.Pack3Name)
+	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack3Name, builtPackage3)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
@@ -158,12 +179,12 @@ func TestCopyToSysrootMultiplePackages(t *testing.T) {
 }
 
 func TestCopyToSysrootOvewriteFiles(t *testing.T) {
-	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, bringauto_testing.Pack1Name)
+	err := defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, bringauto_testing.Pack1Name)
+	err = defaultSysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
 	if err == nil {
 		t.Error("ovewriting files not detected")
 	}
@@ -184,20 +205,20 @@ func TestIsPackageInSysroot(t *testing.T) {
 		t.Fatalf("sysroot initialization failed - %s", err)
 	}
 
-	err = sysroot.CopyToSysroot(bringauto_testing.Pack1Name, bringauto_testing.Pack1Name)
+	err = sysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
 	if err != nil {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	if !sysroot.IsPackageInSysroot(bringauto_testing.Pack1Name) {
+	if !sysroot.IsPackageInSysroot(builtPackage1) {
 		t.Error("IsPackageInSysroot returned false after copying package to sysroot")
 	}
 
-	if sysroot.IsPackageInSysroot(bringauto_testing.Pack2Name) {
+	if sysroot.IsPackageInSysroot(builtPackage2) {
 		t.Error("IsPackageInSysroot returned true for not copied package")
 	}
 
-	if sysroot.IsPackageInSysroot(bringauto_testing.Pack3Name) {
+	if sysroot.IsPackageInSysroot(builtPackage3) {
 		t.Error("IsPackageInSysroot returned true for not copied package")
 	}
 

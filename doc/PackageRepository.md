@@ -31,8 +31,6 @@ Following rules ans mechanisms ensures that the Package Repository is always con
 
 - Each succesfully built Package/App by `build-package`/`build-app` command is copied to Package
 Repository (specified by cli flag) to specific path -
-`<DISTRO_NAME>/<DISTRO_VERSION/MACHINE_TYPE/PACKAGE_NAME>`
-- After all Packages/Apps are succesfully built, all copied files in Package Repository are git
-committed and remain in Repository
-- If any build fails or the script is interrupted, all copied Packages/Apps are removed from
+`<DISTRO_NAME>/<DISTRO_VERSION/MACHINE_TYPE/PACKAGE_NAME>` and git committed
+- If any build fails or the script is interrupted, all not committed changes are removed from
 Repository

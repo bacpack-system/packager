@@ -25,6 +25,10 @@ to the `install_sysroot` directory located in the working directory of the build
 build files would overwrite any files already present in sysroot, the build fails (more in
 [Sysroot]).
 
+Before build of a Package, the `built_packages.json` in `install_sysroot` directory is checked (if
+it exists) for Packages already built in sysroot. If the Package is present, the build is skipped.
+More informations in [Sysroot].
+
 Each Package has a `IsDebug` flag. If the flag is true the Package is considered as Debug Package.
 If the Package is false the Package is considered as Release.
 

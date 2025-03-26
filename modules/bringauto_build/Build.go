@@ -11,6 +11,9 @@ import (
 	"bringauto/modules/bringauto_sysroot"
 	"bringauto/modules/bringauto_process"
 	"fmt"
+	"io"
+	"bufio"
+	"regexp"
 	"os"
 	"path/filepath"
 	"time"
@@ -24,6 +27,7 @@ type Build struct {
 	GNUMake        *GNUMake
 	SSHCredentials *bringauto_ssh.SSHCredentials
 	Package        *bringauto_package.Package
+	BuiltPackage   *bringauto_sysroot.BuiltPackage
 	sysroot        *bringauto_sysroot.Sysroot
 }
 
@@ -75,14 +79,42 @@ func (build *Build) CheckPrerequisites(*bringauto_prerequisites.Args) error {
 	return nil
 }
 
+func (build *Build) prepareBuild(shellEvaluator *bringauto_ssh.ShellEvaluator) error {
+	gitClone := bringauto_git.GitClone{Git: *build.Git}
+	gitCheckout := bringauto_git.GitCheckout{Git: *build.Git}
+	gitSubmoduleUpdate := bringauto_git.GitSubmoduleUpdate{Git: *build.Git}
+	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
+
+	preparePackageChain := BuildChain{
+		Chain: []CMDLineInterface{
+			startupScript,
+			build.Env,
+			&gitClone,
+			&gitCheckout,
+			&gitSubmoduleUpdate,
+		},
+	}
+
+	shellEvaluator.Commands = preparePackageChain.GenerateCommands()
+
+	err := shellEvaluator.RunOverSSH(*build.SSHCredentials)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // RunBuild
-// s
-func (build *Build) RunBuild() error {
+// Creates a Docker container, performs a build in it. After build, the files are downloaded to
+// local directory and Docker container is stopped and removed. Returns bool which indicates if
+// the build was performed succesfully.
+func (build *Build) RunBuild() (error, bool) {
 	var err error
 
 	err = build.CheckPrerequisites(nil)
 	if err != nil {
-		return err
+		return err, false
 	}
 
 	build.Git.ClonePath = dockerGitCloneDirConst
@@ -90,7 +122,7 @@ func (build *Build) RunBuild() error {
 
 	_, found := build.CMake.Defines["CMAKE_INSTALL_PREFIX"]
 	if found {
-		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX")
+		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX"), false
 	}
 	build.CMake.Defines["CMAKE_INSTALL_PREFIX"] = bringauto_const.DockerInstallDirConst
 
@@ -101,42 +133,25 @@ func (build *Build) RunBuild() error {
 		build.CMake.SetDefine("CMAKE_PREFIX_PATH", "/sysroot")
 	}
 
-	gitClone := bringauto_git.GitClone{Git: *build.Git}
-	gitCheckout := bringauto_git.GitCheckout{Git: *build.Git}
-	gitSubmoduleUpdate := bringauto_git.GitSubmoduleUpdate{Git: *build.Git}
-	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
-
-	buildChain := BuildChain{
-		Chain: []CMDLineInterface{
-			startupScript,
-			build.Env,
-			&gitClone,
-			&gitCheckout,
-			&gitSubmoduleUpdate,
-			build.CMake,
-			build.GNUMake,
-		},
-	}
-
 	logger := bringauto_log.GetLogger()
 	packBuildChainLogger := logger.CreateContextLogger(build.Docker.ImageName, build.Package.GetShortPackageName(), bringauto_log.BuildChainContext)
 	file, err := packBuildChainLogger.GetFile()
 
 	if err != nil {
 		logger.Error("Failed to open file - %s", err)
-		return err
+		return err, false
 	}
 
 	defer file.Close()
 
 	shellEvaluator := bringauto_ssh.ShellEvaluator{
-		Commands: buildChain.GenerateCommands(),
+		Commands: []string{},
 		StdOut:   file,
 	}
 
 	err = bringauto_prerequisites.Initialize(build.Docker)
 	if err != nil {
-		return err
+		return err, false
 	}
 
 	dockerRun := (*bringauto_docker.DockerRun)(build.Docker)
@@ -147,20 +162,55 @@ func (build *Build) RunBuild() error {
 	})
 	defer removeHandler()
 
+	logger.InfoIndent("Starting docker container")
+
 	err = dockerRun.Run()
 	if err != nil {
-		return err
+		return err, false
 	}
+
+	logger.InfoIndent("Cloning and updating Package git repository inside docker container")
+
+	err = build.prepareBuild(&shellEvaluator)
+	if err != nil {
+		return err, false
+	}
+
+	build.BuiltPackage.GitCommitHash, err = build.getGitCommitHash()
+	if err != nil {
+		return fmt.Errorf("can't get git commit hash from container - %s", err), false
+	}
+	build.BuiltPackage.DirName = build.sysroot.GetDirNameInSysroot()
+
+	if build.sysroot.IsPackageInSysroot(*build.BuiltPackage) {
+		logger.InfoIndent("Package already built in sysroot - skipping build")
+		return nil, false
+	}
+
+	buildChain := BuildChain{
+		Chain: []CMDLineInterface{
+			build.CMake,
+			build.GNUMake,
+		},
+	}
+
+	shellEvaluator.Commands = buildChain.GenerateCommands()
+
+	logger.InfoIndent("Running build inside container")
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return err
+		return err, false
 	}
 
 	logger.InfoIndent("Copying install files from container to local directory")
 
 	err = build.downloadInstalledFiles()
-	return err
+	if err != nil {
+		return fmt.Errorf("can't download files from container to local directory"), false
+	}
+
+	return nil, true
 }
 
 func (build *Build) SetSysroot(sysroot *bringauto_sysroot.Sysroot) {
@@ -235,4 +285,50 @@ func (build *Build) downloadInstalledFiles() error {
 	}
 	err = sftpClient.DownloadDirectory()
 	return err
+}
+
+func (build *Build) getGitCommitHash() (string, error) {
+	pipeReader, pipeWriter := io.Pipe()
+	gitGetHash := bringauto_git.GitGetHash{Git: *build.Git}
+	shellEvaluator := bringauto_ssh.ShellEvaluator{
+		Commands: gitGetHash.ConstructCMDLine(),
+		StdOut:   pipeWriter,
+	}
+	
+	err := shellEvaluator.RunOverSSH(*build.SSHCredentials)
+	if err != nil {
+		return "", err
+	}
+
+	buf := bufio.NewReader(pipeReader)
+	var line string
+
+	for {
+		line, err = buf.ReadString('\n')
+		if err == io.EOF {
+			break
+		} 
+		if err != nil {
+			return "", err
+		}
+
+		line = line[:len(line)-1]
+		hash := getGitCommitHashFromLine(line)
+		if hash != "" {
+			return hash, nil
+		}
+	}
+
+	return "", fmt.Errorf("no commit hash in output")
+}
+
+func getGitCommitHashFromLine(line string) string {
+	// regexp for long git commit hash
+	re := regexp.MustCompile("[a-f0-9]{40}")
+	match := re.FindStringSubmatch(line)
+	if len(match) > 0 {
+		return match[0]
+	}
+
+	return ""
 }
