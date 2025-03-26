@@ -3,7 +3,7 @@ import subprocess
 import os
 import shutil
 import docker
-from test_utils.test_utils import test_config, init_test_repo, clean
+from test_utils.test_utils import test_config, init_test_repo, clean, init_test_sysroot
 from git import Repo
 
 
@@ -57,6 +57,11 @@ def context():
 @pytest.fixture
 def test_repo():
     return init_test_repo()
+
+
+@pytest.fixture
+def test_sysroot():
+    return init_test_sysroot()
 
 
 @pytest.fixture(scope="session")
