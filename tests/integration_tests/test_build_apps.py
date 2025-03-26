@@ -4,11 +4,9 @@ from time import sleep
 
 from test_utils.test_utils import (
     run_packager,
-    does_image_exist,
-    check_stdout,
     is_tracked,
-    prepare_packages,
     does_app_support_image,
+    clean_sysroot,
 )
 
 
@@ -42,6 +40,9 @@ def test_02_build_multiple_apps(test_image, packager_binary, context, test_repo)
         name=apps[0],
         expected_result=True,
     )
+
+    clean_sysroot()
+
     run_packager(
         packager_binary,
         "build-app",
