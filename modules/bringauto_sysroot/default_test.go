@@ -14,6 +14,7 @@ const (
 	sysrootDir = "test_sysroot"
 	gitUrl = "git.url"
 	gitCommitHash = "hash"
+	sysrootDirName = "machine-distro-1.0"
 )
 
 var defaultPlatformString bringauto_package.PlatformString
@@ -44,17 +45,17 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage1, bringauto_testing.Pack1Name, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage1, bringauto_testing.Pack1Name, sysrootDirName, gitUrl, "")
 	if err != nil {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage2, bringauto_testing.Pack2Name, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage2, bringauto_testing.Pack2Name, sysrootDirName, gitUrl, "")
 	if err != nil {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage3, bringauto_testing.Pack3Name, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage3, bringauto_testing.Pack3Name, sysrootDirName, gitUrl, "")
 	if err != nil {
 		panic(err)
 	}
@@ -116,6 +117,14 @@ func TestCreateSysrootDir(t *testing.T) {
 
 	_, err = os.Stat(sysrootPath)
 	if os.IsNotExist(err) {
+		t.Fail()
+	}
+}
+
+func TestGetDirNameInSysroot(t *testing.T) {
+	dirName := defaultSysroot.GetDirNameInSysroot()
+
+	if dirName != sysrootDirName {
 		t.Fail()
 	}
 }

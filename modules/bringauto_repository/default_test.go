@@ -169,7 +169,7 @@ func TestCopyToRepositoryMultiplePackages(t *testing.T) {
 	}
 }
 
-func TestCommitAllChanges(t *testing.T) {
+func TestCopyToRepositoryChangesCommitted(t *testing.T) {
 	repo, err := initGitRepo()
 	if err != nil {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
@@ -178,10 +178,6 @@ func TestCommitAllChanges(t *testing.T) {
 	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name, bringauto_const.PackageDirName)
 	if err != nil {
 		t.Errorf("CopyToRepository failed - %s", err)
-	}
-	err = repo.CommitAllChanges()
-	if err != nil {
-		t.Errorf("can't commit changes - %s", err)
 	}
 
 	err = os.Chdir(RepoName)
@@ -221,10 +217,18 @@ func TestRestoreAllChanges(t *testing.T) {
 		t.Fatalf("can't initialize Git repository or struct - %s", err)
 	}
 
-	err = repo.CopyToRepository(pack1, bringauto_testing.Pack1Name, bringauto_const.PackageDirName)
+	testFile1, err := os.Create(filepath.Join(RepoName, "file1"))
 	if err != nil {
-		t.Errorf("CopyToRepository failed - %s", err)
+		t.Fatal("can't open destination package file")
 	}
+	defer testFile1.Close()
+
+	testFile2, err := os.Create(filepath.Join(RepoName, "file2"))
+	if err != nil {
+		t.Fatal("can't open destination package file")
+	}
+	defer testFile2.Close()
+
 	err = repo.RestoreAllChanges()
 	if err != nil {
 		t.Errorf("can't restore changes - %s", err)
