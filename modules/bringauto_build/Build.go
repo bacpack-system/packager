@@ -117,6 +117,10 @@ func (build *Build) RunBuild() (error, bool) {
 		return err, false
 	}
 
+	if build.BuiltPackage == nil {
+		return fmt.Errorf("BuiltPackage is nil"), false
+	}
+
 	build.Git.ClonePath = dockerGitCloneDirConst
 	build.CMake.SourceDir = dockerGitCloneDirConst
 

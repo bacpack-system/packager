@@ -48,8 +48,8 @@ func (builtPackages *BuiltPackages) UpdateBuiltPackages() error {
 }
 
 // Contains
-// Returns true if given Package is in builtPackages, else false. If the pack has empty
-// GitCommitHash, it is not checked.
+// Returns true if given Package is in builtPackages, else false. All fields of BuiltPackage struct
+// are compared. Only if the pack has empty GitCommitHash, the GitCommitHash is not compared.
 func (builtPackages *BuiltPackages) Contains(pack BuiltPackage) bool {
 	for _, p := range builtPackages.Packages {
 		condition := p.Name == pack.Name && p.DirName == pack.DirName && pack.GitUrl == p.GitUrl
