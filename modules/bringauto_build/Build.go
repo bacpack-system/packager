@@ -1,21 +1,21 @@
 package bringauto_build
 
 import (
+	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_docker"
 	"bringauto/modules/bringauto_git"
 	"bringauto/modules/bringauto_log"
-	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
+	"bringauto/modules/bringauto_process"
 	"bringauto/modules/bringauto_ssh"
 	"bringauto/modules/bringauto_sysroot"
-	"bringauto/modules/bringauto_process"
+	"bufio"
 	"fmt"
 	"io"
-	"bufio"
-	"regexp"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -173,7 +173,7 @@ func (build *Build) RunBuild() (error, bool) {
 		return err, false
 	}
 
-	logger.InfoIndent("Cloning and updating Package git repository inside docker container")
+	logger.InfoIndent("Cloning Package git repository inside docker container")
 
 	err = build.prepareBuild(&shellEvaluator)
 	if err != nil {
@@ -300,7 +300,7 @@ func (build *Build) getGitCommitHash() (string, error) {
 		Commands: gitGetHash.ConstructCMDLine(),
 		StdOut:   pipeWriter,
 	}
-	
+
 	err := shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
 		return "", err
@@ -313,7 +313,7 @@ func (build *Build) getGitCommitHash() (string, error) {
 		line, err = buf.ReadString('\n')
 		if err == io.EOF {
 			break
-		} 
+		}
 		if err != nil {
 			return "", err
 		}

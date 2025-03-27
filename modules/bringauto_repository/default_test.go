@@ -191,7 +191,7 @@ func TestCopyToRepositoryChangesCommitted(t *testing.T) {
 		t.Errorf("git status failed - %s", err)
 	}
 	if len(stdout) > 0 {
-		t.Error("git status not empty after CommitAllChanges")
+		t.Error("git status not empty")
 	}
 
 	cmd = exec.Command("git", "log")
