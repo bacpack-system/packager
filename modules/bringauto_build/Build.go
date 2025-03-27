@@ -293,6 +293,8 @@ func (build *Build) downloadInstalledFiles() error {
 
 func (build *Build) getGitCommitHash() (string, error) {
 	pipeReader, pipeWriter := io.Pipe()
+	defer pipeReader.Close()
+	defer pipeWriter.Close()
 	gitGetHash := bringauto_git.GitGetHash{Git: *build.Git}
 	shellEvaluator := bringauto_ssh.ShellEvaluator{
 		Commands: gitGetHash.ConstructCMDLine(),
