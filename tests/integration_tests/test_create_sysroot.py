@@ -156,3 +156,31 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         expected_result=False,
     )
     print("done")
+
+
+def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
+    """TODO"""
+    package = "test_package_1"
+
+    prepare_packages([package])
+    # print(does_app_support_image(app, test_image))
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name="fedora41",
+        output_dir=test_repo,
+        all=True,
+        expected_result=True,
+    )
+
+    run_packager(
+        packager_binary,
+        "create-sysroot",
+        context=context,
+        image_name="fedora41",
+        sysroot_dir=test_sysroot,
+        git_lfs=test_repo,
+        expected_result=True,
+    )
