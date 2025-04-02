@@ -190,9 +190,12 @@ func (build *Build) RunBuild() (error, bool) {
 		logger.InfoIndent("Package already built in sysroot - skipping build")
 		return nil, false
 	}
+	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
 
 	buildChain := BuildChain{
 		Chain: []CMDLineInterface{
+			startupScript,
+			build.Env,
 			build.CMake,
 			build.GNUMake,
 		},
