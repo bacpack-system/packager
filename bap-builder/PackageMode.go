@@ -558,8 +558,8 @@ func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_co
 		builtPackage := bringauto_sysroot.BuiltPackage {
 			Name: config.Package.GetShortPackageName(),
 			DirName: sysroot.GetDirNameInSysroot(),
-			GitUrl: config.Git.URI,
-			GitCommitHash: "",
+			GitUri: config.Git.URI,
+			GitCommitHash: bringauto_const.EmptyGitCommitHash,
 		}
 		if !sysroot.IsPackageInSysroot(builtPackage) {
 			return false, nil
