@@ -238,6 +238,35 @@ func TestIsPackageInSysroot(t *testing.T) {
 	}
 }
 
+func TestIsPackageInSysrootDifferentHash(t *testing.T) {
+	sysroot := Sysroot {
+		IsDebug: false,
+		PlatformString: &defaultPlatformString,
+	}
+	err := bringauto_prerequisites.Initialize(&defaultSysroot)
+	if err != nil {
+		t.Fatalf("sysroot initialization failed - %s", err)
+	}
+
+	err = sysroot.CopyToSysroot(bringauto_testing.Pack1Name, builtPackage1)
+	if err != nil {
+		t.Errorf("CopyToSysroot failed - %s", err)
+	}
+
+	otherPackage := builtPackage1
+	otherPackage.GitCommitHash = "different_hash"
+
+	if sysroot.IsPackageInSysroot(otherPackage) {
+		t.Error("IsPackageInSysroot returned true for different package")
+	}
+
+
+	err = clearSysroot()
+	if err != nil {
+		t.Errorf("can't delete sysroot dir - %s", err)
+	}
+}
+
 func clearSysroot() error {
 	sysrootPath := defaultSysroot.GetSysrootPath()
 	return os.RemoveAll(filepath.Dir(sysrootPath))
