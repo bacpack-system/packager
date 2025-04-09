@@ -135,7 +135,7 @@ func TestCopyToSysrootOnePackage(t *testing.T) {
 		t.Errorf("CopyToSysroot failed - %s", err)
 	}
 
-	pack1Path := filepath.Join(defaultSysroot.GetSysrootPath(), bringauto_testing.Pack1FileName, gitUrl, "")
+	pack1Path := filepath.Join(defaultSysroot.GetSysrootPath(), bringauto_testing.Pack1FileName)
 	_, err = os.ReadFile(pack1Path)
 	if os.IsNotExist(err) {
 		t.Fail()
