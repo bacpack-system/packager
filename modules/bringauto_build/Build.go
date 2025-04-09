@@ -142,7 +142,7 @@ func (build *Build) prepareForBuild() error {
 // Creates a Docker container, performs a build in it. After build, the files are downloaded to
 // local directory and Docker container is stopped and removed. Returns bool which indicates if
 // the build was performed succesfully.
-func (build *Build) RunBuild() (error, bool) {
+func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to refactor to make readability better
 	err := build.prepareForBuild()
 	if err != nil {
 		return err, false
@@ -338,7 +338,7 @@ func (build *Build) getGitCommitHash() (string, error) {
 }
 
 func getGitCommitHashFromLine(line string) string {
-	// regexp for long git commit hash
+	// regexp for long git commit hash, it must be used, because the ssh output has several commands and it is long
 	re := regexp.MustCompile("[a-f0-9]{40}")
 	match := re.FindStringSubmatch(line)
 	if len(match) > 0 {
