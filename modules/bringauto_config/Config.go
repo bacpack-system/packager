@@ -2,6 +2,7 @@ package bringauto_config
 
 import (
 	"bringauto/modules/bringauto_build"
+	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_docker"
 	"bringauto/modules/bringauto_git"
 	"bringauto/modules/bringauto_package"
@@ -122,9 +123,9 @@ func (config *Config) fillBuildStructure(dockerImageName string, platformString 
 	}
 	builtPackage := bringauto_prerequisites.CreateAndInitialize[bringauto_sysroot.BuiltPackage](
 		config.Package.GetShortPackageName(),
-		"",
+		"",                                 // Will be filled later after build will have valid sysroot
 		config.Git.URI,
-		"",
+		bringauto_const.EmptyGitCommitHash, // Will be filled later when the hash is retrieved from docker container
 	)
 
 	tmpPackage := config.Package

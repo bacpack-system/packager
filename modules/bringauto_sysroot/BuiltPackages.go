@@ -1,6 +1,7 @@
 package bringauto_sysroot
 
 import (
+	"bringauto/modules/bringauto_const"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -52,8 +53,8 @@ func (builtPackages *BuiltPackages) UpdateBuiltPackages() error {
 // are compared. Only if the pack has empty GitCommitHash, the GitCommitHash is not compared.
 func (builtPackages *BuiltPackages) Contains(pack BuiltPackage) bool {
 	for _, p := range builtPackages.Packages {
-		condition := p.Name == pack.Name && p.DirName == pack.DirName && pack.GitUrl == p.GitUrl
-		if pack.GitCommitHash != "" {
+		condition := p.Name == pack.Name && p.DirName == pack.DirName && pack.GitUri == p.GitUri
+		if pack.GitCommitHash != bringauto_const.EmptyGitCommitHash {
 			condition = condition && pack.GitCommitHash == p.GitCommitHash
 		}
 		if condition {

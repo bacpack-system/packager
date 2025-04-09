@@ -4,6 +4,7 @@ import (
 	"bringauto/modules/bringauto_testing"
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
+	"bringauto/modules/bringauto_const"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 
 const (
 	sysrootDir = "test_sysroot"
-	gitUrl = "git.url"
+	gitUri = "git_uri"
 	gitCommitHash = "hash"
 	sysrootDirName = "machine-distro-1.0"
 )
@@ -45,17 +46,17 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage1, bringauto_testing.Pack1Name, sysrootDirName, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage1, bringauto_testing.Pack1Name, sysrootDirName, gitUri, bringauto_const.EmptyGitCommitHash)
 	if err != nil {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage2, bringauto_testing.Pack2Name, sysrootDirName, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage2, bringauto_testing.Pack2Name, sysrootDirName, gitUri, bringauto_const.EmptyGitCommitHash)
 	if err != nil {
 		panic(err)
 	}
 
-	err = bringauto_prerequisites.Initialize(&builtPackage3, bringauto_testing.Pack3Name, sysrootDirName, gitUrl, "")
+	err = bringauto_prerequisites.Initialize(&builtPackage3, bringauto_testing.Pack3Name, sysrootDirName, gitUri, bringauto_const.EmptyGitCommitHash)
 	if err != nil {
 		panic(err)
 	}
