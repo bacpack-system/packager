@@ -16,4 +16,6 @@ const (
 	PackageDirName = "package"
 	// Name of the app directory
 	AppDirName = "app"
+	// Empty Git commit hash
+	EmptyGitCommitHash = ""
 )

@@ -79,7 +79,10 @@ func (build *Build) CheckPrerequisites(*bringauto_prerequisites.Args) error {
 	return nil
 }
 
-func (build *Build) prepareBuild(shellEvaluator *bringauto_ssh.ShellEvaluator) error {
+// performPreBuildTasks
+// Downloads Package files for build in docker container. Clones the repository and updates all
+// submodules.
+func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEvaluator) error {
 	gitClone := bringauto_git.GitClone{Git: *build.Git}
 	gitCheckout := bringauto_git.GitCheckout{Git: *build.Git}
 	gitSubmoduleUpdate := bringauto_git.GitSubmoduleUpdate{Git: *build.Git}
@@ -104,21 +107,16 @@ func (build *Build) prepareBuild(shellEvaluator *bringauto_ssh.ShellEvaluator) e
 
 	return nil
 }
-
-// RunBuild
-// Creates a Docker container, performs a build in it. After build, the files are downloaded to
-// local directory and Docker container is stopped and removed. Returns bool which indicates if
-// the build was performed succesfully.
-func (build *Build) RunBuild() (error, bool) {
-	var err error
-
-	err = build.CheckPrerequisites(nil)
+// prepareForBuild
+// Prepares some fields of Build struct for build and makes pre build checks.
+func (build *Build) prepareForBuild() error {
+	err := build.CheckPrerequisites(nil)
 	if err != nil {
-		return err, false
+		return err
 	}
 
 	if build.BuiltPackage == nil {
-		return fmt.Errorf("BuiltPackage is nil"), false
+		return fmt.Errorf("BuiltPackage is nil")
 	}
 
 	build.Git.ClonePath = dockerGitCloneDirConst
@@ -126,7 +124,7 @@ func (build *Build) RunBuild() (error, bool) {
 
 	_, found := build.CMake.Defines["CMAKE_INSTALL_PREFIX"]
 	if found {
-		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX"), false
+		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX")
 	}
 	build.CMake.Defines["CMAKE_INSTALL_PREFIX"] = bringauto_const.DockerInstallDirConst
 
@@ -135,6 +133,19 @@ func (build *Build) RunBuild() (error, bool) {
 		sysPath := build.sysroot.GetSysrootPath()
 		build.Docker.SetVolume(sysPath, "/sysroot")
 		build.CMake.SetDefine("CMAKE_PREFIX_PATH", "/sysroot")
+	}
+
+	return nil
+}
+
+// RunBuild
+// Creates a Docker container, performs a build in it. After build, the files are downloaded to
+// local directory and Docker container is stopped and removed. Returns bool which indicates if
+// the build was performed succesfully.
+func (build *Build) RunBuild() (error, bool) {
+	err := build.prepareForBuild()
+	if err != nil {
+		return err, false
 	}
 
 	logger := bringauto_log.GetLogger()
@@ -151,11 +162,6 @@ func (build *Build) RunBuild() (error, bool) {
 	shellEvaluator := bringauto_ssh.ShellEvaluator{
 		Commands: []string{},
 		StdOut:   file,
-	}
-
-	err = bringauto_prerequisites.Initialize(build.Docker)
-	if err != nil {
-		return err, false
 	}
 
 	dockerRun := (*bringauto_docker.DockerRun)(build.Docker)
@@ -175,7 +181,7 @@ func (build *Build) RunBuild() (error, bool) {
 
 	logger.InfoIndent("Cloning Package git repository inside docker container")
 
-	err = build.prepareBuild(&shellEvaluator)
+	err = build.performPreBuildTasks(&shellEvaluator)
 	if err != nil {
 		return err, false
 	}
