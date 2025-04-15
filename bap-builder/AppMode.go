@@ -33,6 +33,7 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 
 	handleRemover := bringauto_process.SignalHandlerAddHandler(repo.RestoreAllChanges)
 	defer handleRemover()
+
 	if *cmdLine.All {
 		err = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo)
 	} else {
@@ -41,8 +42,8 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 	if err != nil {
 		return err
 	}
-	err = repo.CommitAllChanges()
-	return err
+	
+	return nil
 }
 
 // buildAllApps
@@ -79,7 +80,7 @@ func buildAllApps(
 				continue
 			}
 			count++
-			err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+			err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 			if err != nil {
 				return fmt.Errorf("cannot build App '%s' - %s", config.Package.Name, err)
 			}
@@ -103,7 +104,7 @@ func buildSingleApp(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
-) error {
+) error{
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
 	}
@@ -120,9 +121,9 @@ func buildSingleApp(
 			return fmt.Errorf("App has non-empty DependsOn")
 		}
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
-		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", *cmdLine.Name, err)
+			return fmt.Errorf("cannot build App '%s' - %s", *cmdLine.Name, err)
 		}
 	}
 	return nil

@@ -80,6 +80,14 @@ for built Packages. Given Git Repository must be created before usage.
 
 **Note:** If you do not have `bap-builder` in your system path, you need to use `./bap-builder/bap-builder` instead of `bap-builder`.
 
+## Tests
+
+To run unit tests, run:
+
+```bash
+    go test ./...
+```
+
 ## Documentation
 
 The detailed documentation is available in the `doc` directory.

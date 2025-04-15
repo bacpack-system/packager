@@ -1,6 +1,7 @@
 package bringauto_sysroot
 
 import (
+	"bringauto/modules/bringauto_const"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,19 +10,20 @@ import (
 
 const (
 	jsonFileName = "built_packages.json"
+	indent = "\x20\x20\x20\x20" // four spaces
 )
 
 // Contains built Packages in sysroot and has functions for Json encoding and decoding of built
 // Packages.
 type BuiltPackages struct {
-	Packages []string
+	Packages []BuiltPackage
 }
 
 // AddToBuiltPackages
 // Adds packageName to built Packages.
-func (builtPackages *BuiltPackages) AddToBuiltPackages(packageName string) error {
-	builtPackages.Packages = append(builtPackages.Packages, packageName)
-	bytes, err := json.Marshal(builtPackages.Packages)
+func (builtPackages *BuiltPackages) AddToBuiltPackages(pack BuiltPackage) error {
+	builtPackages.Packages = append(builtPackages.Packages, pack)
+	bytes, err := json.MarshalIndent(builtPackages.Packages, "", indent)
 	if err != nil {
 		return err
 	}
@@ -44,4 +46,20 @@ func (builtPackages *BuiltPackages) UpdateBuiltPackages() error {
 		return fmt.Errorf("failed to parse built packages file - %s", err)
 	}
 	return nil
+}
+
+// Contains
+// Returns true if given Package is in builtPackages, else false. All fields of BuiltPackage struct
+// are compared. Only if the pack has empty GitCommitHash, the GitCommitHash is not compared.
+func (builtPackages *BuiltPackages) Contains(pack BuiltPackage) bool {
+	for _, p := range builtPackages.Packages {
+		condition := p.Name == pack.Name && p.DirName == pack.DirName && pack.GitUri == p.GitUri
+		if pack.GitCommitHash != bringauto_const.EmptyGitCommitHash {
+			condition = condition && pack.GitCommitHash == p.GitCommitHash
+		}
+		if condition {
+			return true
+		}
+	}
+	return false
 }

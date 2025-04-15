@@ -2,10 +2,12 @@ package bringauto_config
 
 import (
 	"bringauto/modules/bringauto_build"
+	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_docker"
 	"bringauto/modules/bringauto_git"
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
+	"bringauto/modules/bringauto_sysroot"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,7 +18,6 @@ import (
 // Build
 // It stores configuration for given build system
 // (CMake, autoconf, ...)
-//
 type Build struct {
 	CMake *bringauto_build.CMake
 }
@@ -27,7 +28,6 @@ type DockerMatrix struct {
 
 // Config
 // Build configuration which stores how the package is build.
-//
 type Config struct {
 	Env          map[string]string
 	Git          bringauto_git.Git
@@ -121,6 +121,12 @@ func (config *Config) fillBuildStructure(dockerImageName string, platformString 
 	if err != nil {
 		panic(err)
 	}
+	builtPackage := bringauto_prerequisites.CreateAndInitialize[bringauto_sysroot.BuiltPackage](
+		config.Package.GetShortPackageName(),
+		"",                                 // Will be filled later after build will have valid sysroot
+		config.Git.URI,
+		bringauto_const.EmptyGitCommitHash, // Will be filled later when the hash is retrieved from docker container
+	)
 
 	tmpPackage := config.Package
 	err = bringauto_prerequisites.Initialize(&tmpPackage)
@@ -132,11 +138,12 @@ func (config *Config) fillBuildStructure(dockerImageName string, platformString 
 	}
 
 	build := bringauto_build.Build{
-		Env:     env,
-		Git:     &config.Git,
-		CMake:   config.Build.CMake,
-		Package: &tmpPackage,
-		Docker:  defaultDocker,
+		Env:          env,
+		Git:          &config.Git,
+		CMake:        config.Build.CMake,
+		Package:      &tmpPackage,
+		BuiltPackage: builtPackage,
+		Docker:       defaultDocker,
 	}
 
 	return build
