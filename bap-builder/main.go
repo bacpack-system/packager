@@ -9,6 +9,11 @@ import (
 	"syscall"
 )
 
+const (
+	BUILD_ERROR = 1
+	CMD_LINE_ERROR = 2
+)
+
 func main() {
 	var err error
 	var args CmdLineArgs
@@ -18,7 +23,7 @@ func main() {
 	err = args.ParseArgs(os.Args)
 	if err != nil {
 		logger.Error("Can't parse cmd line arguments - %s", err)
-		return
+		os.Exit(CMD_LINE_ERROR)
 	}
 	bringauto_process.SignalHandlerRegisterSignal(syscall.SIGINT)
 
@@ -26,7 +31,7 @@ func main() {
 		err = BuildDockerImage(&args.BuildImagesArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build Docker image: %s", err)
-			return
+			os.Exit(BUILD_ERROR)
 		}
 		return
 	}
@@ -35,7 +40,7 @@ func main() {
 		err = BuildPackage(&args.BuildPackageArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build package: %s", err)
-			return
+			os.Exit(BUILD_ERROR)
 		}
 		return
 	}
@@ -43,7 +48,7 @@ func main() {
 		err = BuildApp(&args.BuildAppArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build App: %s", err)
-			return
+			os.Exit(BUILD_ERROR)
 		}
 		return
 	}
@@ -51,7 +56,7 @@ func main() {
 		err = CreateSysroot(&args.CreateSysrootArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to create sys: %s", err)
-			return
+			os.Exit(BUILD_ERROR)
 		}
 		return
 	}
