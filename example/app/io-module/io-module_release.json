@@ -2,7 +2,7 @@
   "Env": {},
   "Git": {
     "URI": "https://github.com/bringauto/io-module.git",
-    "Revision": "v1.3.1"
+    "Revision": "v1.3.2"
   },
   "Build": {
     "CMake": {
@@ -14,7 +14,7 @@
   },
   "Package": {
     "Name": "io-module",
-    "VersionTag": "v1.3.1",
+    "VersionTag": "v1.3.2",
     "PlatformString": {
       "Mode": "auto"
     },
