@@ -5,7 +5,7 @@ RUN echo root:1234 | chpasswd
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    binutils build-essential flex git libssl-dev lsb-release make \
+    binutils build-essential flex git libssl-dev lsb-release make pkg-config \
     openssh-server patchelf software-properties-common wget libmpfr-dev libmpc-dev libgmp-dev flex  && \
     rm -rf /var/lib/apt/lists/*
 

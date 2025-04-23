@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      	coreutils lsb-release build-essential  openssh-server git libssl-dev wget gcc-13 g++-13 patchelf && \
+      	coreutils lsb-release build-essential  openssh-server git libssl-dev pkg-config wget gcc-13 g++-13 patchelf && \
     rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 --slave /usr/bin/g++ g++ /usr/bin/g++-13
 

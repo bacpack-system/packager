@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      	coreutils lsb-release build-essential  openssh-server git libssl-dev wget gcc-13 g++-13 patchelf pkg-config && \
+      	coreutils lsb-release build-essential  openssh-server git libssl-dev pkg-config wget gcc-13 g++-13 patchelf && \
     rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 --slave /usr/bin/g++ g++ /usr/bin/g++-13
 
@@ -24,11 +24,7 @@ RUN apt-get update && \
       rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/cmakelib/cmakelib.git /cmakelib
-RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc && \ 
-    echo "export OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> /root/.bashrc && \
-    echo "export OPENSSL_ROOT_DIR=/usr/lib/ssl" >> /root/.bashrc && \
-    echo "export OPENSSL_LIBRARIES=/usr/lib/x86_64-linux-gnu/" >> /root/.bashrc
-
+RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc
 
 RUN sed -ri 's/#?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd

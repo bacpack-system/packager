@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
       build-essential xz-utils sed git libssl-dev openssh-server unzip python3 make patchelf wget locales perl file \
-      findutils lsb-release && \
+      findutils pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Generate the locale for en_US.UTF-8

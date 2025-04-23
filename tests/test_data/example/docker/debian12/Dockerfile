@@ -5,8 +5,8 @@ RUN echo root:1234 | chpasswd
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    binutils build-essential flex git libssl-dev lsb-release make \
-    openssh-server patchelf software-properties-common wget libmpfr-dev libmpc-dev libgmp-dev flex pkg-config && \
+    binutils build-essential flex git libssl-dev lsb-release make pkg-config \
+    openssh-server patchelf software-properties-common wget libmpfr-dev libmpc-dev libgmp-dev flex  && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth=1 --single-branch --branch=releases/gcc-13.2.0 https://gcc.gnu.org/git/gcc.git /gcc && \
@@ -32,11 +32,7 @@ RUN git clone https://github.com/cmakelib/cmakelib.git /cmakelib
 RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc && \
     echo "export CC=/usr/local/bin/gcc" >> /root/.bashrc && \
     echo "export CXX=/usr/local/bin/g++" >> /root/.bashrc && \
-    echo "export LD_LIBRARY_PATH=/usr/local/lib64" >> /root/.bashrc && \
-    echo "export OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> /root/.bashrc && \
-    echo "export OPENSSL_ROOT_DIR=/usr/lib/ssl" >> /root/.bashrc && \
-    echo "export OPENSSL_LIBRARIES=/usr/lib/x86_64-linux-gnu/" >> /root/.bashrc
-
+    echo "export LD_LIBRARY_PATH=/usr/local/lib64" >> /root/.bashrc
 
 RUN sed -ri 's/#?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd
