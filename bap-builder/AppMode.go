@@ -11,6 +11,7 @@ import (
 	"bringauto/modules/bringauto_repository"
 	"bringauto/modules/bringauto_sysroot"
 	"fmt"
+	"slices"
 )
 
 // BuildApp
@@ -119,6 +120,9 @@ func buildSingleApp(
 	for _, config := range configList {
 		if isDepsInConfig(config) {
 			return fmt.Errorf("App has non-empty DependsOn")
+		}
+		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
+			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
