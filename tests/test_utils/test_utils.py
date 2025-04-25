@@ -11,7 +11,7 @@ from time import sleep
 test_config = {
     "test_data_examples": os.path.abspath("test_data/example"),
     "test_apps": os.path.abspath("test_data/example/app"),
-    "test_dockers": os.path.abspath("test_data/example/docker"),
+    "test_dockers": os.path.abspath("../example/docker"),
     "test_packages": os.path.abspath("test_data/example/package"),
     "packager_binary": os.path.abspath("../bap-builder/bap-builder"),
     "test_repo": os.path.abspath("test_data/test_repo"),
@@ -46,13 +46,10 @@ def clean_sysroot():
 
 def clean():
     clean_sysroot()
-
     if os.path.exists(test_config["test_packages"]):
         shutil.rmtree(test_config["test_packages"])
     os.makedirs(test_config["test_packages"])
     init_test_repo()
-
-    pass
 
 
 def does_image_exist(image: str) -> bool:
