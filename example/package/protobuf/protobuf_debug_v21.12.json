@@ -27,7 +27,6 @@
   },
   "DockerMatrix": {
     "ImageNames": [
-      "ubuntu2204",
       "debian12",
       "fleet-os-2",
       "ubuntu1804-aarch64",
