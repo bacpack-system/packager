@@ -142,6 +142,30 @@ def does_app_support_image(app: str, image: str) -> bool:
         print(e)
 
 
+def does_package_support_image(package: str, image: str) -> bool:
+    """Check if the package supports the given image."""
+    try:
+        for packages in os.listdir(os.path.join(test_config["test_packages"], package)):
+            with open(os.path.join(test_config["test_packages"], package, packages)) as file:
+                metadata = json.load(file)
+                if image not in get_nested(metadata, ["DockerMatrix", "ImageNames"], []):
+                    return False
+        return True
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Package {package} does not exist.")
+    except Exception as e:
+        print(e)
+
+
+def does_packages_support_image(packages: list[str], image: str) -> bool:
+    """Check if the packages support the given image."""
+    for package in packages:
+        if not does_package_support_image(package, image):
+            return False
+    return True
+
+
 def run_packager(
     packager_binary: str,
     mode: str,
