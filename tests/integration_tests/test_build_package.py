@@ -576,22 +576,49 @@ def test_21_build_packages_with_no_images(test_image, packager_binary, context, 
     assert not is_tracked(package, test_repo, "package")
 
 
-# def test_22_build_packages_where_dependency_is_not_supported(test_image, packager_binary, context, test_repo):
-#     """TODO"""
-#     package = "test_package_1_22"
-#     prepare_packages([package])
+def test_22_build_packages_where_dependency_is_not_supported(test_image, packager_binary, context, test_repo):
+    """Dependent package is not supported by the image, but the package itself is supported, so it should not be built."""
+    package = "test_package_1_22"
+    dependents_on_package = "test_package_2_22"
+    prepare_packages([package, dependents_on_package])
 
-#     if not does_package_support_image(package, test_image):
-#         return
+    if not does_package_support_image(package, test_image):
+        return
 
-#     run_packager(
-#         packager_binary,
-#         "build-package",
-#         context=context,
-#         image_name=test_image,
-#         output_dir=test_repo,
-#         name=package,
-#         expected_result=True,
-#     )
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=False,
+        build_deps=True,
+    )
 
-#     assert is_tracked(package, test_repo, "package")
+    assert not is_tracked(package, test_repo, "package")
+    assert not is_tracked(dependents_on_package, test_repo, "package")
+
+
+def test_23_build_packages_where_package_is_not_supported(test_image, packager_binary, context, test_repo):
+    """Dependent package is supported but the package itself is not supported, so nothing should be built."""
+    package = "test_package_2_23"
+    dependents_on_package = "test_package_1_23"
+    prepare_packages([package, dependents_on_package])
+
+    if not does_package_support_image(dependents_on_package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=False,
+        build_deps=True,
+    )
+
+    assert not is_tracked(package, test_repo, "package")
+    assert not is_tracked(dependents_on_package, test_repo, "package")
