@@ -2,7 +2,15 @@ import subprocess
 import os
 from time import sleep
 
-from test_utils.test_utils import run_packager, does_image_exist, check_stdout, is_tracked, prepare_packages
+from test_utils.test_utils import (
+    run_packager,
+    does_image_exist,
+    check_stdout,
+    is_tracked,
+    prepare_packages,
+    does_package_support_image,
+    does_packages_support_image,
+)
 
 
 def test_01_build_package(test_image, packager_binary, context, test_repo):
@@ -17,7 +25,7 @@ def test_01_build_package(test_image, packager_binary, context, test_repo):
         image_name=test_image,
         output_dir=test_repo,
         name=package,
-        expected_result=True,
+        expected_result=None if not does_package_support_image(package, test_image) else True,
     )
 
 
@@ -26,6 +34,9 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
     package = "test_package_2"
     depends_on_package = "test_package_1"
     prepare_packages([package, depends_on_package])
+
+    if not does_package_support_image(depends_on_package, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -39,6 +50,9 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
     assert not is_tracked(package, test_repo, "package")
     assert is_tracked(depends_on_package, test_repo, "package")
 
+    if not does_package_support_image(package, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -48,6 +62,7 @@ def test_02_build_package_with_dependency(test_image, packager_binary, context, 
         name=package,
         expected_result=True,
     )
+
     assert is_tracked(package, test_repo, "package")
     assert is_tracked(depends_on_package, test_repo, "package")
 
@@ -57,6 +72,9 @@ def test_03_build_package_dependency_with_build_deps(test_image, packager_binary
     package = "test_package_2"
     depends_on_package = "test_package_1"
     prepare_packages([package, depends_on_package])
+
+    if not does_packages_support_image([package, depends_on_package], test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -68,6 +86,7 @@ def test_03_build_package_dependency_with_build_deps(test_image, packager_binary
         build_deps=True,
         expected_result=True,
     )
+
     assert is_tracked(package, test_repo, "package")
     assert is_tracked(depends_on_package, test_repo, "package")
 
@@ -76,6 +95,9 @@ def test_04_build_multiple_package_dependency_with_build_deps(test_image, packag
     """TODO"""
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -96,6 +118,9 @@ def test_05_build_package_dependency_with_build_deps_on(test_image, packager_bin
     package = "test_package_2"
     depends_on_package = "test_package_1"
     prepare_packages([package, depends_on_package])
+
+    if not does_packages_support_image([package, depends_on_package], test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -127,6 +152,9 @@ def test_06_build_multiple_package_dependency_with_build_deps_on(test_image, pac
     """TODO"""
     packages = ["test_package_1_06", "test_package_2_06", "test_package_3_06", "test_package_4_06"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -162,6 +190,9 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
 
+    if not does_packages_support_image(packages, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -190,6 +221,9 @@ def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, con
     package = "test_package_5"
     prepare_packages([package])
 
+    if not does_package_support_image(package, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -208,6 +242,9 @@ def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, 
     package = "test_package_5"
     prepare_packages([package])
 
+    if not does_package_support_image(package, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -223,9 +260,11 @@ def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, 
 
 def test_10_has_itself_as_dependency_build_deps_on_recursive(test_image, packager_binary, context, test_repo):
     """TODO"""
-
     package = "test_package_5"
     prepare_packages([package])
+
+    if not does_package_support_image(package, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -244,6 +283,9 @@ def test_11_circular_dependencies_deps(test_image, packager_binary, context, tes
     """TODO"""
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -264,6 +306,9 @@ def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, 
     """TODO"""
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -293,9 +338,11 @@ def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, 
 
 def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
     """TODO"""
-
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -325,9 +372,11 @@ def test_13_circular_dependencies_deps_on_recursive(test_image, packager_binary,
 
 def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_repo):
     """TODO"""
-
     packages = ["test_package_9", "test_package_1", "test_package_2", "test_package_3", "test_package_4"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -345,8 +394,7 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
 
 
 def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test_repo):
-    """FIXME"""
-
+    """TODO"""
     packages = [
         "test_package_1",
         "test_package_2",
@@ -359,6 +407,9 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
         "test_package_8",
     ]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -393,6 +444,9 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
     packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4", "test_package_9"]
     prepare_packages(packages)
 
+    if not does_packages_support_image(packages, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -423,6 +477,9 @@ def test_17_only_debug(test_image, packager_binary, context, test_repo):
     package = "test_package_1_17"
     prepare_packages([package])
 
+    if not does_package_support_image(package, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -439,6 +496,9 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
     """TODO"""
     package = "test_package_2_17"
     prepare_packages([package])
+
+    if not does_package_support_image(package, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -457,6 +517,9 @@ def test_19_missing_release_debug_packages_build_deps(test_image, packager_binar
     packages = ["test_package_1_17", "test_package_2_17"]
     prepare_packages(packages)
 
+    if not does_packages_support_image(packages, test_image):
+        return
+
     run_packager(
         packager_binary,
         "build-package",
@@ -473,9 +536,12 @@ def test_19_missing_release_debug_packages_build_deps(test_image, packager_binar
 
 
 def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_binary, context, test_repo):
-    """FIXME"""
+    """TODO"""
     packages = ["test_package_1_17", "test_package_2_17"]
     prepare_packages(packages)
+
+    if not does_packages_support_image(packages, test_image):
+        return
 
     run_packager(
         packager_binary,
@@ -494,17 +560,38 @@ def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_bi
 
 def test_21_build_packages_with_no_images(test_image, packager_binary, context, test_repo):
     """TODO"""
-    packages = "test_package_1_21"
-    prepare_packages([packages])
+    package = "test_package_1_21"
+    prepare_packages([package])
 
-    result = run_packager(
+    run_packager(
         packager_binary,
         "build-package",
         image_name=test_image,
         context=context,
         output_dir=test_repo,
-        name=packages,
-        expected_result=False,
+        name=package,
+        expected_result=None if not does_package_support_image(package, test_image) else True,
     )
 
-    assert not is_tracked(packages, test_repo, "package")
+    assert not is_tracked(package, test_repo, "package")
+
+
+# def test_22_build_packages_where_dependency_is_not_supported(test_image, packager_binary, context, test_repo):
+#     """TODO"""
+#     package = "test_package_1_22"
+#     prepare_packages([package])
+
+#     if not does_package_support_image(package, test_image):
+#         return
+
+#     run_packager(
+#         packager_binary,
+#         "build-package",
+#         context=context,
+#         image_name=test_image,
+#         output_dir=test_repo,
+#         name=package,
+#         expected_result=True,
+#     )
+
+#     assert is_tracked(package, test_repo, "package")
