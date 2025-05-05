@@ -117,6 +117,14 @@ def is_tracked(name: str, repo_path: str, type: str) -> bool:
     return packages_to_detect == 0
 
 
+def check_if_package_is_in_sysroot(test_sysroot, files) -> bool:
+    """Check if the package is in the specified sysroot."""
+    for file in files:
+        if not os.path.exists(os.path.join(test_sysroot, file)):
+            return False
+    return True
+
+
 def get_nested(data, keys, default=None):
     for key in keys:
         if isinstance(data, dict) and key in data:

@@ -1,17 +1,26 @@
 import subprocess
 import os
 from time import sleep
+import pytest
 
-from test_utils.test_utils import run_packager, is_tracked, does_app_support_image, prepare_packages
+from test_utils.test_utils import (
+    run_packager,
+    is_tracked,
+    does_app_support_image,
+    does_package_support_image,
+    prepare_packages,
+    check_if_package_is_in_sysroot,
+)
 
 
-def test_01_crete_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
+def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
     """TODO"""
-    package = "test_package_1"
+    package = "test_package_2"
     app = "io-module"
 
     prepare_packages([package])
-    # print(does_app_support_image(app, test_image))
+    if not does_app_support_image(app, test_image) or not does_package_support_image(package, test_image):
+        pytest.skip(f"Skipping test because {app} or {package} does not support {test_image}")
 
     run_packager(
         packager_binary,
@@ -44,13 +53,11 @@ def test_01_crete_sysroot(test_image, packager_binary, context, test_repo, test_
         git_lfs=test_repo,
         expected_result=True,
     )
-    print("done")
-    # assert is_tracked(app, test_repo, "app")
 
 
 def test_02_create_sysroot_inconsistent_image_names(packager_binary, context, test_repo, test_sysroot):
     """TODO"""
-    package = "test_package_1"
+    package = "test_package_2"
     app = "io-module"
 
     prepare_packages([package])
@@ -98,7 +105,6 @@ def test_02_create_sysroot_inconsistent_image_names(packager_binary, context, te
         git_lfs=test_repo,
         expected_result=True,
     )
-    print("done")
 
 
 def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, test_sysroot):
@@ -112,17 +118,15 @@ def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, 
         git_lfs=test_repo,
         expected_result=False,
     )
-    print("done")
 
 
 def test_04_create_sysroot_from_repo_with_packages_for_different_images(
     packager_binary, context, test_repo, test_sysroot
 ):
     """TODO"""
-    package = "test_package_1"
+    package = "test_package_2"
 
     prepare_packages([package])
-    # print(does_app_support_image(app, test_image))
 
     run_packager(
         packager_binary,
@@ -155,15 +159,13 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         git_lfs=test_repo,
         expected_result=False,
     )
-    print("done")
 
 
 def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
     """TODO"""
-    package = "test_package_1"
+    package = "test_package_2"
 
     prepare_packages([package])
-    # print(does_app_support_image(app, test_image))
 
     run_packager(
         packager_binary,
@@ -184,3 +186,54 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
         git_lfs=test_repo,
         expected_result=True,
     )
+
+
+def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
+    """TODO"""
+    package = "test_package_2"
+    app = "io-module"
+
+    prepare_packages([package])
+    if not does_app_support_image(app, test_image) or not does_package_support_image(package, test_image):
+        pytest.skip(f"Skipping test because {app} or {package} does not support {test_image}")
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=True,
+    )
+    assert is_tracked(package, test_repo, "package")
+
+    run_packager(
+        packager_binary,
+        "create-sysroot",
+        context=context,
+        image_name=test_image,
+        sysroot_dir=test_sysroot,
+        git_lfs=test_repo,
+        expected_result=True,
+    )
+    files = [
+        "release/bin/curl",
+        "release/bin/curl-config",
+        "release/include/curl/curl.h",
+        "release/include/curl/curlver.h",
+        "release/include/curl/easy.h",
+        "release/include/curl/mprintf.h",
+        "release/include/curl/multi.h",
+        "release/include/curl/options.h",
+        "release/include/curl/stdcheaders.h",
+        "release/include/curl/system.h",
+        "release/include/curl/system.h",
+        "release/include/curl/typecheck-gcc.h",
+        "release/include/curl/urlapi.h",
+        "release/bin/curl",
+        "release/bin/curl-config",
+        "release/lib64/libcurl.so",
+        "release/lib64/pkgconfig/libcurl.pc",
+    ]
+    assert check_if_package_is_in_sysroot(test_sysroot, files)
