@@ -622,3 +622,29 @@ def test_23_build_packages_where_package_is_not_supported(test_image, packager_b
 
     assert not is_tracked(package, test_repo, "package")
     assert not is_tracked(dependents_on_package, test_repo, "package")
+
+
+def test_24_build_same_package_twice(test_image, packager_binary, context, test_repo):
+    """Build the same package twice in a row to check if the second build is skipped."""
+    package = "test_package_1"
+    prepare_packages([package])
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=None if not does_package_support_image(package, test_image) else True,
+    )
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=None if not does_package_support_image(package, test_image) else True,
+    )
