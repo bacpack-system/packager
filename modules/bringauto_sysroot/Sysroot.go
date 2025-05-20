@@ -43,10 +43,6 @@ func (sysroot *Sysroot) CheckPrerequisites(args *bringauto_prerequisites.Args) e
 	if sysroot.PlatformString == nil {
 		return fmt.Errorf("sysroot PlatformString cannot be nil")
 	}
-	err := sysroot.builtPackages.UpdateBuiltPackages()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

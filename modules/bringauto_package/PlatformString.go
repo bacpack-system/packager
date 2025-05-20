@@ -133,6 +133,7 @@ func (pstr *PlatformString) determinePlatformString(credentials bringauto_ssh.SS
 	if err != nil {
 		return err
 	}
+	credentials.Port = docker.Port
 
 	distroName, distroRelease := getDistroIdAndReleaseFromDockerContainer(docker)
 	if distroName == "" || distroRelease == "" {

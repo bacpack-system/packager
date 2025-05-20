@@ -2,6 +2,7 @@ package bringauto_sysroot
 
 import (
 	"bringauto/modules/bringauto_const"
+	"bringauto/modules/bringauto_log"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -22,6 +23,10 @@ type BuiltPackages struct {
 // AddToBuiltPackages
 // Adds packageName to built Packages.
 func (builtPackages *BuiltPackages) AddToBuiltPackages(pack BuiltPackage) error {
+	err := builtPackages.updateBuiltPackages()
+	if err != nil {
+		return fmt.Errorf("can't update builtPackages from json - %s", err)
+	}
 	builtPackages.Packages = append(builtPackages.Packages, pack)
 	bytes, err := json.MarshalIndent(builtPackages.Packages, "", indent)
 	if err != nil {
@@ -33,7 +38,7 @@ func (builtPackages *BuiltPackages) AddToBuiltPackages(pack BuiltPackage) error 
 
 // UpdateBuiltPackages
 // Updates builtPackages struct based on built_packages.json.
-func (builtPackages *BuiltPackages) UpdateBuiltPackages() error {
+func (builtPackages *BuiltPackages) updateBuiltPackages() error {
 	bytes, err := os.ReadFile(path.Join(sysrootDirectoryName, jsonFileName))
 	if os.IsNotExist(err) {
 		return nil
@@ -52,6 +57,11 @@ func (builtPackages *BuiltPackages) UpdateBuiltPackages() error {
 // Returns true if given Package is in builtPackages, else false. All fields of BuiltPackage struct
 // are compared. Only if the pack has empty GitCommitHash, the GitCommitHash is not compared.
 func (builtPackages *BuiltPackages) Contains(pack BuiltPackage) bool {
+	err := builtPackages.updateBuiltPackages()
+	if err != nil {
+		logger := bringauto_log.GetLogger()
+		logger.Error("Can't update builtPackages from json - %s", err)
+	}
 	for _, p := range builtPackages.Packages {
 		condition := p.Name == pack.Name && p.DirName == pack.DirName && pack.GitUri == p.GitUri
 		if pack.GitCommitHash != bringauto_const.EmptyGitCommitHash {

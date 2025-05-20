@@ -16,7 +16,7 @@ import (
 
 // BuildApp
 func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
-	platformString, err := determinePlatformString(*cmdLine.DockerImageName)
+	platformString, err := determinePlatformString(*cmdLine.DockerImageName, uint16(*cmdLine.Port))
 	if err != nil {
 		return err
 	}
@@ -36,9 +36,9 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 	defer handleRemover()
 
 	if *cmdLine.All {
-		err = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo)
+		err = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo, uint16(*cmdLine.Port))
 	} else {
-		err = buildSingleApp(cmdLine, contextPath, platformString, repo)
+		err = buildSingleApp(cmdLine, contextPath, platformString, repo, uint16(*cmdLine.Port))
 	}
 	if err != nil {
 		return err
@@ -54,6 +54,7 @@ func buildAllApps(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
+	dockerPort     uint16,
 ) error {
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
@@ -76,7 +77,7 @@ func buildAllApps(
 			if isDepsInConfig(config) {
 				return fmt.Errorf("App has non-empty DependsOn")
 			}
-			buildConfigs := config.GetBuildStructure(imageName, platformString)
+			buildConfigs := config.GetBuildStructure(imageName, platformString, dockerPort)
 			if len(buildConfigs) == 0 {
 				continue
 			}
@@ -105,6 +106,7 @@ func buildSingleApp(
 	contextPath    string,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
+	dockerPort     uint16,
 ) error{
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
@@ -124,7 +126,7 @@ func buildSingleApp(
 		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
 			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
-		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
+		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, dockerPort)
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build App '%s' - %s", *cmdLine.Name, err)

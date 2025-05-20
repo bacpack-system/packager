@@ -38,7 +38,7 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 	if err != nil {
 		return err
 	}
-	platformString, err := determinePlatformString(*cmdLine.ImageName)
+	platformString, err := determinePlatformString(*cmdLine.ImageName, uint16(*cmdLine.Port))
 	if err != nil {
 		return err
 	}

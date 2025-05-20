@@ -230,7 +230,7 @@ func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFS
 // BuildPackage
 // process Package mode of the program
 func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
-	platformString, err := determinePlatformString(*cmdLine.DockerImageName)
+	platformString, err := determinePlatformString(*cmdLine.DockerImageName, uint16(*cmdLine.Port))
 	if err != nil {
 		return err
 	}
@@ -292,7 +292,7 @@ func buildAllPackages(
 
 	count := int32(0)
 	for _, config := range configList {
-		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
+		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
 		if len(buildConfigs) == 0 {
 			continue
 		}
@@ -414,7 +414,7 @@ func buildSinglePackage(
 		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
 			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
-		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString)
+		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
@@ -499,11 +499,12 @@ func buildAndCopyPackage(
 
 // determinePlatformString
 // Will construct platform string suitable for sysroot.
-func determinePlatformString(dockerImageName string) (*bringauto_package.PlatformString, error) {
-	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](dockerImageName)
+func determinePlatformString(dockerImageName string, dockerPort uint16) (*bringauto_package.PlatformString, error) {
+	defaultDocker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](dockerImageName, dockerPort)
 	defaultDocker.ImageName = dockerImageName
 
 	sshCreds := bringauto_prerequisites.CreateAndInitialize[bringauto_ssh.SSHCredentials]()
+	sshCreds.Port = uint16(defaultDocker.Port)
 
 	platformString := bringauto_package.PlatformString{
 		Mode: bringauto_package.ModeAuto,
