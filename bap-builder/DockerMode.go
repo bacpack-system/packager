@@ -4,6 +4,7 @@ import (
 	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_docker"
 	"bringauto/modules/bringauto_context"
+	"bringauto/modules/bringauto_error"
 	"path"
 )
 
@@ -67,7 +68,7 @@ func buildSingleDockerImage(imageName string, dockerfilePath string) error {
 	err := dockerBuild.Build()
 	if err != nil {
 		logger.ErrorIndent("Can't build image - %s", err)
-		return err
+		return bringauto_error.BuildErr
 	}
 	logger.InfoIndent("Build OK")
 	return nil

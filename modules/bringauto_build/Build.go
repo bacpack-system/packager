@@ -192,7 +192,7 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 
 	build.BuiltPackage.GitCommitHash, err = build.getGitCommitHash()
 	if err != nil {
-		return fmt.Errorf("can't get git commit hash from container - %s", err), false
+		return fmt.Errorf("can't get git commit hash from container - %w", err), false
 	}
 	build.BuiltPackage.DirName = build.sysroot.GetDirNameInSysroot()
 
@@ -293,7 +293,7 @@ func (build *Build) downloadInstalledFiles() error {
 	logFile, err := packTarLogger.GetFile()
 
 	if err != nil {
-		return fmt.Errorf("failed to open file - %s", err)
+		return fmt.Errorf("failed to open file - %w", err)
 	}
 
 	defer logFile.Close()

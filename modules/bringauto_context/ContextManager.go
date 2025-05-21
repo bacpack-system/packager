@@ -143,7 +143,7 @@ func (context *ContextManager) getAllDepsJsonPaths(packageJsonPath string, visit
 	var config bringauto_config.Config
 	err := config.LoadJSONConfig(packageJsonPath)
 	if err != nil {
-		return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %s", packageJsonPath, err)
+		return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %w", packageJsonPath, err)
 	}
 	visited[packageJsonPath] = struct{}{}
 	addedPackages := 0
@@ -157,7 +157,7 @@ func (context *ContextManager) getAllDepsJsonPaths(packageJsonPath string, visit
 		for _, packageDepJsonPath := range packageDepsJsonPaths {
 			err := depConfig.LoadJSONConfig(packageDepJsonPath)
 			if err != nil {
-				return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %s", packageDepJsonPath, err)
+				return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %w", packageDepJsonPath, err)
 			}
 			if depConfig.Package.IsDebug != config.Package.IsDebug {
 				continue
@@ -238,7 +238,7 @@ func (context *ContextManager) addDependsOnPackagesToBuild(packsToBuild *[]strin
 func (context *ContextManager) GetPackageWithDepsJsonDefPaths(packageName string) ([]string, error) {
 	packageDefs, err := context.GetConfigJsonPaths(packageName, bringauto_const.PackageDirName)
 	if err != nil {
-		return []string{}, fmt.Errorf("cannot get config paths for package '%s' - %s", packageName, err)
+		return []string{}, fmt.Errorf("cannot get config paths for package '%s' - %w", packageName, err)
 	}
 	var packageDeps []string
 	visitedPackages := make(map[string]struct{})
@@ -270,7 +270,7 @@ func (context *ContextManager) GetDepsOnJsonDefPaths(packageName string, recursi
 		var config bringauto_config.Config
 		err := config.LoadJSONConfig(packageDef)
 		if err != nil {
-			return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %s", packageDef, err)
+			return []string{}, fmt.Errorf("couldn't load JSON config from %s path - %w", packageDef, err)
 		}
 		packageDepsTmp, err := context.getAllDepsOnJsonPaths(config, visitedPackages, recursively)
 		if err != nil {

@@ -13,6 +13,7 @@ import (
 	"bringauto/modules/bringauto_repository"
 	"bringauto/modules/bringauto_ssh"
 	"bringauto/modules/bringauto_sysroot"
+	"bringauto/modules/bringauto_error"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -209,7 +210,8 @@ func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFS
 	logger.Info("Checking context directory (%s) consistency", contextPath)
 	err := checkContextDirConsistency(contextPath)
 	if err != nil {
-		return fmt.Errorf("package context directory consistency check failed: %s", err)
+		logger.Error("Context consistency error - %s", err)
+		return bringauto_error.ContextErr
 	}
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
@@ -217,7 +219,8 @@ func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFS
 	logger.Info("Checking Git Lfs directory consistency")
 	err = repo.CheckGitLfsConsistency(&contextManager, platformString, imageName)
 	if err != nil {
-		return err
+		logger.Error("Git Lfs consistency error - %s", err)
+		return bringauto_error.GitLfsErr
 	}
 	logger.Info("Checking Sysroot directory consistency")
 	err = checkSysrootDirs(platformString)
@@ -250,15 +253,10 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 	defer handleRemover()
 
 	if *cmdLine.All {
-		err = buildAllPackages(cmdLine, contextPath, platformString, repo)
+		return buildAllPackages(cmdLine, contextPath, platformString, repo)
 	} else {
-		err = buildSinglePackage(cmdLine, contextPath, platformString, repo)
+		return buildSinglePackage(cmdLine, contextPath, platformString, repo)
 	}
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // buildAllPackages
@@ -299,7 +297,7 @@ func buildAllPackages(
 		count++
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
+			return fmt.Errorf("cannot build package '%s' - %w", config.Package.Name, err)
 		}
 	}
 	if count == 0 {
@@ -325,7 +323,25 @@ func prepareConfigs(packageJsonPaths []string) ([]*bringauto_config.Config, erro
 
 // prepareConfigsNoBuildDeps
 // Returns Config structures only for given Package or App (depends on packageOrApp).
-func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_context.ContextManager, packageOrApp string) ([]*bringauto_config.Config, error) {
+func prepareConfigsNoBuildDeps(
+	packageName    string,
+	contextManager *bringauto_context.ContextManager,
+	platformString *bringauto_package.PlatformString,
+	packageOrApp   string,
+) ([]*bringauto_config.Config, error) {
+	logger := bringauto_log.GetLogger()
+
+	if packageOrApp == bringauto_const.PackageDirName {
+		value, err := isPackageDepsInSysroot(packageName, contextManager, platformString, false)
+		if err != nil {
+			return []*bringauto_config.Config{}, err
+		}
+		if !value {
+			logger.Error("Package dependencies are not in sysroot")
+			return []*bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
+		}
+	}
+
 	var configList []*bringauto_config.Config
 	packageJsonPaths, err := contextManager.GetConfigJsonPaths(packageName, packageOrApp)
 	if err != nil {
@@ -335,7 +351,6 @@ func prepareConfigsNoBuildDeps(packageName string, contextManager *bringauto_con
 		var config bringauto_config.Config
 		err = config.LoadJSONConfig(packageJsonPath)
 		if err != nil {
-			logger := bringauto_log.GetLogger()
 			logger.Warn("Couldn't load JSON config from %s path - %s", packageJsonPath, err)
 			continue
 		}
@@ -353,6 +368,9 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 	platformString *bringauto_package.PlatformString,
 ) ([]*bringauto_config.Config, error) {
 	var packageJsonPaths []string
+
+	logger := bringauto_log.GetLogger()
+
 	if *cmdLine.BuildDeps {
 		paths, err := contextManager.GetPackageWithDepsJsonDefPaths(packageName)
 		if err != nil {
@@ -360,13 +378,13 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 		}
 		packageJsonPaths = append(packageJsonPaths, paths...)
 	} else if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
-		value, err := isPackageWithDepsInSysroot(packageName, contextManager, platformString)
+		value, err := isPackageDepsInSysroot(packageName, contextManager, platformString, true)
 		if err != nil {
 			return []*bringauto_config.Config{}, err
 		}
 		if !value {
-			err = fmt.Errorf("--build-deps-on(-recursive) set but base package or its dependencies are not in sysroot")
-			return []*bringauto_config.Config{}, err
+			logger.Error("--build-deps-on(-recursive) set but base package or its dependencies are not in sysroot")
+			return []*bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
 		}
 	}
 	if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
@@ -375,7 +393,6 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 			return []*bringauto_config.Config{}, err
 		}
 		if len(paths) == 0 {
-			logger := bringauto_log.GetLogger()
 			logger.Warn("No package depends on %s", packageName)
 		}
 		packageJsonPaths = append(packageJsonPaths, paths...)
@@ -402,7 +419,7 @@ func buildSinglePackage(
 	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, &contextManager, platformString)
 	} else {
-		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, bringauto_const.PackageDirName)
+		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, platformString, bringauto_const.PackageDirName)
 	}
 	if err != nil {
 		return err
@@ -417,7 +434,7 @@ func buildSinglePackage(
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %s", packageName, err)
+			return fmt.Errorf("cannot build package '%s' - %w", packageName, err)
 		}
 	}
 	return nil
@@ -447,10 +464,10 @@ func addConfigsToDefsMap(defsMap *ConfigMapType, packageJsonPathList []string) {
 // Builds single Package or App (depends on packageOrApp), takes care of every step of build for
 // single package.
 func buildAndCopyPackage(
-	build *[]bringauto_build.Build,
+	build          *[]bringauto_build.Build,
 	platformString *bringauto_package.PlatformString,
-	repo bringauto_repository.GitLFSRepository,
-	packageOrApp string,
+	repo           bringauto_repository.GitLFSRepository,
+	packageOrApp   string,
 ) error {
 	var err error
 	var removeHandler func()
@@ -468,9 +485,10 @@ func buildAndCopyPackage(
 		buildConfig.SetSysroot(&sysroot)
 
 		removeHandler = bringauto_process.SignalHandlerAddHandler(buildConfig.CleanUp)
-		err, buildPerformed := buildConfig.RunBuild()
+		var buildPerformed bool
+		err, buildPerformed = buildConfig.RunBuild()
 		if err != nil {
-			return err
+			return bringauto_error.BuildErr
 		}
 
 		if buildPerformed {
@@ -538,8 +556,14 @@ func checkSysrootDirs(platformString *bringauto_package.PlatformString) (error) 
 }
 
 // isPackageWithDepsInSysroot
-// Returns true if packageName an its dependencies are in sysroot, else returns false.
-func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_context.ContextManager, platformString *bringauto_package.PlatformString) (bool, error) {
+// Returns true if packageName an its dependencies are in sysroot, else returns false. If the
+// checkPackageItself is true, it also checks for presence of Package itself. 
+func isPackageDepsInSysroot(
+	packageName        string,
+	contextManager     *bringauto_context.ContextManager,
+	platformString     *bringauto_package.PlatformString,
+	checkPackageItself bool,
+) (bool, error) {
 	packageJsonPaths, err := contextManager.GetPackageWithDepsJsonDefPaths(packageName)
 	if err != nil {
 		return false, err
@@ -559,6 +583,9 @@ func isPackageWithDepsInSysroot(packageName string, contextManager *bringauto_co
 	}
 
 	for _, config := range configList {
+		if !checkPackageItself && config.Package.Name == packageName {
+			continue
+		}
 		sysroot.IsDebug = config.Package.IsDebug
 		builtPackage := bringauto_sysroot.BuiltPackage {
 			Name: config.Package.GetShortPackageName(),

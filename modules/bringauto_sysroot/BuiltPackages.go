@@ -25,7 +25,7 @@ type BuiltPackages struct {
 func (builtPackages *BuiltPackages) AddToBuiltPackages(pack BuiltPackage) error {
 	err := builtPackages.updateBuiltPackages()
 	if err != nil {
-		return fmt.Errorf("can't update builtPackages from json - %s", err)
+		return fmt.Errorf("can't update builtPackages from json - %w", err)
 	}
 	builtPackages.Packages = append(builtPackages.Packages, pack)
 	bytes, err := json.MarshalIndent(builtPackages.Packages, "", indent)
@@ -43,12 +43,12 @@ func (builtPackages *BuiltPackages) updateBuiltPackages() error {
 	if os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
-		return fmt.Errorf("failed to read built packages file - %s", err)
+		return fmt.Errorf("failed to read built packages file - %w", err)
 	}
 
 	err = json.Unmarshal(bytes, &builtPackages.Packages)
 	if err != nil {
-		return fmt.Errorf("failed to parse built packages file - %s", err)
+		return fmt.Errorf("failed to parse built packages file - %w", err)
 	}
 	return nil
 }

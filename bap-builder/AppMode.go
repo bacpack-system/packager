@@ -36,15 +36,10 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 	defer handleRemover()
 
 	if *cmdLine.All {
-		err = buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo, uint16(*cmdLine.Port))
+		return buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo, uint16(*cmdLine.Port))
 	} else {
-		err = buildSingleApp(cmdLine, contextPath, platformString, repo, uint16(*cmdLine.Port))
+		return buildSingleApp(cmdLine, contextPath, platformString, repo, uint16(*cmdLine.Port))
 	}
-	if err != nil {
-		return err
-	}
-	
-	return nil
 }
 
 // buildAllApps
@@ -84,7 +79,7 @@ func buildAllApps(
 			count++
 			err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 			if err != nil {
-				return fmt.Errorf("cannot build App '%s' - %s", config.Package.Name, err)
+				return fmt.Errorf("cannot build App '%s' - %w", config.Package.Name, err)
 			}
 		}
 		err = bringauto_sysroot.RemoveInstallSysroot()
@@ -112,7 +107,7 @@ func buildSingleApp(
 		ContextPath: contextPath,
 	}
 
-	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, &contextManager, bringauto_const.AppDirName)
+	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, &contextManager, platformString, bringauto_const.AppDirName)
 	if err != nil {
 		return err
 	}
@@ -129,7 +124,7 @@ func buildSingleApp(
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, dockerPort)
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build App '%s' - %s", *cmdLine.Name, err)
+			return fmt.Errorf("cannot build App '%s' - %w", *cmdLine.Name, err)
 		}
 	}
 	return nil

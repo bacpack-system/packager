@@ -54,7 +54,7 @@ func (dockerImage *DockerImage) runDockerImageCommand(extraArgs []string) (strin
 	}
 	err := process.Run()
 	if err != nil {
-		return "", fmt.Errorf("DockerRun rm error %s", err)
+		return "", fmt.Errorf("DockerRun rm error - %w", err)
 	}
 	return stdOut.String(), nil
 }

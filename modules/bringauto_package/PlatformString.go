@@ -169,7 +169,7 @@ func runShellCommandOverSSH(credentials bringauto_ssh.SSHCredentials, command st
 
 	commandStdOut, err := commandSsh.RunCommandOverSSH(credentials)
 	if err != nil {
-		panic(fmt.Errorf("cannot run command '%s', error: %s", command, err))
+		panic(fmt.Errorf("cannot run command '%s' - %w", command, err))
 	}
 	return commandStdOut
 }

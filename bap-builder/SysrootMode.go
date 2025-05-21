@@ -7,6 +7,7 @@ import (
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
 	"bringauto/modules/bringauto_repository"
+	"bringauto/modules/bringauto_error"
 	"fmt"
 	"io"
 	"os"
@@ -49,7 +50,7 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 	logger.Info("Checking Git Lfs directory consistency")
 	err = repo.CheckGitLfsConsistency(&contextManager, platformString, *cmdLine.ImageName)
 	if err != nil {
-		return err
+		return bringauto_error.GitLfsErr
 	}
 	packages, err := contextManager.GetAllPackagesStructs(platformString)
 	if err != nil {
