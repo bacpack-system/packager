@@ -5,6 +5,7 @@ import (
 	"bringauto/modules/bringauto_docker"
 	"bringauto/modules/bringauto_context"
 	"bringauto/modules/bringauto_error"
+	"bringauto/modules/bringauto_prerequisites"
 	"path"
 )
 
@@ -14,6 +15,12 @@ import (
 func BuildDockerImage(cmdLine *BuildImageCmdLineArgs, contextPath string) error {
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
+	}
+	err := bringauto_prerequisites.Initialize(&contextManager)
+	if err != nil {
+		logger := bringauto_log.GetLogger()
+		logger.Error("Context consistency error - %s", err)
+		return bringauto_error.ContextErr
 	}
 	buildAll := cmdLine.All
 	if *buildAll {
@@ -32,18 +39,10 @@ func BuildDockerImage(cmdLine *BuildImageCmdLineArgs, contextPath string) error 
 // It returns nil if everything is ok, or not nil in case of error
 //
 func buildAllDockerImages(contextManager bringauto_context.ContextManager) error {
-	dockerfilePathList, err := contextManager.GetAllImagesDockerfilePaths()
-	if err != nil {
-		return err
-	}
+	dockerfilePathList := contextManager.GetAllImagesDockerfilePaths()
 
-	logger := bringauto_log.GetLogger()
 	for imageName, dockerfilePath := range dockerfilePathList {
-		if len(dockerfilePath) != 1 {
-			logger.Warn("Bug: multiple Dockerfile present for same image name %s", imageName)
-			continue
-		}
-		err = buildSingleDockerImage(imageName, dockerfilePath[0])
+		err := buildSingleDockerImage(imageName, dockerfilePath)
 		if err != nil {
 			return err
 		}

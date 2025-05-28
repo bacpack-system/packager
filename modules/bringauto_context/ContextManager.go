@@ -15,6 +15,7 @@ import (
 )
 
 type (
+	ImagesPathType      map[string]string
 	DependsMapType      map[string]*map[string]bool
 	AllDependenciesType map[string]bool
 	ConfigMapType       map[string][]bringauto_config.Config
@@ -27,6 +28,7 @@ type ContextManager struct {
 	ContextPath string
 	// ForPackage boolean value if the Context is used for Packages or Apps
 	ForPackage bool
+	images ImagesPathType
 	configs *ConfigMapType
 	appConfigs ConfigMapType
 	packageConfigs ConfigMapType
@@ -50,6 +52,12 @@ func (context *ContextManager) CheckPrerequisites(*bringauto_prerequisites.Args)
 	if err != nil {
 		return err
 	}
+
+	err = context.loadImagesDockerfilePaths()
+	if err != nil {
+		return err
+	}
+
 	packageConfigs, appConfigs, err := context.loadConfigs()
 	if err != nil {
 		return err
@@ -71,6 +79,11 @@ func (context *ContextManager) CheckPrerequisites(*bringauto_prerequisites.Args)
 		context.configs = &context.packageConfigs
 	} else {
 		context.configs = &context.appConfigs
+	}
+
+	err = context.checkAllConfigs()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -118,6 +131,36 @@ func (context *ContextManager) loadConfigs() (ConfigMapType, ConfigMapType, erro
 	}
 
 	return packageConfigs, appConfigs, err
+}
+
+// checkAllConfigs
+// Checks supported Images validity for all Configs in Context.
+func (context *ContextManager) checkAllConfigs() error {
+	err := context.checkImagesInConfigs(&context.packageConfigs)
+	if err != nil {
+		return err
+	}
+
+	return context.checkImagesInConfigs(&context.appConfigs)
+}
+
+// checkImagesInConfigs
+// Checks if Images supported by Configs in configsMap were defined in Context.
+func (context *ContextManager) checkImagesInConfigs(configsMap *ConfigMapType) error {
+	for packName, configs := range *configsMap {
+		for _, config := range configs {
+			if len(config.DockerMatrix.ImageNames) == 0 {
+				return fmt.Errorf("Package/App %s does not support any image", packName)
+			}
+			for _, dockerName := range config.DockerMatrix.ImageNames {
+				_, exists := context.images[dockerName]
+				if !exists {
+					return fmt.Errorf("Package %s supports unknown image %s", packName, dockerName)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // checkPackageConfigs
@@ -270,21 +313,6 @@ func (context *ContextManager) GetAllPackagesStructs(platformString *bringauto_p
 	}
 
 	return packages, nil
-}
-
-// GetAllImagesDockerfilePaths
-// Returns all Dockerfile paths located in the Context directory.
-func (context *ContextManager) GetAllImagesDockerfilePaths() (map[string][]string, error) {
-	imageDir := path.Join(context.ContextPath, bringauto_const.DockerDirName)
-
-	reg, err := regexp.CompilePOSIX("^Dockerfile$")
-	if err != nil {
-		return nil, fmt.Errorf("cannot compile regexp for matchiing Dockerfile")
-	}
-
-	dockerfileList, err := getAllFilesInSubdirByRegexp(imageDir, reg)
-
-	return dockerfileList, err
 }
 
 // GetPackageConfigs
@@ -456,25 +484,49 @@ func removeConfig(list1 []bringauto_config.Config, config bringauto_config.Confi
 	return list1[:i]
 }
 
+// loadImagesDockerfilePaths
+// Loads Image Dockerfile paths from Context into Context Manager struct.
+func (context *ContextManager) loadImagesDockerfilePaths() error {
+	imageDir := path.Join(context.ContextPath, bringauto_const.DockerDirName)
+
+	reg, err := regexp.CompilePOSIX("^Dockerfile$")
+	if err != nil {
+		return fmt.Errorf("cannot compile regexp for matchiing Dockerfile")
+	}
+
+	dockerfileList, err := getAllFilesInSubdirByRegexp(imageDir, reg)
+	if err != nil {
+		return err
+	}
+
+	imagePaths := make(ImagesPathType)
+	for imageName, pathList := range dockerfileList {
+		if len(pathList) != 1 {
+			return fmt.Errorf("wrong number of Dockerfiles for %s image (should be 1)", imageName)
+		}
+		imagePaths[imageName] = pathList[0]
+	}
+
+	context.images = imagePaths
+	return nil
+}
+
+
+// GetAllImagesDockerfilePaths
+// Returns all Dockerfile paths located in the Context directory.
+func (context *ContextManager) GetAllImagesDockerfilePaths() ImagesPathType {
+	return context.images
+}
+
 // GetImageDockerfilePath
 // Returns Dockerfile path for the given Image locate in the given Context.
 func (context *ContextManager) GetImageDockerfilePath(imageName string) (string, error) {
-	dockerImageBasePath := path.Join(context.ContextPath, bringauto_const.DockerDirName, imageName)
-
-	dockerImageBasePathStat, err := os.Stat(dockerImageBasePath)
-	if os.IsNotExist(err) {
+	path, exists := context.images[imageName]
+	if !exists {
 		return "", fmt.Errorf("docker image definition does not exist, please check the name")
 	}
-	if !dockerImageBasePathStat.IsDir() {
-		return "", fmt.Errorf("docker image definition does not exist. It seems like an ordinary file")
-	}
 
-	dockerfilePath := filepath.Join(dockerImageBasePath, "Dockerfile")
-	if _, err = os.Stat(dockerfilePath); os.IsNotExist(err) {
-		return "", fmt.Errorf("dockerfile for the given image does not exist")
-	}
-
-	return dockerfilePath, nil
+	return path, nil
 }
 
 // validateContextPath
