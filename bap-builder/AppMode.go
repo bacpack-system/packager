@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bringauto/modules/bringauto_config"
+	"bringauto/modules/bringauto_error"
 	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_context"
 	"bringauto/modules/bringauto_log"
@@ -27,7 +27,17 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 	if err != nil {
 		return err
 	}
-	err = performPreBuildChecks(contextPath, &repo, platformString, *cmdLine.DockerImageName)
+	contextManager := bringauto_context.ContextManager{
+		ContextPath: contextPath,
+		ForPackage: false,
+	}
+	err = bringauto_prerequisites.Initialize(&contextManager)
+	if err != nil {
+		logger := bringauto_log.GetLogger()
+		logger.Error("Context consistency error - %s", err)
+		return bringauto_error.ContextErr
+	}
+	err = performPreBuildChecks(&repo, &contextManager, platformString, *cmdLine.DockerImageName)
 	if err != nil {
 		return err
 	}
@@ -36,9 +46,9 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 	defer handleRemover()
 
 	if *cmdLine.All {
-		return buildAllApps(*cmdLine.DockerImageName, contextPath, platformString, repo, uint16(*cmdLine.Port))
+		return buildAllApps(*cmdLine.DockerImageName, &contextManager, platformString, repo, uint16(*cmdLine.Port))
 	} else {
-		return buildSingleApp(cmdLine, contextPath, platformString, repo, uint16(*cmdLine.Port))
+		return buildSingleApp(cmdLine, &contextManager, platformString, repo, uint16(*cmdLine.Port))
 	}
 }
 
@@ -46,32 +56,18 @@ func BuildApp(cmdLine *BuildAppCmdLineArgs, contextPath string) error {
 // Builds all Apps specified in contextPath. Returns nil if everything is ok, else returns error.
 func buildAllApps(
 	imageName      string,
-	contextPath    string,
+	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
 	dockerPort     uint16,
 ) error {
-	contextManager := bringauto_context.ContextManager{
-		ContextPath: contextPath,
-	}
-	appJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.AppDirName)
-	if err != nil {
-		return err
-	}
-
-	defsMap := make(ConfigMapType)
-	for _, appJsonPathList := range appJsonPathMap {
-		addConfigsToDefsMap(&defsMap, appJsonPathList)
-	}
+	configMap := contextManager.GetAllConfigsMap()
 
 	logger := bringauto_log.GetLogger()
 
 	count := int32(0)
-	for appName := range defsMap {
-		for _, config := range defsMap[appName] {
-			if isDepsInConfig(config) {
-				return fmt.Errorf("App has non-empty DependsOn")
-			}
+	for appName := range configMap {
+		for _, config := range configMap[appName] {
 			buildConfigs := config.GetBuildStructure(imageName, platformString, dockerPort)
 			if len(buildConfigs) == 0 {
 				continue
@@ -82,7 +78,7 @@ func buildAllApps(
 				return fmt.Errorf("cannot build App '%s' - %w", config.Package.Name, err)
 			}
 		}
-		err = bringauto_sysroot.RemoveInstallSysroot()
+		err := bringauto_sysroot.RemoveInstallSysroot()
 		if err != nil {
 			return fmt.Errorf("cannot remove install sysroot directory")
 		}
@@ -98,16 +94,12 @@ func buildAllApps(
 // Builds single App specified by name in cmdLine. Returns nil if everything is ok, else returns error.
 func buildSingleApp(
 	cmdLine        *BuildAppCmdLineArgs,
-	contextPath    string,
+	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
 	dockerPort     uint16,
 ) error{
-	contextManager := bringauto_context.ContextManager{
-		ContextPath: contextPath,
-	}
-
-	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, &contextManager, platformString, bringauto_const.AppDirName)
+	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, contextManager, platformString, bringauto_const.AppDirName)
 	if err != nil {
 		return err
 	}
@@ -115,9 +107,6 @@ func buildSingleApp(
 		return fmt.Errorf("nothing to build")
 	}
 	for _, config := range configList {
-		if isDepsInConfig(config) {
-			return fmt.Errorf("App has non-empty DependsOn")
-		}
 		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
 			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
@@ -128,10 +117,4 @@ func buildSingleApp(
 		}
 	}
 	return nil
-}
-
-// isDepsInConfig
-// Returns true if given config has non-empty DependsOn array, else returns false.
-func isDepsInConfig(config *bringauto_config.Config) bool {
-	return len(config.DependsOn) > 0
 }

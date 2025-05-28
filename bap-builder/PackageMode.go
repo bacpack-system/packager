@@ -15,24 +15,16 @@ import (
 	"bringauto/modules/bringauto_sysroot"
 	"bringauto/modules/bringauto_error"
 	"fmt"
-	"io/fs"
-	"path/filepath"
 	"strconv"
 	"slices"
-)
-
-type (
-	dependsMapType      map[string]*map[string]bool
-	allDependenciesType map[string]bool
-	ConfigMapType       map[string][]*bringauto_config.Config
 )
 
 type buildDepList struct {
 	dependsMap map[string]*map[string]bool
 }
 
-func removeDuplicates(configList *[]*bringauto_config.Config) []*bringauto_config.Config {
-	var newConfigList []*bringauto_config.Config
+func removeDuplicates(configList *[]bringauto_config.Config) []bringauto_config.Config {
+	var newConfigList []bringauto_config.Config
 	packageMap := make(map[string]bool)
 	for _, cconfig := range *configList {
 		packageName := cconfig.Package.Name + ":" + strconv.FormatBool(cconfig.Package.IsDebug)
@@ -46,59 +38,13 @@ func removeDuplicates(configList *[]*bringauto_config.Config) []*bringauto_confi
 	return newConfigList
 }
 
-// checkForCircularDependency
-// Checks for circular dependency in defsMap. If there is one, returns error with message
-// and problematic packages, else returns nil.
-func checkForCircularDependency(dependsMap map[string]*map[string]bool) error {
-	visited := make(map[string]bool)
-
-	for packageName := range dependsMap {
-		cycleDetected, cycleString := detectCycle(packageName, dependsMap, visited)
-		if cycleDetected {
-			return fmt.Errorf("circular dependency detected - %s", packageName + " -> " + cycleString)
-		}
-		// Clearing recursion stack after one path through graph was checked
-		for visitedPackage := range visited {
-			visited[visitedPackage] = false
-		}
-	}
-	return nil
-}
-
-// detectCycle
-// Detects cycle between package dependencies in one path through graph. visited is current
-// recursion stack and dependsMap is whole graph representation. packageName is root node where
-// cycle detection should start.
-func detectCycle(packageName string, dependsMap map[string]*map[string]bool, visited map[string]bool) (bool, string) {
-	visited[packageName] = true
-	depsMap, found := dependsMap[packageName]
-	if found {
-		for depPackageName := range *depsMap {
-			if visited[depPackageName] {
-				return true, depPackageName
-			} else {
-				cycleDetected, cycleString := detectCycle(depPackageName, dependsMap, visited)
-				if cycleDetected {
-					return cycleDetected, depPackageName + " -> " + cycleString
-				}
-			}
-		}
-	}
-	visited[packageName] = false
-	return false, ""
-}
-
-func (list *buildDepList) TopologicalSort(buildMap ConfigMapType) ([]*bringauto_config.Config, error) {
+func (list *buildDepList) TopologicalSort(buildMap bringauto_context.ConfigMapType) ([]bringauto_config.Config, error) {
 
 	// Map represents 'PackageName: []DependsOnPackageNames'
 	var dependsMap map[string]*map[string]bool
 	var allDependencies map[string]bool
 
-	dependsMap, allDependencies = list.createDependsMap(&buildMap)
-	err := checkForCircularDependency(dependsMap)
-	if err != nil  {
-		return []*bringauto_config.Config{}, err
-	}
+	dependsMap, allDependencies = bringauto_context.CreateDependsMap(&buildMap)
 
 	dependsMapCopy := make(map[string]*map[string]bool, len(dependsMap))
 	for key, value := range dependsMap {
@@ -123,39 +69,12 @@ func (list *buildDepList) TopologicalSort(buildMap ConfigMapType) ([]*bringauto_
 		sortedReverse[i] = sortedDependencies[sortedLen-i-1]
 	}
 
-	var sortedDependenciesConfig []*bringauto_config.Config
+	var sortedDependenciesConfig []bringauto_config.Config
 	for _, packageName := range sortedReverse {
 		sortedDependenciesConfig = append(sortedDependenciesConfig, buildMap[packageName]...)
 	}
 
 	return removeDuplicates(&sortedDependenciesConfig), nil
-}
-
-func (list *buildDepList) createDependsMap(buildMap *ConfigMapType) (dependsMapType, allDependenciesType) {
-	allDependencies := make(map[string]bool)
-	dependsMap := make(map[string]*map[string]bool)
-
-	for _, configArray := range *buildMap {
-		if len(configArray) == 0 {
-			panic("invalid entry in dependency map")
-		}
-		packageName := configArray[0].Package.Name
-		item, found := dependsMap[packageName]
-		if !found {
-			item = &map[string]bool{}
-			dependsMap[packageName] = item
-		}
-		for _, config := range configArray {
-			if len(config.DependsOn) == 0 {
-				continue
-			}
-			for _, v := range config.DependsOn {
-				(*item)[v] = true
-				allDependencies[v] = true
-			}
-		}
-	}
-	return dependsMap, allDependencies
 }
 
 func (list *buildDepList) sortDependencies(rootName string, dependsMap *map[string]*map[string]bool) *[]string {
@@ -174,50 +93,17 @@ func (list *buildDepList) sortDependencies(rootName string, dependsMap *map[stri
 	return &sorted
 }
 
-
-// checkContextDirConsistency
-// Checks if all directories in contextPath have same name as Package names from JSON definitions
-// inside this directory. If not, returns error with description, else returns nil. Also returns error
-// if the Package JSON definition can't be loaded.
-func checkContextDirConsistency(contextPath string) error {
-	packageContextPath := filepath.Join(contextPath, bringauto_const.PackageDirName)
-	err := filepath.WalkDir(packageContextPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			var config bringauto_config.Config
-			err = config.LoadJSONConfig(path)
-			if err != nil {
-				return fmt.Errorf("couldn't load JSON config from %s path", path)
-			}
-			dirName := filepath.Base(filepath.Dir(path))
-			if config.Package.Name != dirName {
-				return fmt.Errorf("directory name (%s) is different from package name (%s)", dirName, config.Package.Name)
-			}
-		}
-		return nil
-	})
-
-	return err
-}
-
 // performPreBuildChecks
-// Performs Context directory, Git lfs and sysroot consistency checks. This should be called before
-// builds.
-func performPreBuildChecks(contextPath string, repo *bringauto_repository.GitLFSRepository, platformString *bringauto_package.PlatformString, imageName string) error {
+// Performs Git lfs and sysroot consistency checks. This should be called before builds.
+func performPreBuildChecks(
+	repo           *bringauto_repository.GitLFSRepository,
+	contextManager *bringauto_context.ContextManager,
+	platformString *bringauto_package.PlatformString,
+	imageName      string,
+) error {
 	logger := bringauto_log.GetLogger()
-	logger.Info("Checking context directory (%s) consistency", contextPath)
-	err := checkContextDirConsistency(contextPath)
-	if err != nil {
-		logger.Error("Context consistency error - %s", err)
-		return bringauto_error.ContextErr
-	}
-	contextManager := bringauto_context.ContextManager{
-		ContextPath: contextPath,
-	}
 	logger.Info("Checking Git Lfs directory consistency")
-	err = repo.CheckGitLfsConsistency(&contextManager, platformString, imageName)
+	err := repo.CheckGitLfsConsistency(contextManager, platformString, imageName)
 	if err != nil {
 		logger.Error("Git Lfs consistency error - %s", err)
 		return bringauto_error.GitLfsErr
@@ -244,7 +130,17 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 	if err != nil {
 		return err
 	}
-	err = performPreBuildChecks(contextPath, &repo, platformString, *cmdLine.DockerImageName)
+	contextManager := bringauto_context.ContextManager{
+		ContextPath: contextPath,
+		ForPackage: true,
+	}
+	err = bringauto_prerequisites.Initialize(&contextManager)
+	if err != nil {
+		logger := bringauto_log.GetLogger()
+		logger.Error("Context consistency error - %s", err)
+		return bringauto_error.ContextErr
+	}
+	err = performPreBuildChecks(&repo, &contextManager, platformString, *cmdLine.DockerImageName)
 	if err != nil {
 		return err
 	}
@@ -253,9 +149,9 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 	defer handleRemover()
 
 	if *cmdLine.All {
-		return buildAllPackages(cmdLine, contextPath, platformString, repo)
+		return buildAllPackages(cmdLine, &contextManager, platformString, repo)
 	} else {
-		return buildSinglePackage(cmdLine, contextPath, platformString, repo)
+		return buildSinglePackage(cmdLine, &contextManager, platformString, repo)
 	}
 }
 
@@ -264,24 +160,14 @@ func BuildPackage(cmdLine *BuildPackageCmdLineArgs, contextPath string) error {
 // packages in correct order. It returns nil if everything is ok, or not nil in case of error.
 func buildAllPackages(
 	cmdLine        *BuildPackageCmdLineArgs,
-	contextPath    string,
+	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
 ) error {
-	contextManager := bringauto_context.ContextManager{
-		ContextPath: contextPath,
-	}
-	packageJsonPathMap, err := contextManager.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
-	if err != nil {
-		return err
-	}
+	configMap := contextManager.GetAllConfigsMap()
 
-	defsMap := make(ConfigMapType)
-	for _, packageJsonPathList := range packageJsonPathMap {
-		addConfigsToDefsMap(&defsMap, packageJsonPathList)
-	}
 	depsList := buildDepList{}
-	configList, err := depsList.TopologicalSort(defsMap)
+	configList, err := depsList.TopologicalSort(configMap)
 	if err != nil {
 		return err
 	}
@@ -308,15 +194,15 @@ func buildAllPackages(
 }
 
 // prepareConfigs
-// Returns Config structures list based on given jsonPaths.
-func prepareConfigs(packageJsonPaths []string) ([]*bringauto_config.Config, error) {
-	var configList []*bringauto_config.Config
-	defsMap := make(ConfigMapType)
-	addConfigsToDefsMap(&defsMap, packageJsonPaths)
+// Returns sorted packageConfigs list.
+func sortConfigs(packageConfigs []bringauto_config.Config) ([]bringauto_config.Config, error) {
+	var configList []bringauto_config.Config
+	defsMap := make(bringauto_context.ConfigMapType)
+	addConfigsToDefsMap(&defsMap, packageConfigs)
 	depList := buildDepList{}
 	configList, err := depList.TopologicalSort(defsMap)
 	if err != nil {
-		return []*bringauto_config.Config{}, err
+		return []bringauto_config.Config{}, err
 	}
 	return configList, nil
 }
@@ -328,35 +214,26 @@ func prepareConfigsNoBuildDeps(
 	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
 	packageOrApp   string,
-) ([]*bringauto_config.Config, error) {
+) ([]bringauto_config.Config, error) {
 	logger := bringauto_log.GetLogger()
 
 	if packageOrApp == bringauto_const.PackageDirName {
 		value, err := isPackageDepsInSysroot(packageName, contextManager, platformString, false)
 		if err != nil {
-			return []*bringauto_config.Config{}, err
+			return []bringauto_config.Config{}, err
 		}
 		if !value {
 			logger.Error("Package dependencies are not in sysroot")
-			return []*bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
+			return []bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
 		}
 	}
 
-	var configList []*bringauto_config.Config
-	packageJsonPaths, err := contextManager.GetConfigJsonPaths(packageName, packageOrApp)
+	packageConfigs, err := contextManager.GetPackageConfigs(packageName)
 	if err != nil {
-		return []*bringauto_config.Config{}, err
+		return []bringauto_config.Config{}, err
 	}
-	for _, packageJsonPath := range packageJsonPaths {
-		var config bringauto_config.Config
-		err = config.LoadJSONConfig(packageJsonPath)
-		if err != nil {
-			logger.Warn("Couldn't load JSON config from %s path - %s", packageJsonPath, err)
-			continue
-		}
-		configList = append(configList, &config)
-	}
-	return configList, nil
+
+	return packageConfigs, nil
 }
 
 // prepareConfigsBuildDepsOrBuildDepsOn
@@ -366,38 +243,38 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 	packageName    string,
 	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
-) ([]*bringauto_config.Config, error) {
-	var packageJsonPaths []string
+) ([]bringauto_config.Config, error) {
+	var packageConfigs []bringauto_config.Config
 
 	logger := bringauto_log.GetLogger()
 
 	if *cmdLine.BuildDeps {
-		paths, err := contextManager.GetPackageWithDepsJsonDefPaths(packageName)
+		configs, err := contextManager.GetPackageWithDepsConfigs(packageName)
 		if err != nil {
-			return []*bringauto_config.Config{}, err
+			return []bringauto_config.Config{}, err
 		}
-		packageJsonPaths = append(packageJsonPaths, paths...)
+		packageConfigs = append(packageConfigs, configs...)
 	} else if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
 		value, err := isPackageDepsInSysroot(packageName, contextManager, platformString, true)
 		if err != nil {
-			return []*bringauto_config.Config{}, err
+			return []bringauto_config.Config{}, err
 		}
 		if !value {
 			logger.Error("--build-deps-on(-recursive) set but base package or its dependencies are not in sysroot")
-			return []*bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
+			return []bringauto_config.Config{}, bringauto_error.PackageMissingDependencyErr
 		}
 	}
 	if *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
-		paths, err := contextManager.GetDepsOnJsonDefPaths(packageName, *cmdLine.BuildDepsOnRecursive)
+		configs, err := contextManager.GetPackageWithDepsOnConfigs(packageName, *cmdLine.BuildDepsOnRecursive)
 		if err != nil {
-			return []*bringauto_config.Config{}, err
+			return []bringauto_config.Config{}, err
 		}
-		if len(paths) == 0 {
+		if len(configs) == 0 {
 			logger.Warn("No package depends on %s", packageName)
 		}
-		packageJsonPaths = append(packageJsonPaths, paths...)
+		packageConfigs = append(packageConfigs, configs...)
 	}
-	return prepareConfigs(packageJsonPaths)
+	return sortConfigs(packageConfigs)
 }
 
 // buildSinglePackage
@@ -405,21 +282,18 @@ func prepareConfigsBuildDepsOrBuildDepsOn(
 // given package in correct order. It returns nil if everything is ok, or not nil in case of error.
 func buildSinglePackage(
 	cmdLine        *BuildPackageCmdLineArgs,
-	contextPath    string,
+	contextManager *bringauto_context.ContextManager,
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
 ) error {
-	contextManager := bringauto_context.ContextManager{
-		ContextPath: contextPath,
-	}
 	packageName := *cmdLine.Name
 	var err error
-	var configList []*bringauto_config.Config
+	var configList []bringauto_config.Config
 
 	if *cmdLine.BuildDeps || *cmdLine.BuildDepsOn || *cmdLine.BuildDepsOnRecursive {
-		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, &contextManager, platformString)
+		configList, err = prepareConfigsBuildDepsOrBuildDepsOn(cmdLine, packageName, contextManager, platformString)
 	} else {
-		configList, err = prepareConfigsNoBuildDeps(packageName, &contextManager, platformString, bringauto_const.PackageDirName)
+		configList, err = prepareConfigsNoBuildDeps(packageName, contextManager, platformString, bringauto_const.PackageDirName)
 	}
 	if err != nil {
 		return err
@@ -441,22 +315,15 @@ func buildSinglePackage(
 }
 
 // addConfigsToDefsMap
-// Adds all configs in packageJsonPathList to defsMap.
-func addConfigsToDefsMap(defsMap *ConfigMapType, packageJsonPathList []string) {
-	logger := bringauto_log.GetLogger()
-	for _, packageJsonPath := range packageJsonPathList {
-		var config bringauto_config.Config
-		err := config.LoadJSONConfig(packageJsonPath)
-		if err != nil {
-			logger.Error("Couldn't load JSON config from %s path - %s", packageJsonPath, err)
-			continue
-		}
+// Adds Configs in packageConfigs to defsMap.
+func addConfigsToDefsMap(defsMap *bringauto_context.ConfigMapType, packageConfigs []bringauto_config.Config) {
+	for _, config := range packageConfigs {
 		packageName := config.Package.Name
 		_, found := (*defsMap)[packageName]
 		if !found {
-			(*defsMap)[packageName] = []*bringauto_config.Config{}
+			(*defsMap)[packageName] = []bringauto_config.Config{}
 		}
-		(*defsMap)[packageName] = append((*defsMap)[packageName], &config)
+		(*defsMap)[packageName] = append((*defsMap)[packageName], config)
 	}
 }
 
@@ -564,11 +431,7 @@ func isPackageDepsInSysroot(
 	platformString     *bringauto_package.PlatformString,
 	checkPackageItself bool,
 ) (bool, error) {
-	packageJsonPaths, err := contextManager.GetPackageWithDepsJsonDefPaths(packageName)
-	if err != nil {
-		return false, err
-	}
-	configList, err := prepareConfigs(packageJsonPaths)
+	configMap, err := contextManager.GetPackageWithDepsConfigs(packageName)
 	if err != nil {
 		return false, err
 	}
@@ -582,7 +445,7 @@ func isPackageDepsInSysroot(
 		return false, err
 	}
 
-	for _, config := range configList {
+	for _, config := range configMap {
 		if !checkPackageItself && config.Package.Name == packageName {
 			continue
 		}
