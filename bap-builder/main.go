@@ -18,7 +18,7 @@ func main() {
 	args.InitFlags()
 	err = args.ParseArgs(os.Args)
 	if err != nil {
-		logger.Error("Can't parse cmd line arguments - %s",)
+		logger.Error("Can't parse cmd line arguments - %s", err)
 		os.Exit(bringauto_error.CMD_LINE_ERROR)
 	}
 	bringauto_process.SignalHandlerRegisterSignal(syscall.SIGINT)

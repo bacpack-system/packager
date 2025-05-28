@@ -66,7 +66,7 @@ func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
 	if err != nil {
 		return err
 	} else if !portAvailable {
-		return fmt.Errorf("port %d not available", bringauto_const.DefaultSSHPort)
+		return fmt.Errorf("port %d not available", docker.Port)
 	}
 	var outBuff bytes.Buffer
 	process := bringauto_process.Process{

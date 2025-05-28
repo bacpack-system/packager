@@ -21,7 +21,7 @@ var GitLfsErr = errors.New("git lfs consistency error")
 var BuildErr = errors.New("build error")
 var PackageMissingDependencyErr = errors.New("package missing dependency in sysroot error")
 var CreatingSysrootErr = errors.New("creating sysroot error")
-var OvewriteFileInSysrootErr = errors.New("trying to ovewrite file in sysroot error")
+var OverwriteFileInSysrootErr = errors.New("trying to overwrite file in sysroot error")
 
 func GetReturnCode(err error) int {
 	if errors.Is(err, CmdLineErr) {
@@ -36,7 +36,7 @@ func GetReturnCode(err error) int {
 		return BUILD_ERROR
 	} else if errors.Is(err, CreatingSysrootErr) {
 		return CREATING_SYSROOT_ERROR
-	} else if errors.Is(err, OvewriteFileInSysrootErr) {
+	} else if errors.Is(err, OverwriteFileInSysrootErr) {
 		return OVERWRITE_FILE_IN_SYSROOT_ERROR
 	}
 	return DEFAULT_ERROR
