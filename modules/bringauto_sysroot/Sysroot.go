@@ -95,7 +95,7 @@ func (sysroot *Sysroot) checkForOverwritingFiles(dirPath string) error {
 	}
 	if len(intersection) > 0 {
 		sysroot.printOverwriteFilesError(intersection, listFilesCount)
-		return bringauto_error.OvewriteFileInSysrootErr
+		return bringauto_error.OverwriteFileInSysrootErr
 	}
 	return nil
 }

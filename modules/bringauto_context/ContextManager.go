@@ -110,7 +110,7 @@ func (context *ContextManager) loadConfigs() (ConfigMapType, ConfigMapType, erro
 			var config bringauto_config.Config
 			err = config.LoadJSONConfig(path)
 			if err != nil {
-				return fmt.Errorf("couldn't load JSON config from %s path", path)
+				return fmt.Errorf("can't load JSON config from %s path - %w", path, err)
 			}
 			dirName := filepath.Base(filepath.Dir(path))
 			if config.Package.Name != dirName {
@@ -155,7 +155,7 @@ func (context *ContextManager) checkImagesInConfigs(configsMap *ConfigMapType) e
 			for _, dockerName := range config.DockerMatrix.ImageNames {
 				_, exists := context.images[dockerName]
 				if !exists {
-					return fmt.Errorf("Package %s supports unknown image %s", packName, dockerName)
+					return fmt.Errorf("Package/App %s supports unknown image %s", packName, dockerName)
 				}
 			}
 		}
@@ -166,7 +166,10 @@ func (context *ContextManager) checkImagesInConfigs(configsMap *ConfigMapType) e
 // checkPackageConfigs
 // Checks circular dependencies between Package Configs.
 func checkPackageConfigs(configsMap *ConfigMapType) error {
-	dependsMap, _ := CreateDependsMap(configsMap)
+	dependsMap, _, err := CreateDependsMap(configsMap)
+	if err != nil {
+		return err
+	}
 	return checkForCircularDependency(dependsMap)
 }
 
@@ -227,13 +230,13 @@ func detectCycle(packageName string, dependsMap DependsMapType, visited map[stri
 
 // CreateDependsMap
 // Creates dependency map (DependsMapType) from configsMap.
-func CreateDependsMap(configsMap *ConfigMapType) (DependsMapType, AllDependenciesType) {
+func CreateDependsMap(configsMap *ConfigMapType) (DependsMapType, AllDependenciesType, error) {
 	dependsMap := make(DependsMapType)
 	allDependencies := make(AllDependenciesType)
 
 	for _, configArray := range *configsMap {
 		if len(configArray) == 0 {
-			panic("invalid entry in dependency map")
+			return nil, nil, fmt.Errorf("invalid entry in dependency map")
 		}
 		packageName := configArray[0].Package.Name
 		item, found := dependsMap[packageName]
@@ -251,7 +254,7 @@ func CreateDependsMap(configsMap *ConfigMapType) (DependsMapType, AllDependencie
 			}
 		}
 	}
-	return dependsMap, allDependencies
+	return dependsMap, allDependencies, nil
 }
 
 // GetAllConfigsMap

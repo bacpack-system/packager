@@ -44,7 +44,10 @@ func (list *buildDepList) TopologicalSort(buildMap bringauto_context.ConfigMapTy
 	var dependsMap map[string]*map[string]bool
 	var allDependencies map[string]bool
 
-	dependsMap, allDependencies = bringauto_context.CreateDependsMap(&buildMap)
+	dependsMap, allDependencies, err := bringauto_context.CreateDependsMap(&buildMap)
+	if err != nil {
+		return []bringauto_config.Config{}, err
+	}
 
 	dependsMapCopy := make(map[string]*map[string]bool, len(dependsMap))
 	for key, value := range dependsMap {

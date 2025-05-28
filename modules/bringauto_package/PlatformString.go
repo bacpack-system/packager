@@ -207,6 +207,7 @@ func getDistroIdAndReleaseFromDockerContainer(docker *bringauto_docker.Docker) (
 	osRelease, err := osrelease.ReadFile(osReleaseFileName)
 	if err != nil {
 		logger.Error("Can't parse os-release file - %s", err)
+		return "", ""
 	}
 
 	return osRelease["ID"], osRelease["VERSION_ID"]
