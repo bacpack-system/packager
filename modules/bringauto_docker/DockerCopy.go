@@ -11,6 +11,9 @@ type DockerCopy Docker
 // Copy
 // Copies file from container with filePath path to localPath.
 func (args *DockerCopy) Copy(filePath string, localPath string) error {
+	if args.containerId == "" {
+		return fmt.Errorf("dockerCopy copy error - container ID is empty")
+	}
 
 	var extraArgs []string
 	extraArgs = append(extraArgs, "cp")
