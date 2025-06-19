@@ -165,11 +165,7 @@ func (lfs *GitLFSRepository) comparePackagesAndGitLfs(
 	platformString *bringauto_package.PlatformString,
 	imageName string,
 ) (error, []string, []string, []string) {
-	configs, err := contextManager.GetAllConfigs(platformString, bringauto_const.PackageDirName)
-	if err != nil {
-		return err, []string{}, []string{}, []string{}
-	}
-
+	configs := contextManager.GetAllPackageConfigsArray(platformString)
 	return lfs.compareConfigsAndGitLfs(platformString, configs, imageName, bringauto_const.PackageDirName)
 }
 
@@ -181,11 +177,7 @@ func (lfs *GitLFSRepository) compareAppsAndGitLfs(
 	platformString *bringauto_package.PlatformString,
 	imageName string,
 ) (error, []string, []string, []string) {
-	configs, err := contextManager.GetAllConfigs(platformString, bringauto_const.AppDirName)
-	if err != nil {
-		return err, []string{}, []string{}, []string{}
-	}
-
+	configs := contextManager.GetAllAppConfigsArray(platformString)
 	return lfs.compareConfigsAndGitLfs(platformString, configs, imageName, bringauto_const.AppDirName)
 }
 

@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"os"
 	"bytes"
+	"strconv"
 )
 
 const (
+	sshPort = 22
 	defaultImageNameConst = "unknown"
 )
 
@@ -17,9 +19,8 @@ const (
 type Docker struct {
 	// ImageName - tag or image hash
 	ImageName string
-	// Ports mapping between host and container
-	// in manner map[int]int { <host>:<container> }
-	Ports map[int]int `json:"-"`
+	// Used port
+	Port uint16
 	// Volumes map a host directory (represented by absolute path)
 	// to the directory inside the docker container
 	// in manner map[string]string { <host_volume_abs_path>:<> }
@@ -31,6 +32,7 @@ type Docker struct {
 
 type dockerInitArgs struct {
 	ImageName string
+	Port uint16
 }
 
 func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
@@ -38,9 +40,7 @@ func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
 		Volumes:     map[string]string{},
 		RunAsDaemon: true,
 		ImageName:   defaultImageNameConst,
-		Ports: map[int]int{
-			bringauto_const.DefaultSSHPort: 22,
-		},
+		Port: bringauto_const.DefaultSSHPort,
 	}
 	return nil
 }
@@ -48,9 +48,13 @@ func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
 func (docker *Docker) FillDynamic(args *bringauto_prerequisites.Args) error {
 	var argsStruct dockerInitArgs
 	bringauto_prerequisites.GetArgs(args, &argsStruct)
+	if bringauto_prerequisites.IsEmpty(args) {
+		return nil
+	}
 	if argsStruct.ImageName != "" {
 		docker.ImageName = argsStruct.ImageName
 	}
+	docker.Port = argsStruct.Port
 	return nil
 }
 
@@ -58,11 +62,11 @@ func (docker *Docker) FillDynamic(args *bringauto_prerequisites.Args) error {
 // It checks if the docker is installed and can be run by given user.
 // Function returns nil if Docker installation is ok, not nil of the problem is recognized
 func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
-	portAvailable, err := IsDefaultPortAvailable()
+	portAvailable, err := isPortAvailable(docker.Port)
 	if err != nil {
 		return err
 	} else if !portAvailable {
-		return fmt.Errorf("default port %d not available", bringauto_const.DefaultSSHPort)
+		return fmt.Errorf("port %d not available", docker.Port)
 	}
 	var outBuff bytes.Buffer
 	process := bringauto_process.Process{
@@ -102,4 +106,35 @@ func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string)
 		panic(fmt.Errorf("volume mapping is already set: '%s' --> '%s'", hostDirectory, containerDirectory))
 	}
 	docker.Volumes[hostDirectory] = containerDirectory
+}
+
+
+// isPortAvailable
+// Returns true if port for docker is available, else returns false.
+// When false is returned, the error contains message from the docker command.
+func isPortAvailable(port uint16) (bool, error) {
+	var outBuff, errBuff bytes.Buffer
+
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"container",
+				"ls",
+				"--filter",
+				"publish=" + strconv.Itoa(int(port)),
+				"--format",
+				"{{.ID}}{{.Ports}}",
+			},
+		},
+		StdOut: &outBuff,
+		StdErr: &errBuff,
+	}
+
+	err := process.Run()
+	if err != nil {
+		return false, fmt.Errorf(errBuff.String())
+	}
+
+	return outBuff.Len() == 0, nil
 }
