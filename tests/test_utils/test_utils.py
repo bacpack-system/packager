@@ -7,6 +7,7 @@ import docker
 import shutil
 from time import sleep
 
+from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
 test_config = {
     "test_data_examples": os.path.abspath("test_data/example"),
@@ -62,15 +63,19 @@ def does_image_exist(image: str) -> bool:
         return False
 
 
-def check_stdout(stdout: str, expected_result: bool):
+def check_stdout(stdout: str, expected_result: PackagerExpectedResult):
     stdout = stdout.lower()
-    if expected_result:
-        assert "build ok" in stdout or "creating sysroot directory from packages" in stdout
+    if expected_result == PackagerExpectedResult.SUCCESS:
+        assert "build ok" in stdout
         assert "error" not in stdout
         assert "failed to" not in stdout
-    else:
+    elif expected_result == PackagerExpectedResult.FAILURE:
         assert "error" in stdout
         assert "failed to build" in stdout
+    elif expected_result == PackagerExpectedResult.SKIPPED:
+        assert "Package already built in sysroot - skipping build" in stdout
+    elif expected_result == PackagerExpectedResult.CREATING_SYSROOT:
+        assert "creating sysroot directory from packages" in stdout, stdout
 
 
 def prepare_packages(packages: list[str]):
@@ -188,7 +193,8 @@ def run_packager(
     build_deps_on_recursive: bool = False,
     help: bool = False,
     all: bool = False,
-    expected_result: bool = None,
+    expected_result: PackagerExpectedResult = PackagerExpectedResult.NOT_APPLICABLE,
+    expected_returncode: PackagerReturnCode = PackagerReturnCode.SUCCESS,
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
@@ -250,8 +256,7 @@ def run_packager(
     print("-" * 10, "Stderr", "-" * 10)
     print(stderr)
 
-    if expected_result is not None:
-        check_stdout(stdout, expected_result)
+    check_stdout(stdout, expected_result)
 
-    assert result.returncode == 0
+    assert result.returncode == expected_returncode.value
     return result
