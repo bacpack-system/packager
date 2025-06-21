@@ -12,9 +12,11 @@ from test_utils.test_utils import (
     check_if_package_is_in_sysroot,
 )
 
+from test_utils.common import PackagerReturnCode
+
 
 def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
-    """TODO"""
+    """Build package and app, then create sysroot"""
     package = "test_package_2"
     app = "io-module"
 
@@ -55,8 +57,8 @@ def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test
     )
 
 
-def test_02_create_sysroot_inconsistent_image_names(packager_binary, context, test_repo, test_sysroot):
-    """TODO"""
+def test_02_create_sysroot_with_package_on_two_different_images(packager_binary, context, test_repo, test_sysroot):
+    """Test creating sysroot with a package built on two different images"""
     package = "test_package_2"
     app = "io-module"
 
@@ -87,17 +89,6 @@ def test_02_create_sysroot_inconsistent_image_names(packager_binary, context, te
 
     run_packager(
         packager_binary,
-        "build-app",
-        context=context,
-        image_name="fedora40",
-        output_dir=test_repo,
-        name=app,
-        expected_result=True,
-    )
-    assert is_tracked(app, test_repo, "app")
-
-    run_packager(
-        packager_binary,
         "create-sysroot",
         context=context,
         image_name="fedora41",
@@ -108,7 +99,7 @@ def test_02_create_sysroot_inconsistent_image_names(packager_binary, context, te
 
 
 def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, test_sysroot):
-    """TODO"""
+    """Create sysroot from empty repo"""
     run_packager(
         packager_binary,
         "create-sysroot",
@@ -123,7 +114,7 @@ def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, 
 def test_04_create_sysroot_from_repo_with_packages_for_different_images(
     packager_binary, context, test_repo, test_sysroot
 ):
-    """TODO"""
+    """Create sysroot for image which is not built in the repo"""
     package = "test_package_2"
 
     prepare_packages([package])
@@ -162,7 +153,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
 
 
 def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
-    """TODO"""
+    """Build all packages and create sysroot from all packages"""
     package = "test_package_2"
 
     prepare_packages([package])
@@ -189,7 +180,7 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
 
 
 def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
-    """TODO"""
+    """Check"""
     package = "test_package_2"
     app = "io-module"
 
