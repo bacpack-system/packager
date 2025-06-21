@@ -1,0 +1,36 @@
+{
+  "Env": {},
+  "DependsOn": [],
+  "Git": {
+    "URI": "https://github.com/bringauto/boost-cmake-build.git",
+    "Revision": "master"
+  },
+  "Build": {
+    "CMake": {
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "WITHOUT_PYTHON": "ON",
+        "BOOST_VERSION": "1.86.0"
+      }
+    }
+  },
+  "Package": {
+    "Name": "boost",
+    "VersionTag": "v1.86.0",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": true,
+    "IsDevLib": true,
+    "IsDebug": true
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "fleet-os-2",
+      "debian12",
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}

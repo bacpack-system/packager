@@ -1,0 +1,34 @@
+{
+  "Env": {},
+  "Git": {
+    "URI": "https://github.com/bringauto/io-module.git",
+    "Revision": "v1.3.2"
+  },
+  "Build": {
+    "CMake": {
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BRINGAUTO_INSTALL": "ON"
+      }
+    }
+  },
+  "Package": {
+    "Name": "io-module",
+    "VersionTag": "v1.3.2",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": false,
+    "IsDevLib": false,
+    "IsDebug": false
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "fleet-os-2",
+      "debian12",
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}

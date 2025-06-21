@@ -1,0 +1,39 @@
+{
+  "Env": {},
+  "DependsOn": [
+    "ba-logger",
+    "cxxopts"
+  ],
+  "Git": {
+    "URI": "https://github.com/bringauto/StateSmurf.git",
+    "Revision": "v2.2.0"
+  },
+  "Build": {
+    "CMake": {
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BRINGAUTO_INSTALL": "ON",
+        "BRINGAUTO_PACKAGE": "ON",
+        "BRINGAUTO_SYSTEM_DEP": "ON"
+      }
+    }
+  },
+  "Package": {
+    "Name": "statesmurf",
+    "VersionTag": "v2.2.0",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": true,
+    "IsDevLib": true,
+    "IsDebug": false
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "debian12",
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}
