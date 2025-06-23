@@ -86,7 +86,7 @@ def prepare_packages(packages: list[str]):
         shutil.copytree(os.path.join(test_config["test_packages_source"], package), package_path)
 
 
-def is_tracked(name: str, repo_path: str, type: str) -> bool:
+def is_tracked(name: str, repo_path: str, type: str, os_path: str = None) -> bool:
     """Check if the package is tracked in the repository."""
     repo = git.Repo(repo_path)
     try:
@@ -115,6 +115,10 @@ def is_tracked(name: str, repo_path: str, type: str) -> bool:
             test_name = name + release_suffix
 
         for path in files_in_last_commit:
+
+            if os_path and os_path not in path:
+                continue
+
             if name in path.split("/"):
                 if test_name in path.split("/")[-1]:
                     packages_to_detect -= 1
@@ -188,6 +192,7 @@ def run_packager(
     name: str = None,
     sysroot_dir: str = None,
     git_lfs: str = None,
+    port: int = None,
     build_deps: bool = False,
     build_deps_on: bool = False,
     build_deps_on_recursive: bool = False,
@@ -221,6 +226,10 @@ def run_packager(
     if sysroot_dir:
         parameters.append("--sysroot-dir")
         parameters.append(sysroot_dir)
+
+    if port:
+        parameters.append("--port")
+        parameters.append(str(port))
 
     if git_lfs:
         parameters.append("--git-lfs")
