@@ -175,8 +175,6 @@ func buildAllPackages(
 		return err
 	}
 
-	logger := bringauto_log.GetLogger()
-
 	count := int32(0)
 	for _, config := range configList {
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
@@ -190,7 +188,7 @@ func buildAllPackages(
 		}
 	}
 	if count == 0 {
-		logger.Warn("Nothing to build. Did you enter correct image name?")
+		return fmt.Errorf("no Packages to build for %s image", *cmdLine.DockerImageName)
 	}
 
 	return nil
