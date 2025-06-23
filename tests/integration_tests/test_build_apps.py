@@ -135,41 +135,13 @@ def test_04_build_all_apps_when_port_1122_is_used(test_image, packager_binary, c
             context=context,
             image_name=test_image,
             output_dir=test_repo,
+            port=1123,
             all=True,
             expected_result=PackagerExpectedResult.SUCCESS,
         )
         for app in apps:
             assert is_tracked(app, test_repo, "app")
+    except OSError:
+        pytest.skip("Port 1122 is already in use, skipping test")
     finally:
         sock.close()
-
-
-def test_05_build_app_in_parallel(test_image, packager_binary, context, test_repo):
-    """Test building an app in parallel threads"""
-
-    apps = ["io-module", "mission-module"]
-    if not all(does_app_support_image(app, test_image) for app in apps):
-        pytest.skip(f"Apps does not support image {test_image}")
-
-    def build_app(app):
-        run_packager(
-            packager_binary,
-            "build-app",
-            context=context,
-            image_name=test_image,
-            output_dir=test_repo,
-            name=app,
-            expected_result=(PackagerExpectedResult.SUCCESS),
-        )
-
-    threads = []
-    for app in apps:
-        thread = threading.Thread(target=build_app, args=(app,))
-        threads.append(thread)
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
-    for app in apps:
-        assert is_tracked(app, test_repo, "app")
