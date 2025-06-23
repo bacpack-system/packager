@@ -27,10 +27,10 @@ type (
 type ContextManager struct {
 	ContextPath string
 	// ForPackage boolean value if the Context is used for Packages or Apps
-	ForPackage bool
-	images ImagesPathType
-	configs *ConfigMapType
-	appConfigs ConfigMapType
+	ForPackage     bool
+	images         ImagesPathType
+	configs        *ConfigMapType
+	appConfigs     ConfigMapType
 	packageConfigs ConfigMapType
 }
 
@@ -101,7 +101,7 @@ func (context *ContextManager) loadConfigs() (ConfigMapType, ConfigMapType, erro
 		if err != nil {
 			return err
 		}
-		
+
 		if !d.IsDir() {
 			section := filepath.Base(filepath.Dir(filepath.Dir(path)))
 			if section != bringauto_const.PackageDirName && section != bringauto_const.AppDirName {
@@ -195,7 +195,7 @@ func checkForCircularDependency(dependsMap DependsMapType) error {
 	for packageName := range dependsMap {
 		cycleDetected, cycleString := detectCycle(packageName, dependsMap, visited)
 		if cycleDetected {
-			return fmt.Errorf("circular dependency detected - %s", packageName + " -> " + cycleString)
+			return fmt.Errorf("circular dependency detected - %s", packageName+" -> "+cycleString)
 		}
 		// Clearing recursion stack after one path through graph was checked
 		for visitedPackage := range visited {
@@ -376,8 +376,8 @@ func (context *ContextManager) getAllDepOnConfigs(config bringauto_config.Config
 	visited[config.Package.Name] = struct{}{}
 	var packsToBuild []bringauto_config.Config
 	for _, packConfig := range packConfigs {
-		if (packConfig.Package.Name == config.Package.Name ||
-	 	  	packConfig.Package.IsDebug != config.Package.IsDebug){
+		if packConfig.Package.Name == config.Package.Name ||
+			packConfig.Package.IsDebug != config.Package.IsDebug {
 			continue
 		}
 		for _, dep := range packConfig.DependsOn {
@@ -492,12 +492,18 @@ func removeConfig(list1 []bringauto_config.Config, config bringauto_config.Confi
 func (context *ContextManager) loadImagesDockerfilePaths() error {
 	imageDir := path.Join(context.ContextPath, bringauto_const.DockerDirName)
 
+	// Resolve symlink if imageDir is a symlink
+	resolvedImageDir, err := filepath.EvalSymlinks(imageDir)
+	if err != nil {
+		return fmt.Errorf("cannot resolve symlink %s for image directory", imageDir)
+	}
+
 	reg, err := regexp.CompilePOSIX("^Dockerfile$")
 	if err != nil {
 		return fmt.Errorf("cannot compile regexp for matchiing Dockerfile")
 	}
 
-	dockerfileList, err := getAllFilesInSubdirByRegexp(imageDir, reg)
+	dockerfileList, err := getAllFilesInSubdirByRegexp(resolvedImageDir, reg)
 	if err != nil {
 		return err
 	}
@@ -513,7 +519,6 @@ func (context *ContextManager) loadImagesDockerfilePaths() error {
 	context.images = imagePaths
 	return nil
 }
-
 
 // GetAllImagesDockerfilePaths
 // Returns all Dockerfile paths located in the Context directory.
