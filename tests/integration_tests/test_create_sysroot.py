@@ -186,7 +186,7 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
 
 def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
     """Check"""
-    package = "test_package_1"
+    package = "test_package_2"
     app = "io-module"
 
     prepare_packages([package])
