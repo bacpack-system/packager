@@ -320,14 +320,13 @@ func (build *Build) getGitCommitHash() (string, error) {
 
 	for {
 		line, err = buf.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
+		if err != nil && err != io.EOF {
 			return "", err
 		}
+		if err == nil { // The newline character is present
+			line = line[:len(line)-1]
+		}
 
-		line = line[:len(line)-1]
 		hash := getGitCommitHashFromLine(line)
 		if hash != "" {
 			return hash, nil
