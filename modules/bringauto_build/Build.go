@@ -331,6 +331,10 @@ func (build *Build) getGitCommitHash() (string, error) {
 		if hash != "" {
 			return hash, nil
 		}
+
+		if err == io.EOF {
+			break
+		}
 	}
 
 	return "", fmt.Errorf("no commit hash in output")
