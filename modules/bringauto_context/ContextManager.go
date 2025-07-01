@@ -19,6 +19,12 @@ type (
 	DependsMapType      map[string]*map[string]bool
 	AllDependenciesType map[string]bool
 	ConfigMapType       map[string][]bringauto_config.Config
+	dependsMapNodeType struct {
+		DependsOn  []string
+		HasDebug   bool
+		HasRelease bool
+	}
+	dependsMapTagsType  map[string]dependsMapNodeType
 )
 
 // ContextManager
@@ -170,7 +176,84 @@ func checkPackageConfigs(configsMap *ConfigMapType) error {
 	if err != nil {
 		return err
 	}
-	return checkForCircularDependency(dependsMap)
+	err = checkForCircularDependency(dependsMap)
+	if err != nil {
+		return err
+	}
+	dependsMapType , err := createDependsMapWithTags(configsMap, &dependsMap)
+	if err != nil {
+		return err
+	}
+	return checkDebugReleaseTrees(dependsMapType)
+}
+
+// createDependsMapWithTags
+// Creates dependency map with information if the Package has Debug and/or Release Config.
+func createDependsMapWithTags(configsMap *ConfigMapType, dependsMap *DependsMapType) (dependsMapTagsType, error) {
+	dependsMapType := make(dependsMapTagsType)
+	for packageName, deps := range *dependsMap {
+		dependsMapType[packageName] = dependsMapNodeType{
+			DependsOn: []string{},
+			HasDebug: false,
+			HasRelease: false,
+		}
+		entry := dependsMapType[packageName]
+		for depPackageName := range *deps {
+			
+			entry.DependsOn = append(entry.DependsOn, depPackageName)
+		}
+		for _, config := range (*configsMap)[packageName] {
+			if config.Package.IsDebug {
+				entry.HasDebug = true
+			} else {
+				entry.HasRelease = true
+			}
+		}
+
+		dependsMapType[packageName] = entry
+	}
+	return dependsMapType, nil
+}
+
+// checkDebugReleaseTrees
+// Checks if all dependencies of Packages in dependsMap have the same Debug and Release Configs as
+// depended Package.
+func checkDebugReleaseTrees(dependsMap dependsMapTagsType) error {
+	for packageName, entry := range dependsMap {
+		if entry.HasRelease {
+			err := checkDebugReleaseTree(packageName, dependsMap, true)
+			if err != nil {
+				return err
+			}
+		}
+		if entry.HasDebug {
+			err := checkDebugReleaseTree(packageName, dependsMap, false)
+			if err != nil {
+				return err
+			}
+		}		
+	}
+	return nil
+}
+
+// checkDebugReleaseTree
+// Checks if all dependencies of Package packageName have the same Debug or Release Configs as
+// depended Package.
+func checkDebugReleaseTree(packageName string, dependsMap dependsMapTagsType, isRelease bool) error {
+	entry := dependsMap[packageName]
+	if isRelease && !entry.HasRelease {
+		return fmt.Errorf("no release Config for Package %s", packageName)
+	}
+	if !isRelease && !entry.HasDebug {
+		return fmt.Errorf("no debug Config for Package %s", packageName)
+	}
+	for _, depPackageName := range entry.DependsOn {
+		err := checkDebugReleaseTree(depPackageName, dependsMap, isRelease)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // checkAppConfigs
