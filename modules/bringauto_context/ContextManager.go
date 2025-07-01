@@ -378,10 +378,11 @@ func getConfigsArray(platformString *bringauto_package.PlatformString, configMap
 	var configs []*bringauto_config.Config
 	for _, configsArray := range *configMap {
 		for _, config := range configsArray {
+			configCopy := config
 			if platformString != nil {
-				config.Package.PlatformString = *platformString
+				configCopy.Package.PlatformString = *platformString
 			}
-			configs = append(configs, &config)
+			configs = append(configs, &configCopy)
 		}
 	}
 	return configs
