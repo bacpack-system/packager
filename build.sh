@@ -19,7 +19,6 @@ if [[ -d ${INSTALL_DIR_TOOLS} ]]; then
 fi
 
 go get bringauto/bap-builder
-go get bringauto/tools/lsb_release
 go get bringauto/tools/uname
 
 pushd bap-builder
@@ -32,11 +31,6 @@ pushd tools/uname
   CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-w'
 popd
 
-pushd tools/lsb_release
-  echo "Compile tools/lsb_release"
-  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-w'
-popd
-
 mkdir -p "${INSTALL_DIR}"
 mkdir -p "${INSTALL_DIR_TOOLS}"
 
@@ -45,9 +39,6 @@ cp -r doc                                  "${INSTALL_DIR}/"
 cp -r example                              "${INSTALL_DIR}/"
 cp README.md                               "${INSTALL_DIR}/"
 cp LICENSE                                 "${INSTALL_DIR}/"
-cp tools/lsb_release/lsb_release           "${INSTALL_DIR_TOOLS}/"
-cp tools/lsb_release/lsb_release.txt       "${INSTALL_DIR_TOOLS}/"
-cp tools/lsb_release/lsb_release_README.md "${INSTALL_DIR_TOOLS}/"
 cp tools/uname/uname_README.md             "${INSTALL_DIR_TOOLS}/"
 cp tools/uname/uname                       "${INSTALL_DIR_TOOLS}/"
 cp tools/uname/uname.txt                   "${INSTALL_DIR_TOOLS}/"

@@ -23,7 +23,7 @@ func (args *DockerRm) RemoveContainer() error {
 	}
 	err := process.Run()
 	if err != nil {
-		return fmt.Errorf("DockerRun rm error %s", err)
+		return fmt.Errorf("DockerRun rm error - %w", err)
 	}
 	return nil
 }

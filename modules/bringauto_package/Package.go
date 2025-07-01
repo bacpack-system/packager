@@ -125,7 +125,7 @@ func createZIPArchive(sourceDir string, archivePath string) error {
 
 	dirEntryList, err := os.ReadDir(sourceDir)
 	if err != nil {
-		return fmt.Errorf("cannot read %s directory: %s", sourceDir, err)
+		return fmt.Errorf("cannot read %s directory - %w", sourceDir, err)
 	}
 
 	for _, dirEntry := range dirEntryList {
@@ -142,7 +142,7 @@ func createZIPArchive(sourceDir string, archivePath string) error {
 
 	err = zipArchive.Archive(files, archivePath)
 	if err != nil {
-		return fmt.Errorf("cannot create archive: %s", err)
+		return fmt.Errorf("cannot create archive - %w", err)
 	}
 
 	return nil

@@ -23,7 +23,7 @@ func (dockerStop *DockerStop) Stop() error {
 	err := process.Run()
 
 	if err != nil {
-		return fmt.Errorf("DockerRun stop error - %s", err)
+		return fmt.Errorf("DockerRun stop error - %w", err)
 	}
 
 	return nil

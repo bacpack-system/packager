@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"time"
+	"strconv"
 )
 
 type Build struct {
@@ -33,6 +34,7 @@ type Build struct {
 
 type buildInitArgs struct {
 	DockerImageName string
+	DockerPort uint16
 }
 
 // FillDefault
@@ -44,10 +46,11 @@ func (build *Build) FillDefault(args *bringauto_prerequisites.Args) error {
 		build.Git = bringauto_prerequisites.CreateAndInitialize[bringauto_git.Git]()
 	}
 	if build.Docker == nil {
-		build.Docker = bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](argsStruct.DockerImageName)
+		build.Docker = bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](argsStruct.DockerImageName, argsStruct.DockerPort)
 	}
 	if build.SSHCredentials == nil {
 		build.SSHCredentials = bringauto_prerequisites.CreateAndInitialize[bringauto_ssh.SSHCredentials]()
+		build.SSHCredentials.Port = build.Docker.Port
 	}
 	if build.CMake == nil {
 		build.CMake = bringauto_prerequisites.CreateAndInitialize[CMake]()
@@ -178,6 +181,7 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 	if err != nil {
 		return err, false
 	}
+	build.SSHCredentials.Port = build.Docker.Port
 
 	logger.InfoIndent("Cloning Package git repository inside docker container")
 
@@ -188,7 +192,7 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 
 	build.BuiltPackage.GitCommitHash, err = build.getGitCommitHash()
 	if err != nil {
-		return fmt.Errorf("can't get git commit hash from container - %s", err), false
+		return fmt.Errorf("can't get git commit hash from container - %w", err), false
 	}
 	build.BuiltPackage.DirName = build.sysroot.GetDirNameInSysroot()
 
@@ -236,7 +240,11 @@ func (build *Build) GetLocalInstallDirPath() string {
 		logger := bringauto_log.GetLogger()
 		logger.Fatal("cannot call Getwd - %s", err)
 	}
-	copyBaseDir := filepath.Join(workingDir, localInstallDirNameConst)
+	suffix := ""
+	if build.Docker.Port != bringauto_const.DefaultSSHPort {
+		suffix = strconv.Itoa(int(build.Docker.Port) - bringauto_const.DefaultSSHPort)
+	}
+	copyBaseDir := filepath.Join(workingDir, localInstallDirNameConst + suffix)
 	return copyBaseDir
 }
 
@@ -285,7 +293,7 @@ func (build *Build) downloadInstalledFiles() error {
 	logFile, err := packTarLogger.GetFile()
 
 	if err != nil {
-		return fmt.Errorf("failed to open file - %s", err)
+		return fmt.Errorf("failed to open file - %w", err)
 	}
 
 	defer logFile.Close()

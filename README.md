@@ -96,6 +96,19 @@ The detailed documentation is available in the `doc` directory.
 
 In the `example` directory, there is a simple example of how to track dependencies for the `example` project.
 
+## Running multiple Packager executables on 1 system
+
+It is possible to run multiple Packager executables simultaneously on one system. In this case,
+the commands must be used like this:
+
+ - `build-image` - build different images
+ - `build-package`, `build-app` - use different port (set with -p option), each executable must run
+ build for different image
+ - `create-sysroot` - use different port (set with -p option)
+
+If the commands are used differently in case of multiple Packager executables, the behaviour is
+undefined.
+
 ## Motivation
 
 If you want to run your application directly on the host system you need to ensure that every dependency
