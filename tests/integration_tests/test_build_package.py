@@ -516,8 +516,7 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
         output_dir=test_repo,
         name=packages[-1],
         expected_result=PackagerExpectedResult.FAILURE,
-        expected_returncode=PackagerReturnCode.DEFAULT_ERROR,
-        # Context error??
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
     )
     for package in packages:
         assert not is_tracked(package, test_repo, "package"), f"Package {package} should not be tracked but is."
@@ -540,8 +539,7 @@ def test_19_missing_release_debug_packages_build_deps(test_image, packager_binar
         name=packages[1],
         build_deps=True,
         expected_result=PackagerExpectedResult.FAILURE,
-        expected_returncode=PackagerReturnCode.DEFAULT_ERROR,
-        # Context error??
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
     )
 
     for package in packages:
@@ -565,8 +563,7 @@ def test_20_missing_release_debug_packages_build_deps_on(test_image, packager_bi
         name=packages[1],
         build_deps_on=True,
         expected_result=PackagerExpectedResult.FAILURE,
-        expected_returncode=PackagerReturnCode.DEFAULT_ERROR,
-        # Context error??
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
     )
 
     for package in packages:
