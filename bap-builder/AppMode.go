@@ -63,8 +63,6 @@ func buildAllApps(
 ) error {
 	configMap := contextManager.GetAllConfigsMap()
 
-	logger := bringauto_log.GetLogger()
-
 	count := int32(0)
 	for appName := range configMap {
 		for _, config := range configMap[appName] {
@@ -84,7 +82,7 @@ func buildAllApps(
 		}
 	}
 	if count == 0 {
-		logger.Warn("Nothing to build. Did you enter correct image name?")
+		return fmt.Errorf("no Apps to build for %s image", imageName)
 	}
 
 	return nil
