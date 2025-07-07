@@ -1,6 +1,3 @@
-import subprocess
-import os
-from time import sleep
 import pytest
 
 from test_utils.test_utils import (
@@ -8,6 +5,7 @@ from test_utils.test_utils import (
     is_tracked,
     does_app_support_image,
     does_package_support_image,
+    does_packages_support_image,
     prepare_packages,
     check_if_package_is_in_sysroot,
 )
@@ -133,7 +131,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         name=package,
         expected_result=True,
     )
-    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(package, test_repo, "package",os_path="fedora/41")
 
     run_packager(
         packager_binary,
@@ -144,7 +142,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         name=package,
         expected_result=True,
     )
-    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(package, test_repo, "package",os_path="fedora/40")
 
     run_packager(
         packager_binary,
@@ -154,20 +152,23 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
         expected_result=False,
+        expected_returncode=PackagerReturnCode.CREATING_SYSROOT_ERROR
     )
 
 
 def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
     """Build all packages and create sysroot from all packages"""
-    package = "test_package_1"
+    packages = [f"test_package_{i}" for i in range(1,5)]
 
-    prepare_packages([package])
+
+
+    prepare_packages(packages)
 
     run_packager(
         packager_binary,
         "build-package",
         context=context,
-        image_name="fedora41",
+        image_name="fedora40",
         output_dir=test_repo,
         all=True,
         expected_result=True,
@@ -177,7 +178,7 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
         packager_binary,
         "create-sysroot",
         context=context,
-        image_name="fedora41",
+        image_name="fedora40",
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
         expected_result=True,
@@ -186,12 +187,12 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
 
 def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
     """Check"""
-    package = "test_package_2"
+    packages = ["test_package_1","test_package_2"]
     app = "io-module"
 
-    prepare_packages([package])
-    if not does_app_support_image(app, test_image) or not does_package_support_image(package, test_image):
-        pytest.skip(f"Skipping test because {app} or {package} does not support {test_image}")
+    prepare_packages(packages)
+    if not does_app_support_image(app, test_image) or not does_packages_support_image(packages, test_image):
+        pytest.skip(f"Skipping test because {app} or {packages} does not support {test_image}")
 
     run_packager(
         packager_binary,
@@ -199,10 +200,11 @@ def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_rep
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        name=package,
+        name=packages[1],
+        build_deps=True,
         expected_result=True,
     )
-    assert is_tracked(package, test_repo, "package")
+    assert is_tracked(packages[1], test_repo, "package")
 
     run_packager(
         packager_binary,
