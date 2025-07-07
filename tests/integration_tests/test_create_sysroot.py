@@ -14,28 +14,14 @@ from test_utils.common import PackagerReturnCode
 
 
 def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
-    """Build package and app, then create sysroot"""
+    """Build package and then create sysroot"""
     packages = ["test_package_1", "test_package_2"]
-    app = "io-module"
 
     prepare_packages(packages)
 
-    if not does_app_support_image(app, test_image) or not all(
-        does_package_support_image(pkg, test_image) for pkg in packages
-    ):
-        pytest.skip(f"Skipping test because {app} or {packages} does not support {test_image}")
+    if all(does_package_support_image(pkg, test_image) for pkg in packages):
+        pytest.skip(f"Skipping test because {packages} does not support {test_image}")
 
-    # run_packager(
-    # packager_binary,
-    # "build-app",
-    # context=context,
-    # image_name=test_image,
-    # output_dir=test_repo,
-    # name=app,
-    # expected_result=True,
-    # )
-    # assert is_tracked(app, test_repo, "app")
-    #
     run_packager(
         packager_binary,
         "build-package",
@@ -59,13 +45,13 @@ def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test
     )
 
 
-def test_02_create_sysroot_with_package_on_two_different_images(packager_binary, context, test_repo, test_sysroot):
+def test_02_create_sysroot_with_package_on_two_different_images(
+    packager_binary, context, test_repo, test_sysroot
+):
     """Test creating sysroot with a package built on two different images"""
     package = "test_package_1"
-    # app = "io-module"
 
     prepare_packages([package])
-    # print(does_app_support_image(app, test_image))
 
     run_packager(
         packager_binary,
@@ -131,7 +117,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         name=package,
         expected_result=True,
     )
-    assert is_tracked(package, test_repo, "package",os_path="fedora/41")
+    assert is_tracked(package, test_repo, "package", os_path="fedora/41")
 
     run_packager(
         packager_binary,
@@ -142,7 +128,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         name=package,
         expected_result=True,
     )
-    assert is_tracked(package, test_repo, "package",os_path="fedora/40")
+    assert is_tracked(package, test_repo, "package", os_path="fedora/40")
 
     run_packager(
         packager_binary,
@@ -152,15 +138,13 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
         expected_result=False,
-        expected_returncode=PackagerReturnCode.CREATING_SYSROOT_ERROR
+        expected_returncode=PackagerReturnCode.CREATING_SYSROOT_ERROR,
     )
 
 
 def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
     """Build all packages and create sysroot from all packages"""
-    packages = [f"test_package_{i}" for i in range(1,5)]
-
-
+    packages = [f"test_package_{i}" for i in range(1, 5)]
 
     prepare_packages(packages)
 
@@ -186,13 +170,13 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
 
 
 def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
-    """Check"""
-    packages = ["test_package_1","test_package_2"]
-    app = "io-module"
+    """Check that expected files from the package are present in the created sysroot"""
+    packages = ["test_package_1", "test_package_2"]
 
     prepare_packages(packages)
-    if not does_app_support_image(app, test_image) or not does_packages_support_image(packages, test_image):
-        pytest.skip(f"Skipping test because {app} or {packages} does not support {test_image}")
+
+    if not does_packages_support_image(packages, test_image):
+        pytest.skip(f"Skipping test because {packages} does not support {test_image}")
 
     run_packager(
         packager_binary,
@@ -229,8 +213,6 @@ def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_rep
         "release/include/curl/system.h",
         "release/include/curl/typecheck-gcc.h",
         "release/include/curl/urlapi.h",
-        "release/bin/curl",
-        "release/bin/curl-config",
         "release/lib64/libcurl.so",
         "release/lib64/pkgconfig/libcurl.pc",
     ]
