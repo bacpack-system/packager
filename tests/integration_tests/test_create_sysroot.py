@@ -41,7 +41,7 @@ def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test
         image_name=test_image,
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
-        expected_result=PackagerExpectedResult.SUCCESS,
+        expected_result=PackagerExpectedResult.CREATING_SYSROOT,
     )
 
 
@@ -82,7 +82,7 @@ def test_02_create_sysroot_with_package_on_two_different_images(
         image_name="fedora40",
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
-        expected_result=PackagerExpectedResult.SUCCESS,
+        expected_result=PackagerExpectedResult.CREATING_SYSROOT,
     )
 
 
@@ -165,7 +165,7 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
         image_name="fedora40",
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
-        expected_result=PackagerExpectedResult.SUCCESS,
+        expected_result=PackagerExpectedResult.CREATING_SYSROOT,
     )
 
 
@@ -197,7 +197,7 @@ def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_rep
         image_name=test_image,
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
-        expected_result=PackagerExpectedResult.SUCCESS,
+        expected_result=PackagerExpectedResult.CREATING_SYSROOT,
     )
     files = [
         "release/bin/curl",

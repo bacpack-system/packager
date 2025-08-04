@@ -90,7 +90,9 @@ def is_tracked(name: str, repo_path: str, type: str, os_path: str = None) -> boo
     """Check if the package is tracked in the repository."""
     repo = git.Repo(repo_path)
     try:
-        files_in_last_commit = repo.git.log("--diff-filter=A", "--name-only", "--pretty=format:").splitlines()
+        files_in_last_commit = repo.git.log(
+            "--diff-filter=A", "--name-only", "--pretty=format:"
+        ).splitlines()
     except git.exc.GitCommandError:
         files_in_last_commit = []
 
@@ -203,8 +205,14 @@ def run_packager(
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
-    if expected_returncode == PackagerReturnCode.SUCCESS and expected_result != PackagerExpectedResult.SUCCESS and expected_result != PackagerExpectedResult.NOT_APPLICABLE:
-        raise ValueError("Error in test configuration! run_package git invalid combination of expected_result and expected_returncode")
+    if (
+        expected_returncode == PackagerReturnCode.SUCCESS.value
+        and expected_result != PackagerExpectedResult.SUCCESS.value
+        and expected_result != PackagerExpectedResult.NOT_APPLICABLE.value
+    ):
+        raise ValueError(
+            "Error in test configuration! run_package git invalid combination of expected_result and expected_returncode"
+        )
 
     parameters = [packager_binary, mode]
 
@@ -269,7 +277,7 @@ def run_packager(
     print(stderr)
 
     if expected_result == PackagerExpectedResult.SUCCESS:
-        assert result.returncode == PackagerReturnCode.SUCCESS
+        assert result.returncode == PackagerReturnCode.SUCCESS.value
 
     check_stdout(stdout, expected_result)
 
