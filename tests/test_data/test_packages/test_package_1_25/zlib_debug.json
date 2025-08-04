@@ -12,7 +12,7 @@
     }
   },
   "Package": {
-    "Name": "test_package_1",
+    "Name": "test_package_1_25",
     "VersionTag": "v1.2.11",
     "PlatformString": {
       "Mode": "auto"
