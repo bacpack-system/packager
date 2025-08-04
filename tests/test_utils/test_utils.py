@@ -1,11 +1,9 @@
-from logging import exception
 import subprocess
 import os
 import git
 import json
 import docker
 import shutil
-from time import sleep
 
 from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
@@ -83,7 +81,9 @@ def prepare_packages(packages: list[str]):
         package_path = os.path.join(test_config["test_packages"], package)
         if os.path.exists(package_path):
             shutil.rmtree(package_path)
-        shutil.copytree(os.path.join(test_config["test_packages_source"], package), package_path)
+        shutil.copytree(
+            os.path.join(test_config["test_packages_source"], package), package_path
+        )
 
 
 def is_tracked(name: str, repo_path: str, type: str, os_path: str = None) -> bool:
@@ -117,7 +117,6 @@ def is_tracked(name: str, repo_path: str, type: str, os_path: str = None) -> boo
             test_name = name + release_suffix
 
         for path in files_in_last_commit:
-
             if os_path and os_path not in path:
                 continue
 
@@ -151,7 +150,9 @@ def does_app_support_image(app: str, image: str) -> bool:
         for apps in os.listdir(os.path.join(test_config["test_apps"], app)):
             with open(os.path.join(test_config["test_apps"], app, apps)) as file:
                 metadata = json.load(file)
-                if image not in get_nested(metadata, ["DockerMatrix", "ImageNames"], []):
+                if image not in get_nested(
+                    metadata, ["DockerMatrix", "ImageNames"], []
+                ):
                     return False
         return True
 
@@ -165,9 +166,13 @@ def does_package_support_image(package: str, image: str) -> bool:
     """Check if the package supports the given image."""
     try:
         for packages in os.listdir(os.path.join(test_config["test_packages"], package)):
-            with open(os.path.join(test_config["test_packages"], package, packages)) as file:
+            with open(
+                os.path.join(test_config["test_packages"], package, packages)
+            ) as file:
                 metadata = json.load(file)
-                if image not in get_nested(metadata, ["DockerMatrix", "ImageNames"], []):
+                if image not in get_nested(
+                    metadata, ["DockerMatrix", "ImageNames"], []
+                ):
                     return False
         return True
 
@@ -205,11 +210,15 @@ def run_packager(
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
-    if  expected_result in (
-        PackagerExpectedResult.SUCCESS.value,
-        PackagerExpectedResult.NOT_APPLICABLE.value,
-        PackagerExpectedResult.CREATING_SYSROOT.value,
-    ) and expected_returncode != PackagerReturnCode.SUCCESS.value:
+    if (
+        expected_result
+        in (
+            PackagerExpectedResult.SUCCESS.value,
+            PackagerExpectedResult.NOT_APPLICABLE.value,
+            PackagerExpectedResult.CREATING_SYSROOT.value,
+        )
+        and expected_returncode != PackagerReturnCode.SUCCESS.value
+    ):
         raise ValueError(
             "Error in test configuration! run_package git invalid combination of expected_result and expected_returncode"
         )

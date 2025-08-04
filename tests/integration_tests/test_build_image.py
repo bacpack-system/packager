@@ -1,7 +1,7 @@
 import pytest
 import threading
 
-from test_utils.test_utils import run_packager, does_image_exist, check_stdout, test_config
+from test_utils.test_utils import run_packager, does_image_exist, test_config
 from test_utils.common import PackagerExpectedResult
 
 
@@ -36,7 +36,11 @@ def test_03_build_all_images(packager_binary, context, request):
         pytest.skip("Skipping test because --image is not set to 'all'")
 
     run_packager(
-        packager_binary, "build-image", context=context, all=True, expected_result=PackagerExpectedResult.SUCCESS
+        packager_binary,
+        "build-image",
+        context=context,
+        all=True,
+        expected_result=PackagerExpectedResult.SUCCESS,
     )
 
     for image in test_config["test_images"]:

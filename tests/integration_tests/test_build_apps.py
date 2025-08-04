@@ -1,5 +1,3 @@
-import threading
-from time import sleep
 import socket
 import pytest
 
@@ -14,7 +12,7 @@ from test_utils.common import PackagerExpectedResult, PackagerReturnCode
 
 
 def test_01_build_app(test_image, packager_binary, context, test_repo):
-    """TODO"""
+    """Test building a single app"""
     app = "io-module"
     run_packager(
         packager_binary,
@@ -29,7 +27,9 @@ def test_01_build_app(test_image, packager_binary, context, test_repo):
             else PackagerExpectedResult.FAILURE
         ),
         expected_returncode=(
-            PackagerReturnCode.SUCCESS if does_app_support_image(app, test_image) else PackagerReturnCode.DEFAULT_ERROR
+            PackagerReturnCode.SUCCESS
+            if does_app_support_image(app, test_image)
+            else PackagerReturnCode.DEFAULT_ERROR
         ),
     )
     if does_app_support_image(app, test_image):
@@ -39,7 +39,7 @@ def test_01_build_app(test_image, packager_binary, context, test_repo):
 
 
 def test_02_build_multiple_apps(test_image, packager_binary, context, test_repo):
-    """TODO"""
+    """Test building multiple apps at once"""
     apps = ["io-module", "mission-module"]
     run_packager(
         packager_binary,
@@ -88,7 +88,7 @@ def test_02_build_multiple_apps(test_image, packager_binary, context, test_repo)
 
 
 def test_03_build_all_apps(test_image, packager_binary, context, test_repo):
-    """TODO"""
+    """Test building all apps"""
     apps = ["io-module", "mission-module"]
 
     run_packager(
@@ -117,7 +117,9 @@ def test_03_build_all_apps(test_image, packager_binary, context, test_repo):
             assert not is_tracked(app, test_repo, "app")
 
 
-def test_04_build_all_apps_when_port_1122_is_used(test_image, packager_binary, context, test_repo):
+def test_04_build_all_apps_when_port_1122_is_used(
+    test_image, packager_binary, context, test_repo
+):
     """Test building all apps when port 1122 is already used"""
     apps = ["io-module", "mission-module"]
     if not all(does_app_support_image(app, test_image) for app in apps):

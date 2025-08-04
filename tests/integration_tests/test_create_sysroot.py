@@ -3,7 +3,6 @@ import pytest
 from test_utils.test_utils import (
     run_packager,
     is_tracked,
-    does_app_support_image,
     does_package_support_image,
     does_packages_support_image,
     prepare_packages,
@@ -13,7 +12,9 @@ from test_utils.test_utils import (
 from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
 
-def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
+def test_01_create_sysroot(
+    test_image, packager_binary, context, test_repo, test_sysroot
+):
     """Build package and then create sysroot"""
     packages = ["test_package_1", "test_package_2"]
 
@@ -86,7 +87,9 @@ def test_02_create_sysroot_with_package_on_two_different_images(
     )
 
 
-def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, test_sysroot):
+def test_03_create_sysroot_from_empty_repo(
+    packager_binary, context, test_repo, test_sysroot
+):
     """Create sysroot from empty repo"""
     run_packager(
         packager_binary,
@@ -142,7 +145,9 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
     )
 
 
-def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
+def test_05_create_sysroot_from_all_packages(
+    packager_binary, context, test_repo, test_sysroot
+):
     """Build all packages and create sysroot from all packages"""
     packages = [f"test_package_{i}" for i in range(1, 5)]
 
@@ -169,7 +174,9 @@ def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo
     )
 
 
-def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
+def test_06_check_data_in_sysroot(
+    test_image, packager_binary, context, test_repo, test_sysroot
+):
     """Check that expected files from the package are present in the created sysroot"""
     packages = ["test_package_1", "test_package_2"]
 

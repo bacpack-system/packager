@@ -1,10 +1,8 @@
 import pytest
 import subprocess
 import os
-import shutil
 import docker
 from test_utils.test_utils import test_config, init_test_repo, clean, init_test_sysroot
-from git import Repo
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -29,7 +27,12 @@ def setup_environment(request):
 
 
 def pytest_addoption(parser):
-    parser.addoption("--image", action="store", default="fedora40", help="The image to use for testing")
+    parser.addoption(
+        "--image",
+        action="store",
+        default="fedora40",
+        help="The image to use for testing",
+    )
     parser.addoption(
         "--remove_images",
         action="store_true",
@@ -69,7 +72,10 @@ def packager_binary():
     """Compile the Go application binary."""
 
     subprocess.run(["go", "get", "bringauto/bap-builder"], check=True)
-    subprocess.run(["go", "build", "-o", test_config["packager_binary"], "../bap-builder"], check=True)
+    subprocess.run(
+        ["go", "build", "-o", test_config["packager_binary"], "../bap-builder"],
+        check=True,
+    )
 
     yield test_config["packager_binary"]  # Pass the binary path to tests
 
