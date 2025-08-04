@@ -205,11 +205,11 @@ def run_packager(
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
-    if (
-        expected_returncode == PackagerReturnCode.SUCCESS.value
-        and expected_result != PackagerExpectedResult.SUCCESS.value
-        and expected_result != PackagerExpectedResult.NOT_APPLICABLE.value
-    ):
+    if  expected_result in (
+        PackagerExpectedResult.SUCCESS.value,
+        PackagerExpectedResult.NOT_APPLICABLE.value,
+        PackagerExpectedResult.CREATING_SYSROOT.value,
+    ) and expected_returncode != PackagerReturnCode.SUCCESS.value:
         raise ValueError(
             "Error in test configuration! run_package git invalid combination of expected_result and expected_returncode"
         )

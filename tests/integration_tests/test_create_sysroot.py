@@ -19,7 +19,7 @@ def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test
 
     prepare_packages(packages)
 
-    if all(does_package_support_image(pkg, test_image) for pkg in packages):
+    if not all(does_package_support_image(pkg, test_image) for pkg in packages):
         pytest.skip(f"Skipping test because {packages} does not support {test_image}")
 
     run_packager(
