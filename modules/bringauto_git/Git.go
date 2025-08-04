@@ -61,6 +61,7 @@ func (args *GitGetHash) ConstructCMDLine() []string {
 	validateGITPath(args.ClonePath)
 	cmd := []string{
 		GitExecutablePath,
+		"--no-pager",
 		"log",
 		"--pretty=format:'%H'",
 		"-1",

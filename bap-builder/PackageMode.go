@@ -309,7 +309,7 @@ func buildSinglePackage(
 		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
 		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %w", packageName, err)
+			return fmt.Errorf("cannot build package '%s' - %s", config.Package.Name, err)
 		}
 	}
 	return nil
