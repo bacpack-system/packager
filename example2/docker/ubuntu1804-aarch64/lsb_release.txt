@@ -1,2 +1,0 @@
-Distributor ID:	Ubuntu
-Release:	18.04
