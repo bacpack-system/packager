@@ -268,6 +268,9 @@ def run_packager(
     print("-" * 10, "Stderr", "-" * 10)
     print(stderr)
 
+    if expected_result == PackagerExpectedResult.SUCCESS:
+        assert result.returncode == PackagerReturnCode.SUCCESS
+
     check_stdout(stdout, expected_result)
 
     assert result.returncode == expected_returncode.value
