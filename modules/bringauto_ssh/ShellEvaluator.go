@@ -2,18 +2,57 @@ package bringauto_ssh
 
 import (
 	"io"
-	"os"
 )
 
 // ShellEvaluator run commands by the bash thru the SSH.
 //
 type ShellEvaluator struct {
-	// Commands to execute
+	// Commands to execute, each command must exit with 0 return code else error is returned.
 	Commands []string
+	// Preparing commands are executed before main commands. Their exit values are not captured and checked.
+	PreparingCommands []string
 	// Environments variables to set
 	Env map[string]string
 	//
 	StdOut io.Writer
+}
+
+// getEnvStr
+// Returns string for setting environment variables.
+func (shell *ShellEvaluator) getEnvStr() string {
+	// We cannot use SSHSession/SSHConnection setenv function
+	// for Env. setting because SetEnv must be configured at the Server side
+	envStr := ""
+	for envName, envValue := range shell.Env {
+		envStr = envStr + "export " + envName + "=" + escapeVariableValue(envValue) + " && "
+	}
+	return envStr
+}
+
+// getCommandStr
+// Returns string for running commands.
+func (shell *ShellEvaluator) getCommandStr() string {
+	commandStr := ""
+	for _, value := range shell.Commands {
+		commandStr = commandStr + value  + " && "
+	}
+	commandStr = commandStr + "echo done"
+
+	return commandStr
+}
+
+// getPreparingCommandStr
+// Returns string for running preparing commands.
+func (shell *ShellEvaluator) getPreparingCommandStr() string {
+	if len(shell.PreparingCommands) == 0 {
+		return ""
+	}
+	prepCommandStr := "{ "
+	for _, value := range shell.PreparingCommands {
+		prepCommandStr = prepCommandStr + value  + "; "
+	}
+	prepCommandStr = prepCommandStr + "} || true && "
+	return prepCommandStr
 }
 
 // RunOverSSH
@@ -25,10 +64,10 @@ type ShellEvaluator struct {
 // subsequent commands.
 func (shell *ShellEvaluator) RunOverSSH(credentials SSHCredentials) error {
 	var err error
-	pipeReader, pipeWriter := io.Pipe()
+	pipeReader, _ := io.Pipe()
 	session := SSHSession{
 		StdOut: shell.StdOut,
-		StdErr: os.Stderr,
+		StdErr: shell.StdOut,
 		StdIn:  pipeReader,
 	}
 
@@ -37,32 +76,13 @@ func (shell *ShellEvaluator) RunOverSSH(credentials SSHCredentials) error {
 		return err
 	}
 
-	err = session.Start("bash")
+	cmdStr := "bash -c '" + shell.getEnvStr() + shell.getPreparingCommandStr() + shell.getCommandStr() + "'"
+
+	err = session.Run(cmdStr)
 	if err != nil {
 		return err
 	}
 
-	// We cannot use SSHSession/SSHConnection setenv function
-	// for Env. setting because SetEnv must be configured at the Server side
-	var env []string
-	for envName, envValue := range shell.Env {
-		env = append(env, "export "+envName+"="+escapeVariableValue(envValue))
-	}
-
-	commands := shell.Commands
-	commands = append(env, commands...)
-	commands = append(commands, "exit")
-
-	for _, value := range commands {
-		_, err = pipeWriter.Write([]byte(value + "\n\r"))
-		if err != nil {
-			return err
-		}
-	}
-	err = session.Wait()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

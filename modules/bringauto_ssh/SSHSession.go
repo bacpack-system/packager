@@ -181,6 +181,17 @@ func (session *SSHSession) SetEnvironment(envMap map[string]string) error {
 	return nil
 }
 
+// Run
+// It runs a given command on the remote machine.
+//
+func (session *SSHSession) Run(command string) error {
+	err := session.sshSession.Run(command)
+	if err != nil {
+		return fmt.Errorf("problem while executing program %s", err)
+	}
+	return nil
+}
+
 // Start
 // It starts a given command on the remote machine.
 // User must call 'Wait' function to wait until command returns.
