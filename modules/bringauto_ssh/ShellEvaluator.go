@@ -2,6 +2,7 @@ package bringauto_ssh
 
 import (
 	"io"
+	"strings"
 )
 
 // ShellEvaluator run commands by the bash thru the SSH.
@@ -76,7 +77,9 @@ func (shell *ShellEvaluator) RunOverSSH(credentials SSHCredentials) error {
 		return err
 	}
 
-	cmdStr := "bash -c '" + shell.getEnvStr() + shell.getPreparingCommandStr() + shell.getCommandStr() + "'"
+	raw := shell.getEnvStr() + shell.getPreparingCommandStr() + shell.getCommandStr()
+	safe := strings.ReplaceAll(raw, "'", "'\\''") // Escaping all single quotes
+	cmdStr := "bash -c '" + safe + "'"
 
 	err = session.Run(cmdStr)
 	if err != nil {
