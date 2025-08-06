@@ -66,12 +66,15 @@ func buildAllApps(
 	count := int32(0)
 	for appName := range configMap {
 		for _, config := range configMap[appName] {
-			buildConfigs := config.GetBuildStructure(imageName, platformString, dockerPort)
+			buildConfigs, err := config.GetBuildStructure(imageName, platformString, dockerPort)
+			if err != nil {
+				return err
+			}
 			if len(buildConfigs) == 0 {
 				continue
 			}
 			count++
-			err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+			err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 			if err != nil {
 				return fmt.Errorf("cannot build App '%s' - %w", config.Package.Name, err)
 			}
@@ -96,7 +99,7 @@ func buildSingleApp(
 	platformString *bringauto_package.PlatformString,
 	repo           bringauto_repository.GitLFSRepository,
 	dockerPort     uint16,
-) error{
+) error {
 	configList, err := prepareConfigsNoBuildDeps(*cmdLine.Name, contextManager, platformString, bringauto_const.AppDirName)
 	if err != nil {
 		return err
@@ -108,8 +111,11 @@ func buildSingleApp(
 		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
 			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
-		buildConfigs := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, dockerPort)
-		err := buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
+		buildConfigs, err := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, dockerPort)
+		if err != nil {
+			return err
+		}
+		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.AppDirName)
 		if err != nil {
 			return fmt.Errorf("cannot build App '%s' - %w", *cmdLine.Name, err)
 		}

@@ -8,12 +8,15 @@ import (
 	"os"
 	"time"
 	"syscall"
+	"fmt"
 )
 
 func main() {
-	var err error
 	var args CmdLineArgs
-	logger := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	logger, err := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	if err != nil {
+		panic(fmt.Errorf("cannot initialize Logger - %w", err))
+	}
 
 	args.InitFlags()
 	err = args.ParseArgs(os.Args)

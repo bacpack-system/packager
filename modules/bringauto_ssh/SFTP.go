@@ -36,7 +36,10 @@ type SFTP struct {
 func (sftpd *SFTP) DownloadDirectory() error {
 	var err error
 
-	tar := bringauto_prerequisites.CreateAndInitialize[Tar](archiveName, bringauto_const.DockerInstallDirConst)
+	tar, err := bringauto_prerequisites.CreateAndInitialize[Tar](archiveName, bringauto_const.DockerInstallDirConst)
+	if err != nil {
+		return fmt.Errorf("cannot initialize Tar - %w", err)
+	}
 
 	shellEvaluator := ShellEvaluator{
 		Commands: tar.ConstructCMDLine(),

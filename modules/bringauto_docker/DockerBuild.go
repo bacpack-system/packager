@@ -34,15 +34,17 @@ func (dockerBuild *DockerBuild) Build() error {
 func (dockerBuild *DockerBuild) prepareAndRun(f func(build *DockerBuild) []string) bool {
 	logger := bringauto_log.GetLogger()
 	contextLogger := logger.CreateContextLogger(dockerBuild.Tag, "", bringauto_log.ImageBuildContext)
-	file, _ := contextLogger.GetFile()
 
 	var cmd exec.Cmd
 	cmdArgs := f(dockerBuild)
 	cmdArgs = append([]string{DockerExecutablePathConst}, cmdArgs...)
 	cmd.Args = cmdArgs
 	cmd.Path = DockerExecutablePathConst
-	cmd.Stderr = file
-	cmd.Stdout = file
+	if contextLogger != nil {
+		file, _ := contextLogger.GetFile()
+		cmd.Stderr = file
+		cmd.Stdout = file
+	}
 	err := cmd.Run()
 	if err != nil {
 		return false

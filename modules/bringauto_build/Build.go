@@ -41,29 +41,51 @@ type buildInitArgs struct {
 // It fills up defaults for all members in the Build structure.
 func (build *Build) FillDefault(args *bringauto_prerequisites.Args) error {
 	var argsStruct buildInitArgs
+	var err error
 	bringauto_prerequisites.GetArgs(args, &argsStruct)
 	if build.Git == nil {
-		build.Git = bringauto_prerequisites.CreateAndInitialize[bringauto_git.Git]()
+		build.Git, err = bringauto_prerequisites.CreateAndInitialize[bringauto_git.Git]()
+		if err != nil {
+			return err
+		}
 	}
 	if build.Docker == nil {
-		build.Docker = bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](argsStruct.DockerImageName, argsStruct.DockerPort)
+		build.Docker, err = bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](argsStruct.DockerImageName, argsStruct.DockerPort)
+		if err != nil {
+			return err
+		}
 	}
 	if build.SSHCredentials == nil {
-		build.SSHCredentials = bringauto_prerequisites.CreateAndInitialize[bringauto_ssh.SSHCredentials]()
+		build.SSHCredentials, err = bringauto_prerequisites.CreateAndInitialize[bringauto_ssh.SSHCredentials]()
+		if err != nil {
+			return err
+		}
 		build.SSHCredentials.Port = build.Docker.Port
 	}
 	if build.CMake == nil {
-		build.CMake = bringauto_prerequisites.CreateAndInitialize[CMake]()
+		build.CMake, err = bringauto_prerequisites.CreateAndInitialize[CMake]()
+		if err != nil {
+			return err
+		}
 	}
 	if build.GNUMake == nil {
-		build.GNUMake = bringauto_prerequisites.CreateAndInitialize[GNUMake]()
+		build.GNUMake, err = bringauto_prerequisites.CreateAndInitialize[GNUMake]()
+		if err != nil {
+			return err
+		}
 	}
 	if build.Env == nil {
-		build.Env = bringauto_prerequisites.CreateAndInitialize[EnvironmentVariables]()
+		build.Env, err = bringauto_prerequisites.CreateAndInitialize[EnvironmentVariables]()
+		if err != nil {
+			return err
+		}
 	}
 
 	if build.Package == nil {
-		build.Package = bringauto_prerequisites.CreateAndInitialize[bringauto_package.Package]()
+		build.Package, err = bringauto_prerequisites.CreateAndInitialize[bringauto_package.Package]()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -89,7 +111,10 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 	gitClone := bringauto_git.GitClone{Git: *build.Git}
 	gitCheckout := bringauto_git.GitCheckout{Git: *build.Git}
 	gitSubmoduleUpdate := bringauto_git.GitSubmoduleUpdate{Git: *build.Git}
-	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
+	startupScript, err := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
+	if err != nil {
+		return err
+	}
 
 	preparePackageChain := BuildChain{
 		Chain: []CMDLineInterface{
@@ -103,7 +128,7 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 
 	shellEvaluator.Commands = preparePackageChain.GenerateCommands()
 
-	err := shellEvaluator.RunOverSSH(*build.SSHCredentials)
+	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
 		return err
 	}
@@ -151,20 +176,21 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 		return err, false
 	}
 
-	logger := bringauto_log.GetLogger()
-	packBuildChainLogger := logger.CreateContextLogger(build.Docker.ImageName, build.Package.GetShortPackageName(), bringauto_log.BuildChainContext)
-	file, err := packBuildChainLogger.GetFile()
-
-	if err != nil {
-		logger.Error("Failed to open file - %s", err)
-		return err, false
-	}
-
-	defer file.Close()
-
 	shellEvaluator := bringauto_ssh.ShellEvaluator{
 		Commands: []string{},
-		StdOut:   file,
+	}
+
+	logger := bringauto_log.GetLogger()
+	packBuildChainLogger := logger.CreateContextLogger(build.Docker.ImageName, build.Package.GetShortPackageName(), bringauto_log.BuildChainContext)
+	if packBuildChainLogger != nil {
+		file, err := packBuildChainLogger.GetFile()
+		if err != nil {
+			logger.Error("Failed to open file - %s", err)
+			return err, false
+		}
+		defer file.Close()
+
+		shellEvaluator.StdOut = file
 	}
 
 	dockerRun := (*bringauto_docker.DockerRun)(build.Docker)
@@ -200,7 +226,10 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 		logger.InfoIndent("Package already built in sysroot - skipping build")
 		return nil, false
 	}
-	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
+	startupScript, err := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
+	if err != nil {
+		return err, false
+	}
 
 	buildChain := BuildChain{
 		Chain: []CMDLineInterface{
@@ -289,21 +318,23 @@ func (build *Build) downloadInstalledFiles() error {
 		}
 	}
 
-	packTarLogger := bringauto_log.GetLogger().CreateContextLogger(build.Docker.ImageName, build.Package.GetShortPackageName(), bringauto_log.TarContext)
-	logFile, err := packTarLogger.GetFile()
-
-	if err != nil {
-		return fmt.Errorf("failed to open file - %w", err)
-	}
-
-	defer logFile.Close()
-
 	sftpClient := bringauto_ssh.SFTP{
 		RemoteDir:      bringauto_const.DockerInstallDirConst,
 		EmptyLocalDir:  copyDir,
 		SSHCredentials: build.SSHCredentials,
-		LogWriter:      logFile,
 	}
+
+	packTarLogger := bringauto_log.GetLogger().CreateContextLogger(build.Docker.ImageName, build.Package.GetShortPackageName(), bringauto_log.TarContext)
+	if packTarLogger != nil {
+		logFile, err := packTarLogger.GetFile()
+		if err != nil {
+			return fmt.Errorf("failed to open file - %w", err)
+		}
+		defer logFile.Close()
+
+		sftpClient.LogWriter = logFile
+	}
+
 	err = sftpClient.DownloadDirectory()
 	return err
 }
