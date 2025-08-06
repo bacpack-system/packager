@@ -62,36 +62,28 @@ func (docker *Docker) FillDynamic(args *bringauto_prerequisites.Args) error {
 // It checks if the docker is installed and can be run by given user.
 // Function returns nil if Docker installation is ok, not nil of the problem is recognized
 func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
+	err := checkIfDockerIsUsable()
+	if err != nil {
+		return fmt.Errorf(
+			"Docker cannot be used, it is not installed, the Docker daemon is not running " +
+			"or current user is not in Docker group - %w", err,
+		)
+	}
 	portAvailable, err := isPortAvailable(docker.Port)
 	if err != nil {
 		return err
 	} else if !portAvailable {
 		return fmt.Errorf("port %d not available", docker.Port)
 	}
-	var outBuff bytes.Buffer
-	process := bringauto_process.Process{
-		CommandAbsolutePath: DockerExecutablePathConst,
-		Args: bringauto_process.ProcessArgs{
-			ExtraArgs: &[]string{
-				"images",
-				"-q",
-				docker.ImageName,
-			},
-		},
-		StdOut: &outBuff,
-	}
-	err = process.Run()
+
+	err = checkForImageExistence(docker.ImageName)
 	if err != nil {
 		return err
 	}
 
-	if outBuff.Len() == 0 {
-		return fmt.Errorf("image %s does not exist", docker.ImageName)
-	}
-
 	for hostVolume, _ := range docker.Volumes {
 		if _, err = os.Stat(hostVolume); os.IsNotExist(err) {
-			return fmt.Errorf("connot mount non existent directory as volume: '%s'", hostVolume)
+			return fmt.Errorf("cannot mount non existent directory as volume: '%s'", hostVolume)
 		}
 	}
 
@@ -108,6 +100,52 @@ func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string)
 	docker.Volumes[hostDirectory] = containerDirectory
 }
 
+// checkIfDockerIsUsable
+// Checks if the Docker can be used. If not, returns error, else nil.
+func checkIfDockerIsUsable() error {
+	var errBuff bytes.Buffer
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"info",
+			},
+		},
+		StdErr: &errBuff,
+	}
+
+	err := process.Run()
+	if err != nil {
+		return fmt.Errorf(errBuff.String())
+	}
+	return nil	
+}
+
+// checkForImageExistence
+// Checks if the Docker image exists. If not, returns error, else nil.
+func checkForImageExistence(imageName string) error {
+	var outBuff bytes.Buffer
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"images",
+				"-q",
+				imageName,
+			},
+		},
+		StdOut: &outBuff,
+	}
+	err := process.Run()
+	if err != nil {
+		return err
+	}
+
+	if outBuff.Len() == 0 {
+		return fmt.Errorf("image %s does not exist", imageName)
+	}
+	return nil
+}
 
 // isPortAvailable
 // Returns true if port for docker is available, else returns false.
