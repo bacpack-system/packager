@@ -14,12 +14,15 @@ type ShellEvaluator struct {
 	PreparingCommands []string
 	// Environments variables to set
 	Env map[string]string
-	//
+	// StdOut writer to capture stdout of the process
 	StdOut io.Writer
 }
 
 // getEnvStr
-// Returns string for setting environment variables.
+// Returns string for setting environment variables from shell.Env.
+// If shell.Env is empty, it returns empty string. If shell.Env is not empty, the returned string
+// exports all variables. The string contains trailing " && " string for connecting with following
+// commands.
 func (shell *ShellEvaluator) getEnvStr() string {
 	// We cannot use SSHSession/SSHConnection setenv function
 	// for Env. setting because SetEnv must be configured at the Server side
@@ -31,7 +34,8 @@ func (shell *ShellEvaluator) getEnvStr() string {
 }
 
 // getCommandStr
-// Returns string for running commands.
+// Returns string for running commands. The string contains trailing " && " string for connecting
+// with following commands.
 func (shell *ShellEvaluator) getCommandStr() string {
 	commandStr := ""
 	for _, value := range shell.Commands {
