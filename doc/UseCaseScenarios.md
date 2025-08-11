@@ -132,6 +132,13 @@ packager build-package
   --output-dir ./git-lfs-repo
 ```
 
+**WARNING**: Building only some Packages can break dependency relationships. In this example,
+Packages G, L, N, and O are built, but other Packages that depend on them (C, D, H) are not rebuilt.
+If the build environment changes (e.g., compiler version, system libraries), the previously built
+Packages C, D, and H may become incompatible with the newly built dependencies. While this scenario
+is uncommon, it can cause runtime failures. Currently, Packager does not detect these issues
+automatically. 
+
 ### Build Package - with Depends on Packages
 
 Build Packages (C, D) which depends on Package (G) with its dependencies (I, M) without Package (G)
