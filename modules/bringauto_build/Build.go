@@ -29,6 +29,7 @@ type Build struct {
 	SSHCredentials *bringauto_ssh.SSHCredentials
 	Package        *bringauto_package.Package
 	BuiltPackage   *bringauto_sysroot.BuiltPackage
+	UseLocalRepo   bool
 	sysroot        *bringauto_sysroot.Sysroot
 }
 
@@ -88,6 +89,8 @@ func (build *Build) FillDefault(args *bringauto_prerequisites.Args) error {
 		}
 	}
 
+	build.UseLocalRepo = false
+
 	return nil
 }
 
@@ -114,6 +117,10 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 	startupScript, err := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
 	if err != nil {
 		return err
+	}
+
+	if build.UseLocalRepo {
+		build.Env.Env["BA_PACKAGE_LOCAL_PATH"] = bringauto_const.ContainerPackageRepoPath
 	}
 
 	startupChain := BuildChain{

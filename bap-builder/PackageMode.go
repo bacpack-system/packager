@@ -177,7 +177,13 @@ func buildAllPackages(
 
 	count := int32(0)
 	for _, config := range configList {
-		buildConfigs, err := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
+		buildConfigs, err := config.GetBuildStructure(
+			*cmdLine.DockerImageName,
+			platformString,
+			uint16(*cmdLine.Port),
+			false,
+			"",
+		)
 		if err != nil {
 			return err
 		}
@@ -309,7 +315,13 @@ func buildSinglePackage(
 		if !slices.Contains(config.DockerMatrix.ImageNames, *cmdLine.DockerImageName) {
 			return fmt.Errorf("'%s' does not support %s image", config.Package.Name, *cmdLine.DockerImageName)
 		}
-		buildConfigs, err := config.GetBuildStructure(*cmdLine.DockerImageName, platformString, uint16(*cmdLine.Port))
+		buildConfigs, err := config.GetBuildStructure(
+			*cmdLine.DockerImageName,
+			platformString,
+			uint16(*cmdLine.Port),
+			false,
+			"",
+		)
 		if err != nil {
 			return err
 		}

@@ -18,4 +18,6 @@ const (
 	AppDirName = "app"
 	// Empty Git commit hash
 	EmptyGitCommitHash = ""
+	// Absolute path of Package Repository inside docker container
+	ContainerPackageRepoPath = "/lfsrepo"
 )
