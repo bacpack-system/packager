@@ -116,9 +116,13 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 		return err
 	}
 
-	preparePackageChain := BuildChain{
+	startupChain := BuildChain{
 		Chain: []CMDLineInterface{
 			startupScript,
+		},
+	}	
+	preparePackageChain := BuildChain{
+		Chain: []CMDLineInterface{
 			build.Env,
 			&gitClone,
 			&gitCheckout,
@@ -126,11 +130,12 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 		},
 	}
 
+	shellEvaluator.PreparingCommands = startupChain.GenerateCommands()
 	shellEvaluator.Commands = preparePackageChain.GenerateCommands()
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare git repository for Package, check the log file")
 	}
 
 	return nil
@@ -231,22 +236,27 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 		return err, false
 	}
 
-	buildChain := BuildChain{
+	startupChain := BuildChain{
 		Chain: []CMDLineInterface{
 			startupScript,
+		},
+	}
+	buildChain := BuildChain{
+		Chain: []CMDLineInterface{
 			build.Env,
 			build.CMake,
 			build.GNUMake,
 		},
 	}
 
+	shellEvaluator.PreparingCommands = startupChain.GenerateCommands()
 	shellEvaluator.Commands = buildChain.GenerateCommands()
 
 	logger.InfoIndent("Running build inside container")
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return err, false
+		return fmt.Errorf("build failed inside docker container, check the log file"), false
 	}
 
 	logger.InfoIndent("Copying install files from container to local directory")
@@ -359,17 +369,20 @@ func (build *Build) getGitCommitHash() (string, error) {
 
 	for {
 		line, err = buf.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
+		if err != nil && err != io.EOF {
 			return "", err
 		}
+		if err == nil { // The newline character is present
+			line = line[:len(line)-1]
+		}
 
-		line = line[:len(line)-1]
 		hash := getGitCommitHashFromLine(line)
 		if hash != "" {
 			return hash, nil
+		}
+
+		if err == io.EOF {
+			break
 		}
 	}
 

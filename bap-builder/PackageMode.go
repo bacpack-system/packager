@@ -315,7 +315,7 @@ func buildSinglePackage(
 		}
 		err = buildAndCopyPackage(&buildConfigs, platformString, repo, bringauto_const.PackageDirName)
 		if err != nil {
-			return fmt.Errorf("cannot build package '%s' - %w", packageName, err)
+			return fmt.Errorf("cannot build package '%s' - %w", config.Package.Name, err)
 		}
 	}
 	return nil
