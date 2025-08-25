@@ -41,9 +41,6 @@ Packages.
 
 Green color indicates which Packages will be built.
 
-Blue colored arrows indicate which Packages are built because of `--build-deps-on` or
-`--build-deps-on-recursive` option.
-
 Arrows indicate dependency (build deps) between Packages. When Package A depends on Package B the
 following is written.
 
@@ -166,8 +163,8 @@ graph TD
     style D color:green;
     style I color:green;
     style M color:green;
-    linkStyle 4 stroke:royalblue;
-    linkStyle 5 stroke:royalblue;
+    linkStyle 4 stroke:green,stroke-width:2px;
+    linkStyle 5 stroke:green,stroke-width:2px;
     linkStyle 7 stroke:green,stroke-width:2px;
     linkStyle 11 stroke:green,stroke-width:2px;
 ```
@@ -223,8 +220,8 @@ graph TD
     linkStyle 1 stroke:green,stroke-width:2px;
     linkStyle 2 stroke:green,stroke-width:2px;
     linkStyle 3 stroke:green,stroke-width:2px;
-    linkStyle 4 stroke:royalblue;
-    linkStyle 5 stroke:royalblue;
+    linkStyle 4 stroke:green,stroke-width:2px;
+    linkStyle 5 stroke:green,stroke-width:2px;
     linkStyle 7 stroke:green,stroke-width:2px;
     linkStyle 8 stroke:green,stroke-width:2px;
     linkStyle 9 stroke:green,stroke-width:2px;
