@@ -88,9 +88,13 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 	gitSubmoduleUpdate := bringauto_git.GitSubmoduleUpdate{Git: *build.Git}
 	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
 
-	preparePackageChain := BuildChain{
+	startupChain := BuildChain{
 		Chain: []CMDLineInterface{
 			startupScript,
+		},
+	}	
+	preparePackageChain := BuildChain{
+		Chain: []CMDLineInterface{
 			build.Env,
 			&gitClone,
 			&gitCheckout,
@@ -98,11 +102,12 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 		},
 	}
 
+	shellEvaluator.PreparingCommands = startupChain.GenerateCommands()
 	shellEvaluator.Commands = preparePackageChain.GenerateCommands()
 
 	err := shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare git repository for Package, check the log file")
 	}
 
 	return nil
@@ -198,22 +203,27 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 	}
 	startupScript := bringauto_prerequisites.CreateAndInitialize[StartupScript]()
 
-	buildChain := BuildChain{
+	startupChain := BuildChain{
 		Chain: []CMDLineInterface{
 			startupScript,
+		},
+	}
+	buildChain := BuildChain{
+		Chain: []CMDLineInterface{
 			build.Env,
 			build.CMake,
 			build.GNUMake,
 		},
 	}
 
+	shellEvaluator.PreparingCommands = startupChain.GenerateCommands()
 	shellEvaluator.Commands = buildChain.GenerateCommands()
 
 	logger.InfoIndent("Running build inside container")
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return err, false
+		return fmt.Errorf("build failed inside docker container, check the log file"), false
 	}
 
 	logger.InfoIndent("Copying install files from container to local directory")
