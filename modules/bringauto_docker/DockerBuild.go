@@ -41,7 +41,11 @@ func (dockerBuild *DockerBuild) prepareAndRun(f func(build *DockerBuild) []strin
 	cmd.Args = cmdArgs
 	cmd.Path = DockerExecutablePathConst
 	if contextLogger != nil {
-		file, _ := contextLogger.GetFile()
+		file, err := contextLogger.GetFile()
+		if err != nil {
+			logger.Error("Failed to open file for logs - %s", err)
+			return false
+		}
 		cmd.Stderr = file
 		cmd.Stdout = file
 	}

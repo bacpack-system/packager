@@ -171,9 +171,12 @@ func (session *SSHSession) SetEnvironment(envMap map[string]string) error {
 // It runs a given command on the remote machine.
 //
 func (session *SSHSession) Run(command string) error {
+	if !session.IsLoggedIn() {
+		return fmt.Errorf("cannot run for not active session")
+	}
 	err := session.sshSession.Run(command)
 	if err != nil {
-		return fmt.Errorf("problem while executing program %s", err)
+		return fmt.Errorf("problem while executing program - %w", err)
 	}
 	return nil
 }

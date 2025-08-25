@@ -26,7 +26,7 @@ func (args *DockerRun) Run() error {
 	err := process.Run()
 
 	if err != nil {
-		return fmt.Errorf("dockerRun run error - %s, %s", err, &errBuff)
+		return fmt.Errorf("dockerRun run error - %s, stderr: %s", err, errBuff.String())
 	}
 	regexp, regexpErr := regexp.CompilePOSIX("^([0-9a-zA-Z]+)")
 	if regexpErr != nil {

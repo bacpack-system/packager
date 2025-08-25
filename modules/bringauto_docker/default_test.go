@@ -8,7 +8,10 @@ import (
 )
 
 func TestDockerRm_GenerateCmdLine(t *testing.T) {
-	docker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	docker, err := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	if err != nil {
+		t.Errorf("cannot create Docker instance - %s", err)
+	}
 	dockerRm := (*bringauto_docker.DockerRm)(docker)
 	cmdLine, err := dockerRm.GenerateCmdLine()
 	if err != nil {
@@ -27,7 +30,10 @@ func TestDockerRm_GenerateCmdLine(t *testing.T) {
 }
 
 func TestDockerStop_GenerateCmdLine(t *testing.T) {
-	docker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	docker, err := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	if err != nil {
+		t.Errorf("cannot create Docker instance - %s", err)
+	}
 	dockerStop := (*bringauto_docker.DockerStop)(docker)
 	cmdLine, err := dockerStop.GenerateCmdLine()
 	if err != nil {
@@ -50,7 +56,10 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	var cmdLineValid bool
 	var err error
 
-	docker := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	docker, err := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker]()
+	if err != nil {
+		t.Errorf("cannot create Docker instance - %s", err)
+	}
 	dockerRun := (*bringauto_docker.DockerRun)(docker)
 
 	dockerRun.Ports = nil

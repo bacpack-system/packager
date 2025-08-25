@@ -55,10 +55,7 @@ func main() {
 		err = CreateSysroot(&args.CreateSysrootArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to create sysroot: %s", err)
-			if err != bringauto_error.GitLfsErr {
-				os.Exit(bringauto_error.CREATING_SYSROOT_ERROR)
-			}
-			os.Exit(bringauto_error.GIT_LFS_ERROR)
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}

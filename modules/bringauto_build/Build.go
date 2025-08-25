@@ -164,7 +164,10 @@ func (build *Build) prepareForBuild() error {
 	if build.sysroot != nil {
 		build.sysroot.CreateSysrootDir()
 		sysPath := build.sysroot.GetSysrootPath()
-		build.Docker.SetVolume(sysPath, "/sysroot")
+		err = build.Docker.SetVolume(sysPath, "/sysroot")
+		if err != nil {
+			return err
+		}
 		build.CMake.SetDefine("CMAKE_PREFIX_PATH", "/sysroot")
 	}
 

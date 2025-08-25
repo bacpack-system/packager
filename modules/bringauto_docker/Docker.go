@@ -91,13 +91,15 @@ func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
 }
 
 // SetVolume set volume mapping for a Docker container.
-// It's not possible to overwrite volume mapping that already exists (panic occure)
-func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string) {
+// It's not possible to overwrite volume mapping that already exists
+func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string) error {
 	_, hostFound := docker.Volumes[hostDirectory]
 	if hostFound {
-		panic(fmt.Errorf("volume mapping is already set: '%s' --> '%s'", hostDirectory, containerDirectory))
+		return fmt.Errorf("volume mapping is already set: '%s' --> '%s'", hostDirectory, containerDirectory)
 	}
 	docker.Volumes[hostDirectory] = containerDirectory
+
+	return nil
 }
 
 // checkIfDockerIsUsable
