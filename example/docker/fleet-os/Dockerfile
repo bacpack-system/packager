@@ -28,7 +28,7 @@ RUN mkdir -p /run/sshd
 COPY init_toolchain.sh /root/
 RUN chmod +x /root/init_toolchain.sh && \
     /root/init_toolchain.sh /root/toolchain /root/tools
-COPY lsb_release.txt /root/tools/
+COPY os-release /etc/os-release
 COPY uname.txt /root/tools/
 
 RUN apt-get update && \

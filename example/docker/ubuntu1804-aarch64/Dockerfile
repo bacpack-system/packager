@@ -32,7 +32,6 @@ RUN mkdir /root/.ssh && \
 COPY init_toolchain.sh /root/
 RUN chmod +x /root/init_toolchain.sh && \
     /root/init_toolchain.sh /root/tools
-COPY lsb_release.txt /root/tools/
 COPY uname.txt /root/tools/
 
 ENTRYPOINT ["/usr/sbin/sshd", "-D", "-o", "ListenAddress=0.0.0.0"]
