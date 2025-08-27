@@ -31,7 +31,8 @@ var loggerSingleton *Logger
 // Returns Logger singleton to use for logging or nil if Logger can't be created.
 func GetLogger() *Logger {
 	if loggerSingleton == nil {
-		loggerSingleton, err := bringauto_prerequisites.CreateAndInitialize[Logger]()
+		var err error
+		loggerSingleton, err = bringauto_prerequisites.CreateAndInitialize[Logger]()
 		if err != nil {
 			panic(fmt.Errorf("cannot initialize Logger - %w", err))
 		}
