@@ -57,13 +57,13 @@ func Initialize[K any](instance *K, args ...any) error {
 
 // CreateAndInitialize same as Initialized be it creates an instance of struct K and then
 // call Initialize and return initialized instance of K.
-func CreateAndInitialize[K any](args ...any) *K {
+func CreateAndInitialize[K any](args ...any) (*K, error) {
 	var instance K
 	err := Initialize(&instance, args...)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &instance
+	return &instance, nil
 }
 
 func callFunction(value *reflect.Value, functionName string, argsValues *[]reflect.Value) error {

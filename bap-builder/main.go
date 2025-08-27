@@ -8,12 +8,15 @@ import (
 	"os"
 	"time"
 	"syscall"
+	"fmt"
 )
 
 func main() {
-	var err error
 	var args CmdLineArgs
-	logger := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	logger, err := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	if err != nil {
+		panic(fmt.Errorf("cannot initialize Logger - %w", err))
+	}
 
 	args.InitFlags()
 	err = args.ParseArgs(os.Args)
@@ -52,10 +55,7 @@ func main() {
 		err = CreateSysroot(&args.CreateSysrootArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to create sysroot: %s", err)
-			if err != bringauto_error.GitLfsErr {
-				os.Exit(bringauto_error.CREATING_SYSROOT_ERROR)
-			}
-			os.Exit(bringauto_error.GIT_LFS_ERROR)
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}

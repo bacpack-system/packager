@@ -32,7 +32,6 @@ function install_tools() {
   popd
   rm -r "${TMP_DIR}"
 
-  chmod +x "${TOOLS_INSTALL_DIR}/lsb_release"
   chmod +x "${TOOLS_INSTALL_DIR}/uname"
   TMP_PATH=$PATH
   echo 'PATH='"${TOOLS_INSTALL_DIR}"'/:'"${TMP_PATH}"'' >> /root/.ssh/environment

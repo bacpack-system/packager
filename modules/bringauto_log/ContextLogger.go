@@ -4,6 +4,7 @@ import (
 	"bringauto/modules/bringauto_prerequisites"
 	"os"
 	"path/filepath"
+	"fmt"
 )
 
 const (
@@ -55,8 +56,7 @@ func (logger *ContextLogger) initLogDir() error {
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(logger.logDirPath, 0700)
 		if err != nil {
-			GetLogger().Error("Failed to create log directory - %s", err)
-			return err
+			return fmt.Errorf("failed to create log directory - %w", err)
 		}
 	}
 	return nil

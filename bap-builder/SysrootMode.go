@@ -29,7 +29,7 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 		return err
 	}
 	if !dirEmpty {
-		return fmt.Errorf("given sysroot directory is not empty")
+		return fmt.Errorf("%w - given sysroot directory is not empty", bringauto_error.CreatingSysrootErr)
 	}
 
 	repo := bringauto_repository.GitLFSRepository{
@@ -61,13 +61,13 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 	}
 	packages, err := contextManager.GetAllPackagesStructs(platformString)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
 	}
 
 	logger.Info("Creating sysroot directory from packages")
 	err = unzipAllPackagesToDir(packages, &repo, *cmdLine.Sysroot)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
 	}
 
 	return nil

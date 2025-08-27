@@ -48,6 +48,9 @@ The `packager` (`bap-builder`) has these commands:
 The `build-package`, `build-app` and `create-sysroot` commands are using Git Repository as storage
 for built Packages. Given Git Repository must be created before usage.
 
+**NOTE:** The Apps are similar to Packages, but they do not support any dependencies managed by
+Packager. More information about Apps is in [UseCaseScenarios](./doc/UseCaseScenarios.md) document.
+
 **NOTE:** Detailed use case scenarios is decribed in [UseCaseScenarios](./doc/UseCaseScenarios.md) document.
 
 ### Example

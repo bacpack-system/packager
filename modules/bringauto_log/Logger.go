@@ -28,10 +28,13 @@ const (
 var loggerSingleton *Logger
 
 // GetLogger
-// Returns Logger singleton to use for logging.
+// Returns Logger singleton to use for logging or nil if Logger can't be created.
 func GetLogger() *Logger {
 	if loggerSingleton == nil {
-		loggerSingleton = bringauto_prerequisites.CreateAndInitialize[Logger]()
+		loggerSingleton, err := bringauto_prerequisites.CreateAndInitialize[Logger]()
+		if err != nil {
+			panic(fmt.Errorf("cannot initialize Logger - %w", err))
+		}
 		loggerSingleton.Warn("Logger was not initialized. Printing to console.")
 	}
 	return loggerSingleton
@@ -165,10 +168,15 @@ func (logger *Logger) Fatal(msg string, args ...any) {
 }
 
 // CreateContextLogger
-// Creates ContextLogger for specified imageName, packageName and logContext.
+// Creates ContextLogger for specified imageName, packageName and logContext Returns ContextLogger
+// instance or nil if it cannot be created.
 func (logger *Logger) CreateContextLogger(imageName string, packageName string, logContext string) *ContextLogger {
-	packageContextLogger := bringauto_prerequisites.CreateAndInitialize[ContextLogger](
+	packageContextLogger, err := bringauto_prerequisites.CreateAndInitialize[ContextLogger](
 		logger.logDirPath, imageName, packageName, logContext,
 	)
+	if err != nil {
+		logger.Error("Cannot create ContextLogger - %s", err)
+		return nil
+	}
 	return packageContextLogger
 }

@@ -52,29 +52,29 @@ graph TD
 
 ### Build Package - without Dependencies
 
-Build single Package (F) without any dependencies.
+Build single Package (G) without any dependencies.
 
 It expects all Package dependencies are already built and installed into build sysroot directory.
 
 ```mermaid
 graph TD
-    A
-    A --> B
-    A --> C
-    B --> D
+    A ---> B
+    A --> D
     B --> E
-    C --> F
+    B --> F
     C --> G
-    D --> H
-    E --> I
-    F --> J
-    G --> K
-    J --> L
-    J --> M
-    N
-    N --> O
+    D --> G
+    H --> L
+    D --> I
+    E --> J
+    F --> K
+    G --> L
+    I --> M
+    L --> N
+    L --> O
+    P --> Q
 
-    style F color:green;
+    style G color:green;
 ```
 
 **Command**
@@ -83,38 +83,89 @@ graph TD
 packager build-package
   --context ./example \
   --image-name debian \
-  --name F \
+  --name G \
   --output-dir ./git-lfs-repo
 ```
 
 ### Build Package - with Dependencies
 
-Build all dependencies (J, K, L) of the Package (F) before the Package (F) is built.
+Build all dependencies (L, N, O) of the Package (G) before the Package (G) is built.
 
 ```mermaid
 graph TD
-    A
-    A --> B
-    A --> C
-    B --> D
+    A ---> B
+    A --> D
     B --> E
-    C --> F
+    B --> F
     C --> G
-    D --> H
-    E --> I
-    F --> J
-    G --> K
-    J --> L
-    J --> M
-    N
-    N --> O
+    D --> G
+    H --> L
+    D --> I
+    E --> J
+    F --> K
+    G --> L
+    I --> M
+    L --> N
+    L --> O
+    P --> Q
 
-    style F color:green;
-    style J color:green;
+    style G color:green;
     style L color:green;
-    style M color:green;
-    linkStyle 8 stroke:green,stroke-width:2px;
+    style N color:green;
+    style O color:green;
     linkStyle 10 stroke:green,stroke-width:2px;
+    linkStyle 12 stroke:green,stroke-width:2px;
+    linkStyle 13 stroke:green,stroke-width:2px;
+```
+
+**Command**
+
+```bash
+packager build-package
+  --context ./example \
+  --image-name debian \
+  --name G \
+  --build-deps \
+  --output-dir ./git-lfs-repo
+```
+
+**WARNING**: Building only some Packages can break dependency relationships. In this example,
+Packages G, L, N, and O are built, but other Packages that depend on them (C, D, H) are not rebuilt.
+If the build environment changes (e.g., compiler version, system libraries), the previously built
+Packages C, D, and H may become incompatible with the newly built dependencies. While this scenario
+is uncommon, it can cause runtime failures. Currently, Packager does not detect these issues
+automatically. 
+
+### Build Package - with Depends on Packages
+
+Build Packages (C, D) which depends on Package (G) with its dependencies (I, M) without Package (G)
+and its dependencies (L, N, O).
+
+```mermaid
+graph TD
+    A ---> B
+    A --> D
+    B --> E
+    B --> F
+    C --> G
+    D --> G
+    H --> L
+    D --> I
+    E --> J
+    F --> K
+    G --> L
+    I --> M
+    L --> N
+    L --> O
+    P --> Q
+
+    style C color:green;
+    style D color:green;
+    style I color:green;
+    style M color:green;
+    linkStyle 4 stroke:green,stroke-width:2px;
+    linkStyle 5 stroke:green,stroke-width:2px;
+    linkStyle 7 stroke:green,stroke-width:2px;
     linkStyle 11 stroke:green,stroke-width:2px;
 ```
 
@@ -124,96 +175,57 @@ graph TD
 packager build-package
   --context ./example \
   --image-name debian \
-  --name F \
-  --build-deps \
-  --output ./git-lfs-repo
-```
-
-### Build Package - with Depends on Packages
-
-Build Packages (C) which depends on Package (F) with its dependencies (G, K) without Package (F)
-and its dependencies (J, L, M).
-
-```mermaid
-graph TD
-    A
-    A --> B
-    A --> C
-    B --> D
-    B --> E
-    C --> F
-    C --> G
-    D --> H
-    E --> I
-    F --> J
-    G --> K
-    J --> L
-    J --> M
-    N
-    N --> O
-
-    style C color:green;
-    style G color:green;
-    style K color:green;
-    linkStyle 5 stroke:green,stroke-width:2px;
-    linkStyle 9 stroke:green,stroke-width:2px;
-```
-
-**Command**
-
-```bash
-packager build-package
-  --context ./example \
-  --image-name debian \
-  --name F \
+  --name G \
   --build-deps-on \
-  --output ./git-lfs-repo
+  --output-dir ./git-lfs-repo
 ```
 
-> **NOTE**: The `--build-deps` option can be added to command to build also the F Package and its
-dependencies (J, L, M).
+> **NOTE**: The `--build-deps` option can be added to command to build also the G Package and its
+dependencies (L, N, O).
 
 ### Build Package - with Depends on Packages Recursive
 
-Build Packages (C, A) which depends on Package (F) recursively with its dependencies
-(G, K, B, D, E, H, I) without Package (F) and its dependencies (J, L, M).
+Build Packages (C, D, A) which depends on Package (G) recursively with its dependencies
+(B, D, E, F, I, J, K, M) without Package (G) and its dependencies (L, N, O).
 
 ```mermaid
 graph TD
-    A
-    A --> B
-    A --> C
-    B --> D
+    A ---> B
+    A --> D
     B --> E
-    C --> F
+    B --> F
     C --> G
-    D --> H
-    E --> I
-    F --> J
-    G --> K
-    J --> L
-    J --> M
-    N
-    N --> O
+    D --> G
+    H --> L
+    D --> I
+    E --> J
+    F --> K
+    G --> L
+    I --> M
+    L --> N
+    L --> O
+    P --> Q
 
     style C color:green;
-    style G color:green;
-    style K color:green;
+    style D color:green;
+    style I color:green;
+    style M color:green;
     style A color:green;
     style B color:green;
-    style D color:green;
     style E color:green;
-    style H color:green;
-    style I color:green;
+    style F color:green;
+    style J color:green;
+    style K color:green;
     linkStyle 0 stroke:green,stroke-width:2px;
     linkStyle 1 stroke:green,stroke-width:2px;
     linkStyle 2 stroke:green,stroke-width:2px;
     linkStyle 3 stroke:green,stroke-width:2px;
     linkStyle 4 stroke:green,stroke-width:2px;
     linkStyle 5 stroke:green,stroke-width:2px;
-    linkStyle 6 stroke:green,stroke-width:2px;
     linkStyle 7 stroke:green,stroke-width:2px;
+    linkStyle 8 stroke:green,stroke-width:2px;
     linkStyle 9 stroke:green,stroke-width:2px;
+    linkStyle 11 stroke:green,stroke-width:2px;
 ```
 
 **Command**
@@ -222,13 +234,13 @@ graph TD
 packager build-package
   --context ./example \
   --image-name debian \
-  --name F \
+  --name G \
   --build-deps-on-recursive \
-  --output ./git-lfs-repo
+  --output-dir ./git-lfs-repo
 ```
 
-> **NOTE**: The `--build-deps` option can be added to command to build also the F Package and its
-dependencies (J, L, M).
+> **NOTE**: The `--build-deps` option can be added to command to build also the G Package and its
+dependencies (L, N, O).
 
 ### Build Package - all Packages
 
@@ -236,21 +248,21 @@ Build all Packages in Context.
 
 ```mermaid
 graph TD
-    A
-    A --> B
-    A --> C
-    B --> D
+    A ---> B
+    A --> D
     B --> E
-    C --> F
+    B --> F
     C --> G
-    D --> H
-    E --> I
-    F --> J
-    G --> K
-    J --> L
-    J --> M
-    N
-    N --> O
+    D --> G
+    H --> L
+    D --> I
+    E --> J
+    F --> K
+    G --> L
+    I --> M
+    L --> N
+    L --> O
+    P --> Q
 
     style A color:green;
     style B color:green;
@@ -267,6 +279,8 @@ graph TD
     style M color:green;
     style N color:green;
     style O color:green;
+    style P color:green;
+    style Q color:green;
     linkStyle 0 stroke:green,stroke-width:2px;
     linkStyle 1 stroke:green,stroke-width:2px;
     linkStyle 2 stroke:green,stroke-width:2px;
@@ -280,6 +294,8 @@ graph TD
     linkStyle 10 stroke:green,stroke-width:2px;
     linkStyle 11 stroke:green,stroke-width:2px;
     linkStyle 12 stroke:green,stroke-width:2px;
+    linkStyle 13 stroke:green,stroke-width:2px;
+    linkStyle 14 stroke:green,stroke-width:2px;
 ```
 
 **Command**
@@ -289,7 +305,7 @@ packager build-package
   --context ./example \
   --image-name debian \
   --all \
-  --output ./git-lfs-repo
+  --output-dir ./git-lfs-repo
 ```
 
 ## Build App
@@ -311,7 +327,7 @@ packager build-app
   --context ./example \
   --image-name debian \
   --all \
-  --output ./git-lfs-repo
+  --output-dir ./git-lfs-repo
 ```
 
 ### Build App - single App
@@ -325,7 +341,7 @@ packager build-app
   --context ./example \
   --image-name debian \
   --name app-name \
-  --output ./git-lfs-repo
+  --output-dir ./git-lfs-repo
 ```
 
 ## Create Sysroot

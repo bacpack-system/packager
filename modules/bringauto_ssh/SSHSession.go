@@ -103,20 +103,6 @@ func (session *SSHSession) Login(credentials SSHCredentials) error {
 		return fmt.Errorf("cannot create new SSH session")
 	}
 
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          0,     // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
-		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
-	}
-
-	if err := sshSession.RequestPty("xterm", 80, 40, modes); err != nil {
-		err = sshSession.Close()
-		if err != nil {
-			return fmt.Errorf("tty request failed + cannot close session")
-		}
-		return fmt.Errorf("cannot request tty")
-	}
-
 	if session.StdIn != nil {
 		stdin, err := sshSession.StdinPipe()
 		if err != nil {
@@ -177,6 +163,20 @@ func (session *SSHSession) SetEnvironment(envMap map[string]string) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// Run
+// It runs a given command on the remote machine.
+//
+func (session *SSHSession) Run(command string) error {
+	if !session.IsLoggedIn() {
+		return fmt.Errorf("cannot run for not active session")
+	}
+	err := session.sshSession.Run(command)
+	if err != nil {
+		return fmt.Errorf("problem while executing program - %w", err)
 	}
 	return nil
 }
