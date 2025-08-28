@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bringauto/modules/bringauto_const"
 	"fmt"
 	"github.com/akamensky/argparse"
 )
@@ -34,6 +35,8 @@ type BuildPackageCmdLineArgs struct {
 	DockerImageName *string
 	// OutputDir relative (to program working dir) ot absolute path where the Package will be stored
 	OutputDir *string
+	// Port for Docker container
+	Port *int
 }
 
 // BuildAppCmdLineArgs
@@ -50,6 +53,8 @@ type BuildAppCmdLineArgs struct {
 	DockerImageName *string
 	// OutputDir relative (to program working dir) ot absolute path where the App will be stored
 	OutputDir *string
+	// Port for Docker container
+	Port *int
 }
 
 // CreateSysrootCmdLineArgs
@@ -61,6 +66,8 @@ type CreateSysrootCmdLineArgs struct {
 	Sysroot *string
 	// Name of the docker image which are the Packages build for
 	ImageName *string
+	// Port for Docker container
+	Port *int
 }
 
 // CmdLineArgs
@@ -111,6 +118,13 @@ func (cmd *CmdLineArgs) InitFlags() {
 			Required: false,
 			Help:     "Build all Packages in the given context",
 			Default:  false,
+		},
+	)
+	cmd.BuildPackageArgs.Port = cmd.buildPackageParser.Int("p", "port",
+		&argparse.Options{
+			Required: false,
+			Help:     "Host port for docker container ssh bind",
+			Default:  bringauto_const.DefaultSSHPort,
 		},
 	)
 	cmd.BuildPackageArgs.Name = cmd.buildPackageParser.String("", "name",
@@ -189,6 +203,13 @@ func (cmd *CmdLineArgs) InitFlags() {
 			"Given Apps will be build by toolchain represented by image-name",
 		},
 	)
+	cmd.BuildAppArgs.Port = cmd.buildAppParser.Int("p", "port",
+		&argparse.Options{
+			Required: false,
+			Help:     "Host port for docker container ssh bind",
+			Default:  bringauto_const.DefaultSSHPort,
+		},
+	)
 
 	cmd.buildImageParser = cmd.parser.NewCommand("build-image", "Build Docker image")
 	cmd.BuildImagesArgs.All = cmd.buildImageParser.Flag("", "all",
@@ -223,6 +244,13 @@ func (cmd *CmdLineArgs) InitFlags() {
 			Required: true,
 			Validate: checkForEmpty,
 			Help:     "Name of docker image which are the Packages built for",
+		},
+	)
+	cmd.CreateSysrootArgs.Port = cmd.createSysrootParser.Int("p", "port",
+		&argparse.Options{
+			Required: false,
+			Help:     "Host port for docker container ssh bind",
+			Default:  bringauto_const.DefaultSSHPort,
 		},
 	)
 }

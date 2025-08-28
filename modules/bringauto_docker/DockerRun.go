@@ -26,7 +26,7 @@ func (args *DockerRun) Run() error {
 	err := process.Run()
 
 	if err != nil {
-		return fmt.Errorf("dockerRun run error - %s", err)
+		return fmt.Errorf("dockerRun run error - %s, stderr: %s", err, errBuff.String())
 	}
 	regexp, regexpErr := regexp.CompilePOSIX("^([0-9a-zA-Z]+)")
 	if regexpErr != nil {
@@ -43,11 +43,9 @@ func (runArgs *DockerRun) GenerateCmdLine() ([]string, error) {
 	if runArgs.RunAsDaemon {
 		cmdArgs = append(cmdArgs, "-d")
 	}
-	for key, value := range runArgs.Ports {
-		portPair := strconv.Itoa(key) + ":" + strconv.Itoa(value)
-		cmdArgs = append(cmdArgs, "-p")
-		cmdArgs = append(cmdArgs, portPair)
-	}
+	portPair := strconv.Itoa(int(runArgs.Port)) + ":" + strconv.Itoa(sshPort)
+	cmdArgs = append(cmdArgs, "-p")
+	cmdArgs = append(cmdArgs, portPair)
 	for key, value := range runArgs.Volumes {
 		volumePair := key + ":" + value
 		cmdArgs = append(cmdArgs, "-v", volumePair)

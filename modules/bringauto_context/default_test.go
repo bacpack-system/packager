@@ -3,8 +3,8 @@ package bringauto_context
 import (
 	"bringauto/modules/bringauto_const"
 	"bringauto/modules/bringauto_package"
+	"bringauto/modules/bringauto_prerequisites"
 	"path/filepath"
-	"slices"
 	"testing"
 	"os"
 )
@@ -47,67 +47,63 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestGetAllPackagesJsonDefPaths(t *testing.T) {
+func initContext(contextPath string) (*ContextManager, error) {
 	context := ContextManager {
-		ContextPath: Set1DirPath,
+		ContextPath: contextPath,
 	}
-
-	jsonPaths, err := context.GetAllConfigJsonPaths(bringauto_const.PackageDirName)
+	err := bringauto_prerequisites.Initialize(&context)
 	if err != nil {
-		t.Fatalf("GetAllConfigJsonPaths failed - %s", err)
+		return nil, err
 	}
+	return &context, nil
+}
 
-	pack1Paths, ok1 := jsonPaths[Pack1Name]
-	pack2Paths, ok2 := jsonPaths[Pack2Name]
-	pack3Paths, ok3 := jsonPaths[Pack3Name]
+func TestGetAllConfigsMap(t *testing.T) {
+	context, err := initContext(Set1DirPath)
+	if err != nil {
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configMap := context.GetAllConfigsMap()
+
+	_, ok1 := configMap[Pack1Name]
+	_, ok2 := configMap[Pack2Name]
+	_, ok3 := configMap[Pack3Name]
 
 	if !ok1 || !ok2 || !ok3 {
-		t.Fatalf("some package was not returned")
-	}
-
-	commonPath := filepath.Join(Set1DirPath, bringauto_const.PackageDirName)
-	pack1Json1Path := filepath.Join(commonPath, Pack1Name, Pack1Name + "_release.json")
-	pack1Json2Path := filepath.Join(commonPath, Pack1Name, Pack1Name + "_debug.json")
-	pack2Json1Path := filepath.Join(commonPath, Pack2Name, Pack2Name + ".json")
-	pack3Json1Path := filepath.Join(commonPath, Pack3Name, Pack3Name + "_debug.json")
-
-	if (!slices.Contains(pack1Paths, pack1Json1Path) ||
-		!slices.Contains(pack1Paths, pack1Json2Path) ||
-		!slices.Contains(pack2Paths, pack2Json1Path) ||
-		!slices.Contains(pack3Paths, pack3Json1Path)) {
-		t.Fatalf("wrong returned paths")
+		t.Fatalf("some Config was not returned")
 	}
 }
 
-func TestGetPackageJsonDefPaths(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set1DirPath,
-	}
-
-	pack1Paths, err := context.GetConfigJsonPaths(Pack1Name, bringauto_const.PackageDirName)
+func TestGetPackageConfigs(t *testing.T) {
+	context, err := initContext(Set1DirPath)
 	if err != nil {
-		t.Fatalf("GetConfigJsonPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	pack1Configs, err := context.GetPackageConfigs(Pack1Name)
+	if err != nil {
+		t.Fatalf("GetPackageConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set1DirPath, bringauto_const.PackageDirName)
-	pack1Json1Path := filepath.Join(commonPath, Pack1Name, Pack1Name + "_release.json")
-	pack1Json2Path := filepath.Join(commonPath, Pack1Name, Pack1Name + "_debug.json")
+	if len(pack1Configs) != 2 {
+		t.Fatalf("wrong number of returned Configs")
+	}
 
-	if (!slices.Contains(pack1Paths, pack1Json1Path) ||
-		!slices.Contains(pack1Paths, pack1Json2Path)) {
-		t.Fatalf("wrong returned paths")
+	for _, config := range pack1Configs {
+		if config.Package.Name != Pack1Name {
+			t.Error("wrong Config content")
+		}
 	}
 }
 
-func TestGetAllPackagesConfigs(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set1DirPath,
-	}
-
-	configs, err := context.GetAllConfigs(&defaultPlatformString, bringauto_const.PackageDirName)
+func TestGetAllPackageConfigsArray(t *testing.T) {
+	context, err := initContext(Set1DirPath)
 	if err != nil {
-		t.Fatalf("GetAllConfigs failed - %s", err)
-	}
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs := context.GetAllPackageConfigsArray(&defaultPlatformString)
 
 	if len(configs) != 4 {
 		t.Fatal("wrong number of returned configs")
@@ -140,17 +136,15 @@ func TestGetAllPackagesConfigs(t *testing.T) {
 }
 
 func TestGetAllImagesDockerfilePaths(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set1DirPath,
-	}
-
-	paths, err := context.GetAllImagesDockerfilePaths()
+	context, err := initContext(Set1DirPath)
 	if err != nil {
-		t.Fatalf("GetAllImagesDockerfilePaths failed - %s", err)
-	}
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
 
-	image1Paths, ok1 := paths[Image1Name]
-	image2Paths, ok2 := paths[Image2Name]
+	paths := context.GetAllImagesDockerfilePaths()
+
+	image1PathToCheck, ok1 := paths[Image1Name]
+	image2PathToCheck, ok2 := paths[Image2Name]
 
 	if !ok1 || !ok2 {
 		t.Fatalf("some image was not returned")
@@ -160,133 +154,139 @@ func TestGetAllImagesDockerfilePaths(t *testing.T) {
 	image1Path := filepath.Join(commonPath, Image1Name, DockerfileName)
 	image2Path := filepath.Join(commonPath, Image2Name, DockerfileName)
 
-	if (!slices.Contains(image1Paths, image1Path) ||
-		!slices.Contains(image2Paths, image2Path)) {
+	if ((image1PathToCheck != image1Path) || (image2PathToCheck != image2Path)) {
 		t.Fatalf("wrong returned paths")
 	}
 }
 
-func TestGetPackageWithDepsJsonDefPaths(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set2DirPath,
-	}
-
-	paths, err := context.GetPackageWithDepsJsonDefPaths(Pack3Name)
+func TestGetPackageWithDepsConfigs(t *testing.T) {
+	context, err := initContext(Set2DirPath)
 	if err != nil {
-		t.Fatalf("GetPackageWithDepsJsonDefPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs, err := context.GetPackageWithDepsConfigs(Pack3Name)
+	if err != nil {
+		t.Fatalf("GetPackageWithDepsConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set2DirPath, bringauto_const.PackageDirName)
-	pack1Path := filepath.Join(commonPath, Pack1Name, Pack1Name + ".json")
-	pack2Path := filepath.Join(commonPath, Pack2Name, Pack2Name + ".json")
-	pack3Path := filepath.Join(commonPath, Pack3Name, Pack3Name + ".json")
-	pack4Path := filepath.Join(commonPath, Pack4Name, Pack4Name + ".json")
+	if len(configs) != 4 {
+		t.Fatalf("wrong number of returned configs")
+	}
 
-	if (len(paths) != 4 ||
-		!slices.Contains(paths, pack1Path) ||
-		!slices.Contains(paths, pack2Path) ||
-		!slices.Contains(paths, pack3Path) ||
-	 	!slices.Contains(paths, pack4Path)) {
-		t.Fatalf("wrong returned paths - %s", paths)
+	for _, config := range configs {
+		if (config.Package.Name != Pack1Name &&
+			config.Package.Name != Pack2Name &&
+			config.Package.Name != Pack3Name &&
+			config.Package.Name != Pack4Name) {
+			t.Error("wrong returned configs")
+		}
 	}
 }
 
-func TestGetPackageWithDepsJsonDefPathsNoDepWithBuildType(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set3DirPath,
-	}
+func TestGetPackageWithDepsConfigsNoDepWithBuildType(t *testing.T) {
+	context, err := initContext(Set3DirPath)
+	if err != nil {
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
 
-	_, err := context.GetPackageWithDepsJsonDefPaths(Pack2Name)
+	_, err = context.GetPackageWithDepsConfigs(Pack2Name)
 	if err == nil {
-		t.Error("GetPackageWithDepsJsonDefPaths didn't returned error")
+		t.Error("GetPackageWithDepsConfigs didn't returned error")
 	}
 }
 
-func TestGetPackageWithDepsJsonDefPathsCircularDependency(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set4DirPath,
-	}
-
-	paths, err := context.GetPackageWithDepsJsonDefPaths(Pack1Name)
+func TestGetPackageWithDepsConfigsCircularDependency(t *testing.T) {
+	context, err := initContext(Set4DirPath)
 	if err != nil {
-		t.Fatalf("GetPackageWithDepsJsonDefPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs, err := context.GetPackageWithDepsConfigs(Pack1Name)
+	if err != nil {
+		t.Fatalf("GetPackageWithDepsConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set4DirPath, bringauto_const.PackageDirName)
-	pack1Path := filepath.Join(commonPath, Pack1Name, Pack1Name + ".json")
-	pack2Path := filepath.Join(commonPath, Pack2Name, Pack2Name + ".json")
-	pack3Path := filepath.Join(commonPath, Pack3Name, Pack3Name + ".json")
+	if len(configs) != 3 {
+		t.Fatalf("wrong number of returned configs")
+	}
 
-	if (len(paths) != 3 ||
-		!slices.Contains(paths, pack1Path) ||
-		!slices.Contains(paths, pack2Path) ||
-		!slices.Contains(paths, pack3Path)) {
-		t.Fatalf("wrong returned paths - %s", paths)
+	for _, config := range configs {
+		if (config.Package.Name != Pack1Name &&
+			config.Package.Name != Pack2Name &&
+			config.Package.Name != Pack3Name) {
+			t.Error("wrong returned configs")
+		}
 	}
 }
 
-func TestGetDepsOnJsonDefPaths(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set2DirPath,
-	}
-
-	paths, err := context.GetDepsOnJsonDefPaths(Pack1Name, false)
+func TestGetPackageWithDepsOnConfigs(t *testing.T) {
+	context, err := initContext(Set2DirPath)
 	if err != nil {
-		t.Fatalf("GetDepsOnJsonDefPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs, err := context.GetPackageWithDepsOnConfigs(Pack1Name, false)
+	if err != nil {
+		t.Fatalf("GetPackageWithDepsOnConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set2DirPath, bringauto_const.PackageDirName)
-	pack4Path := filepath.Join(commonPath, Pack4Name, Pack4Name + ".json")
-	pack5Path := filepath.Join(commonPath, Pack5Name, Pack5Name + ".json")
-	pack6Path := filepath.Join(commonPath, Pack6Name, Pack6Name + ".json")
+	if len(configs) != 3 {
+		t.Fatalf("wrong number of returned configs")
+	}
 
-	if (len(paths) != 3 ||
-		!slices.Contains(paths, pack4Path) ||
-		!slices.Contains(paths, pack5Path) ||
-		!slices.Contains(paths, pack6Path)) {
-		t.Fatalf("wrong returned paths - %s", paths)
+	for _, config := range configs {
+		if (config.Package.Name != Pack4Name &&
+			config.Package.Name != Pack5Name &&
+			config.Package.Name != Pack6Name) {
+			t.Error("wrong returned configs")
+		}
 	}
 }
 
-func TestGetDepsOnJsonDefPathsRecursively(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set2DirPath,
-	}
-
-	paths, err := context.GetDepsOnJsonDefPaths(Pack1Name, true)
+func TestGetPackageWithDepsOnConfigsRecursively(t *testing.T) {
+	context, err := initContext(Set2DirPath)
 	if err != nil {
-		t.Fatalf("GetDepsOnJsonDefPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs, err := context.GetPackageWithDepsOnConfigs(Pack1Name, true)
+	if err != nil {
+		t.Fatalf("GetPackageWithDepsOnConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set2DirPath, bringauto_const.PackageDirName)
-	pack3Path := filepath.Join(commonPath, Pack3Name, Pack3Name + ".json")
-	pack4Path := filepath.Join(commonPath, Pack4Name, Pack4Name + ".json")
-	pack5Path := filepath.Join(commonPath, Pack5Name, Pack5Name + ".json")
-	pack6Path := filepath.Join(commonPath, Pack6Name, Pack6Name + ".json")
+	if len(configs) != 4 {
+		t.Fatalf("wrong number of returned configs")
+	}
 
-	if (len(paths) != 4 ||
-		!slices.Contains(paths, pack3Path) ||
-		!slices.Contains(paths, pack4Path) ||
-		!slices.Contains(paths, pack5Path) ||
-		!slices.Contains(paths, pack6Path)) {
-		t.Fatalf("wrong returned paths - %s", paths)
+	for _, config := range configs {
+		if (config.Package.Name != Pack3Name &&
+			config.Package.Name != Pack4Name &&
+			config.Package.Name != Pack5Name &&
+			config.Package.Name != Pack6Name) {
+			t.Error("wrong returned configs")
+		}
 	}
 }
 
-func TestGetDepsOnJsonDefPathsRecursivelyCircularDependency(t *testing.T) {
-	context := ContextManager {
-		ContextPath: Set4DirPath,
-	}
-
-	paths, err := context.GetDepsOnJsonDefPaths(Pack1Name, true)
+func TestGetPackageWithDepsOnConfigsRecursivelyCircularDependency(t *testing.T) {
+	context, err := initContext(Set4DirPath)
 	if err != nil {
-		t.Fatalf("GetDepsOnJsonDefPaths failed - %s", err)
+		t.Fatalf("Cannot initialize context - %s", err)
+	} 
+
+	configs, err := context.GetPackageWithDepsOnConfigs(Pack1Name, true)
+	if err != nil {
+		t.Fatalf("GetPackageWithDepsOnConfigs failed - %s", err)
 	}
 
-	commonPath := filepath.Join(Set4DirPath, bringauto_const.PackageDirName)
-	pack4Path := filepath.Join(commonPath, Pack4Name, Pack4Name + ".json")
+	if len(configs) != 1 {
+		t.Fatalf("wrong number of returned configs")
+	}
 
-	if (len(paths) != 1 || !slices.Contains(paths, pack4Path)) {
-		t.Fatalf("wrong returned paths - %s", paths)
+	for _, config := range configs {
+		if (config.Package.Name != Pack4Name) {
+			t.Error("wrong returned config")
+		}
 	}
 }

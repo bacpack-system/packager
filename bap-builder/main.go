@@ -4,21 +4,25 @@ import (
 	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_prerequisites"
 	"bringauto/modules/bringauto_process"
+	"bringauto/modules/bringauto_error"
 	"os"
 	"time"
 	"syscall"
+	"fmt"
 )
 
 func main() {
-	var err error
 	var args CmdLineArgs
-	logger := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	logger, err := bringauto_prerequisites.CreateAndInitialize[bringauto_log.Logger](time.Now(), "./log")
+	if err != nil {
+		panic(fmt.Errorf("cannot initialize Logger - %w", err))
+	}
 
 	args.InitFlags()
 	err = args.ParseArgs(os.Args)
 	if err != nil {
 		logger.Error("Can't parse cmd line arguments - %s", err)
-		return
+		os.Exit(bringauto_error.CMD_LINE_ERROR)
 	}
 	bringauto_process.SignalHandlerRegisterSignal(syscall.SIGINT)
 
@@ -26,7 +30,7 @@ func main() {
 		err = BuildDockerImage(&args.BuildImagesArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build Docker image: %s", err)
-			return
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}
@@ -35,7 +39,7 @@ func main() {
 		err = BuildPackage(&args.BuildPackageArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build package: %s", err)
-			return
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}
@@ -43,15 +47,15 @@ func main() {
 		err = BuildApp(&args.BuildAppArgs, *args.Context)
 		if err != nil {
 			logger.Error("Failed to build App: %s", err)
-			return
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}
 	if args.CreateSysroot {
 		err = CreateSysroot(&args.CreateSysrootArgs, *args.Context)
 		if err != nil {
-			logger.Error("Failed to create sys: %s", err)
-			return
+			logger.Error("Failed to create sysroot: %s", err)
+			os.Exit(bringauto_error.GetReturnCode(err))
 		}
 		return
 	}

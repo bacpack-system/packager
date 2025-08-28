@@ -36,7 +36,10 @@ type SFTP struct {
 func (sftpd *SFTP) DownloadDirectory() error {
 	var err error
 
-	tar := bringauto_prerequisites.CreateAndInitialize[Tar](archiveName, bringauto_const.DockerInstallDirConst)
+	tar, err := bringauto_prerequisites.CreateAndInitialize[Tar](archiveName, bringauto_const.DockerInstallDirConst)
+	if err != nil {
+		return fmt.Errorf("cannot initialize Tar - %w", err)
+	}
 
 	shellEvaluator := ShellEvaluator{
 		Commands: tar.ConstructCMDLine(),
@@ -46,13 +49,13 @@ func (sftpd *SFTP) DownloadDirectory() error {
 	err = shellEvaluator.RunOverSSH(*sftpd.SSHCredentials)
 
 	if err != nil {
-		return fmt.Errorf("cannot archive %s dir in docker container - %s", bringauto_const.DockerInstallDirConst, err)
+		return fmt.Errorf("cannot archive %s dir in docker container - %w", bringauto_const.DockerInstallDirConst, err)
 	}
 
 	sshSession := SSHSession{}
 	err = sshSession.LoginMultipleAttempts(*sftpd.SSHCredentials)
 	if err != nil {
-		return fmt.Errorf("SFTP DownloadDirectory error - %s", err)
+		return fmt.Errorf("SFTP DownloadDirectory error - %w", err)
 	}
 
 	sftpClient, err := sftp.NewClient(sshSession.sshClient,
@@ -62,7 +65,7 @@ func (sftpd *SFTP) DownloadDirectory() error {
 		sftp.MaxPacket(1<<15),
 	)
 	if err != nil {
-		return fmt.Errorf("SFTP DownloadDirectory problem - %s", err)
+		return fmt.Errorf("SFTP DownloadDirectory problem - %w", err)
 	}
 	defer sftpClient.Close()
 
@@ -80,7 +83,7 @@ func (sftpd *SFTP) DownloadDirectory() error {
 
 	err = sftpd.copyFile(sftpClient, sftpd.RemoteDir+archiveNameSep, localArchivePath)
 	if err != nil {
-		return fmt.Errorf("cannot copy recursive %s", err)
+		return fmt.Errorf("cannot copy recursive  - %w", err)
 	}
 
 	tarArchive := archiver.Tar{
@@ -92,12 +95,12 @@ func (sftpd *SFTP) DownloadDirectory() error {
 
 	err = tarArchive.Unarchive(localArchivePath, sftpd.EmptyLocalDir)
 	if err != nil {
-		return fmt.Errorf("cannot unarchive tar archive locally - %s", err)
+		return fmt.Errorf("cannot unarchive tar archive locally - %w", err)
 	}
 
 	err = os.Remove(localArchivePath)
 	if err != nil {
-		return fmt.Errorf("cannot remove local archive %s: %s", localArchivePath, err)
+		return fmt.Errorf("cannot remove local archive %s - %w", localArchivePath, err)
 	}
 
 	return nil
@@ -109,13 +112,13 @@ func (sftpd *SFTP) copyFile(sftpClient *sftp.Client, remoteFile string, localDir
 	if os.IsNotExist(err) {
 		return fmt.Errorf("requested remote file %s does not exist", remoteFile)
 	} else if err != nil {
-		return fmt.Errorf("error retrieving %s remote file info: %s", remoteFile, err)
+		return fmt.Errorf("error retrieving %s remote file info - %w", remoteFile, err)
 	}
 
 	normalizedLocalDir, _ := normalizePath(localDir)
 	sourceFile, err := sftpClient.Open(remoteFile)
 	if err != nil {
-		return fmt.Errorf("cannot open file for read - %s,%s", remoteFile, err)
+		return fmt.Errorf("cannot open file %s for read - %w", remoteFile, err)
 	}
 	destFile, err := os.OpenFile(normalizedLocalDir, os.O_RDWR|os.O_CREATE, remotePathStat.Mode().Perm())
 	if err != nil {
@@ -132,21 +135,21 @@ func copyIOFile(sourceFile *sftp.File, destFile *os.File) error {
 	var err error
 	_, err = io.Copy(destFileBuff, sourceFileBuff)
 	if err != nil {
-		return fmt.Errorf("cannot copy remote IO files: %s", err)
+		return fmt.Errorf("cannot copy remote IO files - %w", err)
 	}
 
 	err = destFileBuff.Flush()
 	if err != nil {
-		return fmt.Errorf("cannot flush destination buffer: %s", err)
+		return fmt.Errorf("cannot flush destination buffer - %w", err)
 	}
 
 	err = destFile.Close()
 	if err != nil {
-		return fmt.Errorf("cannot close destination file: %s", err)
+		return fmt.Errorf("cannot close destination file - %w", err)
 	}
 	err = sourceFile.Close()
 	if err != nil {
-		return fmt.Errorf("cannot close source file: %s", err)
+		return fmt.Errorf("cannot close source file - %w", err)
 	}
 	return nil
 }

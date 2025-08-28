@@ -1,11 +1,14 @@
 package bringauto_package
 
 import (
+	"github.com/acobaugh/osrelease"
 	"bringauto/modules/bringauto_docker"
+	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_prerequisites"
 	"bringauto/modules/bringauto_process"
 	"bringauto/modules/bringauto_ssh"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -23,6 +26,8 @@ const (
 	ModeExplicit PlatformStringMode = "explicit"
 	// ModeAuto compute platform string automatically by lsb_release and uname
 	ModeAuto = "auto"
+	osReleaseFileName = "os-release"
+	osReleaseFilePath = "/etc/" + osReleaseFileName
 )
 
 // PlatformString represents standard platform string
@@ -128,9 +133,15 @@ func (pstr *PlatformString) determinePlatformString(credentials bringauto_ssh.SS
 	if err != nil {
 		return err
 	}
+	credentials.Port = docker.Port
 
-	pstr.String.DistroName = getDistributionName(credentials)
-	pstr.String.DistroRelease = getReleaseVersion(credentials)
+	distroName, distroRelease := getDistroIdAndReleaseFromDockerContainer(docker)
+	if distroName == "" || distroRelease == "" {
+		return fmt.Errorf("can't get distro name and id from os-release file")
+	}
+
+	pstr.String.DistroName = distroName
+	pstr.String.DistroRelease = distroRelease
 	switch pstr.Mode {
 	case ModeAuto:
 		pstr.String.Machine = getSystemArchitecture(credentials)
@@ -158,7 +169,7 @@ func runShellCommandOverSSH(credentials bringauto_ssh.SSHCredentials, command st
 
 	commandStdOut, err := commandSsh.RunCommandOverSSH(credentials)
 	if err != nil {
-		panic(fmt.Errorf("cannot run command '%s', error: %s", command, err))
+		panic(fmt.Errorf("cannot run command '%s' - %w", command, err))
 	}
 	return commandStdOut
 }
@@ -171,20 +182,33 @@ func stripNewline(str string) string {
 	return regexp.FindString(str)
 }
 
-func getDistributionName(credentials bringauto_ssh.SSHCredentials) string {
-	distroNameLSBRelease := runShellCommandOverSSH(credentials, "lsb_release -is 2> /dev/null")
-	distroName := strings.ToLower(stripNewline(distroNameLSBRelease))
-	return distroName
-}
-func getReleaseVersion(credentials bringauto_ssh.SSHCredentials) string {
-	releaseVersionLSBRelease := runShellCommandOverSSH(credentials, "lsb_release -rs 2> /dev/null")
-	releaseVersion := strings.ToLower(stripNewline(releaseVersionLSBRelease))
-	return releaseVersion
-}
-
 func getSystemArchitecture(credentials bringauto_ssh.SSHCredentials) string {
 	machineUname := runShellCommandOverSSH(credentials, "uname -m")
 	machine := strings.ToLower(stripNewline(machineUname))
 	machine = strings.Replace(machine, "_", "-", -1)
 	return machine
+}
+
+// copyOsReleaseAndGetFileLines
+// Copies os-release file from docker container, opens it, parses its content and return Distro id
+// and release version. 
+func getDistroIdAndReleaseFromDockerContainer(docker *bringauto_docker.Docker) (string, string) {
+	logger := bringauto_log.GetLogger()
+
+	dockerCopy := (*bringauto_docker.DockerCopy)(docker)
+
+	err := dockerCopy.Copy(osReleaseFilePath, ".")
+	if err != nil {
+		logger.Error("Can't copy os-release file from docker container - %s", err)
+		return "", ""
+	}
+	defer os.Remove(osReleaseFileName)
+
+	osRelease, err := osrelease.ReadFile(osReleaseFileName)
+	if err != nil {
+		logger.Error("Can't parse os-release file - %s", err)
+		return "", ""
+	}
+
+	return osRelease["ID"], osRelease["VERSION_ID"]
 }

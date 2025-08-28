@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"os"
 	"bytes"
+	"strconv"
 )
 
 const (
+	sshPort = 22
 	defaultImageNameConst = "unknown"
 )
 
@@ -17,9 +19,8 @@ const (
 type Docker struct {
 	// ImageName - tag or image hash
 	ImageName string
-	// Ports mapping between host and container
-	// in manner map[int]int { <host>:<container> }
-	Ports map[int]int `json:"-"`
+	// Used port
+	Port uint16
 	// Volumes map a host directory (represented by absolute path)
 	// to the directory inside the docker container
 	// in manner map[string]string { <host_volume_abs_path>:<> }
@@ -31,6 +32,7 @@ type Docker struct {
 
 type dockerInitArgs struct {
 	ImageName string
+	Port uint16
 }
 
 func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
@@ -38,9 +40,7 @@ func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
 		Volumes:     map[string]string{},
 		RunAsDaemon: true,
 		ImageName:   defaultImageNameConst,
-		Ports: map[int]int{
-			bringauto_const.DefaultSSHPort: 22,
-		},
+		Port: bringauto_const.DefaultSSHPort,
 	}
 	return nil
 }
@@ -48,9 +48,13 @@ func (docker *Docker) FillDefault(*bringauto_prerequisites.Args) error {
 func (docker *Docker) FillDynamic(args *bringauto_prerequisites.Args) error {
 	var argsStruct dockerInitArgs
 	bringauto_prerequisites.GetArgs(args, &argsStruct)
+	if bringauto_prerequisites.IsEmpty(args) {
+		return nil
+	}
 	if argsStruct.ImageName != "" {
 		docker.ImageName = argsStruct.ImageName
 	}
+	docker.Port = argsStruct.Port
 	return nil
 }
 
@@ -58,36 +62,28 @@ func (docker *Docker) FillDynamic(args *bringauto_prerequisites.Args) error {
 // It checks if the docker is installed and can be run by given user.
 // Function returns nil if Docker installation is ok, not nil of the problem is recognized
 func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
-	portAvailable, err := IsDefaultPortAvailable()
+	err := checkIfDockerIsUsable()
+	if err != nil {
+		return fmt.Errorf(
+			"Docker cannot be used, it is not installed, the Docker daemon is not running " +
+			"or current user is not in Docker group - %w", err,
+		)
+	}
+	portAvailable, err := isPortAvailable(docker.Port)
 	if err != nil {
 		return err
 	} else if !portAvailable {
-		return fmt.Errorf("default port %d not available", bringauto_const.DefaultSSHPort)
-	}
-	var outBuff bytes.Buffer
-	process := bringauto_process.Process{
-		CommandAbsolutePath: DockerExecutablePathConst,
-		Args: bringauto_process.ProcessArgs{
-			ExtraArgs: &[]string{
-				"images",
-				"-q",
-				docker.ImageName,
-			},
-		},
-		StdOut: &outBuff,
-	}
-	err = process.Run()
-	if err != nil {
-		return err
+		return fmt.Errorf("port %d not available", docker.Port)
 	}
 
-	if outBuff.Len() == 0 {
-		return fmt.Errorf("image %s does not exist", docker.ImageName)
+	err = checkForImageExistence(docker.ImageName)
+	if err != nil {
+		return err
 	}
 
 	for hostVolume, _ := range docker.Volumes {
 		if _, err = os.Stat(hostVolume); os.IsNotExist(err) {
-			return fmt.Errorf("connot mount non existent directory as volume: '%s'", hostVolume)
+			return fmt.Errorf("cannot mount non existent directory as volume: '%s'", hostVolume)
 		}
 	}
 
@@ -95,11 +91,90 @@ func (docker *Docker) CheckPrerequisites(*bringauto_prerequisites.Args) error {
 }
 
 // SetVolume set volume mapping for a Docker container.
-// It's not possible to overwrite volume mapping that already exists (panic occure)
-func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string) {
+// It's not possible to overwrite volume mapping that already exists
+func (docker *Docker) SetVolume(hostDirectory string, containerDirectory string) error {
 	_, hostFound := docker.Volumes[hostDirectory]
 	if hostFound {
-		panic(fmt.Errorf("volume mapping is already set: '%s' --> '%s'", hostDirectory, containerDirectory))
+		return fmt.Errorf("volume mapping is already set: '%s' --> '%s'", hostDirectory, containerDirectory)
 	}
 	docker.Volumes[hostDirectory] = containerDirectory
+
+	return nil
+}
+
+// checkIfDockerIsUsable
+// Checks if the Docker can be used. If not, returns error, else nil.
+func checkIfDockerIsUsable() error {
+	var errBuff bytes.Buffer
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"info",
+			},
+		},
+		StdErr: &errBuff,
+	}
+
+	err := process.Run()
+	if err != nil {
+		return fmt.Errorf(errBuff.String())
+	}
+	return nil	
+}
+
+// checkForImageExistence
+// Checks if the Docker image exists. If not, returns error, else nil.
+func checkForImageExistence(imageName string) error {
+	var outBuff bytes.Buffer
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"images",
+				"-q",
+				imageName,
+			},
+		},
+		StdOut: &outBuff,
+	}
+	err := process.Run()
+	if err != nil {
+		return err
+	}
+
+	if outBuff.Len() == 0 {
+		return fmt.Errorf("image %s does not exist", imageName)
+	}
+	return nil
+}
+
+// isPortAvailable
+// Returns true if port for docker is available, else returns false.
+// When false is returned, the error contains message from the docker command.
+func isPortAvailable(port uint16) (bool, error) {
+	var outBuff, errBuff bytes.Buffer
+
+	process := bringauto_process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: bringauto_process.ProcessArgs{
+			ExtraArgs: &[]string{
+				"container",
+				"ls",
+				"--filter",
+				"publish=" + strconv.Itoa(int(port)),
+				"--format",
+				"{{.ID}}{{.Ports}}",
+			},
+		},
+		StdOut: &outBuff,
+		StdErr: &errBuff,
+	}
+
+	err := process.Run()
+	if err != nil {
+		return false, fmt.Errorf(errBuff.String())
+	}
+
+	return outBuff.Len() == 0, nil
 }

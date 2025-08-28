@@ -19,44 +19,44 @@ const (
 func SetupPackageFiles() error {
 	err := os.Mkdir(Pack1Name, 0755)
 	if err != nil {
-		return fmt.Errorf("failed to create a directory - %s", err)
+		return fmt.Errorf("failed to create a directory - %w", err)
 	}
 	err = os.Mkdir(Pack2Name, 0755)
 	if err != nil {
-		return fmt.Errorf("failed to create a directory - %s", err)
+		return fmt.Errorf("failed to create a directory - %w", err)
 	}
 	err = os.Mkdir(Pack3Name, 0755)
 	if err != nil {
-		return fmt.Errorf("failed to create a directory - %s", err)
+		return fmt.Errorf("failed to create a directory - %w", err)
 	}
 
 	file1, err := os.Create(filepath.Join(Pack1Name, Pack1FileName))
 	if err != nil {
-		return fmt.Errorf("failed to create a file - %s", err)
+		return fmt.Errorf("failed to create a file - %w", err)
 	}
 	defer file1.Close()
 	file2, err := os.Create(filepath.Join(Pack2Name, Pack2FileName))
 	if err != nil {
-		return fmt.Errorf("failed to create a file - %s", err)
+		return fmt.Errorf("failed to create a file - %w", err)
 	}
 	defer file2.Close()
 	file3, err := os.Create(filepath.Join(Pack3Name, Pack3FileName))
 	if err != nil {
-		return fmt.Errorf("failed to create a file - %s", err)
+		return fmt.Errorf("failed to create a file - %w", err)
 	}
 	defer file3.Close()
 
 	_, err = file1.WriteString("file1 content")
 	if err != nil {
-		return fmt.Errorf("failed to write to file - %s", err)
+		return fmt.Errorf("failed to write to file - %w", err)
 	}
 	_, err = file2.WriteString("file2 content")
 	if err != nil {
-		return fmt.Errorf("failed to write to file - %s", err)
+		return fmt.Errorf("failed to write to file - %w", err)
 	}
 	_, err = file3.WriteString("file3 content")
 	if err != nil {
-		return fmt.Errorf("failed to write to file - %s", err)
+		return fmt.Errorf("failed to write to file - %w", err)
 	}
 
 	return nil

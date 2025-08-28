@@ -66,7 +66,7 @@ func (session *SSHSession) LoginMultipleAttempts(credentials SSHCredentials) err
 		}
 
 		if numberOfAttempts >= numberObConnectionAttemptsConst {
-			return fmt.Errorf("cannot connect to docker container over ssh - %s", err)
+			return fmt.Errorf("cannot connect to docker container over ssh - %w", err)
 		} else {
 			numberOfAttempts += 1
 			time.Sleep(waitingInSecondsBeforeRetryConst * time.Second)
@@ -185,9 +185,12 @@ func (session *SSHSession) SetEnvironment(envMap map[string]string) error {
 // It runs a given command on the remote machine.
 //
 func (session *SSHSession) Run(command string) error {
+	if !session.IsLoggedIn() {
+		return fmt.Errorf("cannot run for not active session")
+	}
 	err := session.sshSession.Run(command)
 	if err != nil {
-		return fmt.Errorf("problem while executing program %s", err)
+		return fmt.Errorf("problem while executing program - %w", err)
 	}
 	return nil
 }
@@ -199,7 +202,7 @@ func (session *SSHSession) Run(command string) error {
 func (session *SSHSession) Start(command string) error {
 	err := session.sshSession.Start(command)
 	if err != nil {
-		return fmt.Errorf("problem while executing program %s", err)
+		return fmt.Errorf("problem while executing program - %w", err)
 	}
 	return nil
 }

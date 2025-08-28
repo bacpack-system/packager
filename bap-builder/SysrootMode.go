@@ -7,6 +7,7 @@ import (
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
 	"bringauto/modules/bringauto_repository"
+	"bringauto/modules/bringauto_error"
 	"fmt"
 	"io"
 	"os"
@@ -28,7 +29,7 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 		return err
 	}
 	if !dirEmpty {
-		return fmt.Errorf("given sysroot directory is not empty")
+		return fmt.Errorf("%w - given sysroot directory is not empty", bringauto_error.CreatingSysrootErr)
 	}
 
 	repo := bringauto_repository.GitLFSRepository{
@@ -38,28 +39,35 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 	if err != nil {
 		return err
 	}
-	platformString, err := determinePlatformString(*cmdLine.ImageName)
+	platformString, err := determinePlatformString(*cmdLine.ImageName, uint16(*cmdLine.Port))
 	if err != nil {
 		return err
 	}
+	logger := bringauto_log.GetLogger()
+
 	contextManager := bringauto_context.ContextManager{
 		ContextPath: contextPath,
+		ForPackage: true,
 	}
-	logger := bringauto_log.GetLogger()
+	err = bringauto_prerequisites.Initialize(&contextManager)
+	if err != nil {
+		logger.Error("Context consistency error - %s", err)
+		return bringauto_error.ContextErr
+	}
 	logger.Info("Checking Git Lfs directory consistency")
 	err = repo.CheckGitLfsConsistency(&contextManager, platformString, *cmdLine.ImageName)
 	if err != nil {
-		return err
+		return bringauto_error.GitLfsErr
 	}
 	packages, err := contextManager.GetAllPackagesStructs(platformString)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
 	}
 
 	logger.Info("Creating sysroot directory from packages")
 	err = unzipAllPackagesToDir(packages, &repo, *cmdLine.Sysroot)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
 	}
 
 	return nil
@@ -93,8 +101,7 @@ func unzipAllPackagesToDir(packages []bringauto_package.Package, repo *bringauto
 		}
 	}
 	if !anyPackageCopied {
-		logger := bringauto_log.GetLogger()
-		logger.Warn("No package from context is in Git Lfs, so nothing copied to sysroot")
+		return fmt.Errorf("no package from Context is in Git Lfs, so nothing copied to sysroot")
 	}
 
 	return nil

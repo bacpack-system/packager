@@ -4,6 +4,7 @@ import (
 	"bringauto/modules/bringauto_log"
 	"bringauto/modules/bringauto_package"
 	"bringauto/modules/bringauto_prerequisites"
+	"bringauto/modules/bringauto_error"
 	"fmt"
 	"github.com/otiai10/copy"
 	"os"
@@ -42,10 +43,6 @@ func (sysroot *Sysroot) FillDynamic(*bringauto_prerequisites.Args) error {
 func (sysroot *Sysroot) CheckPrerequisites(args *bringauto_prerequisites.Args) error {
 	if sysroot.PlatformString == nil {
 		return fmt.Errorf("sysroot PlatformString cannot be nil")
-	}
-	err := sysroot.builtPackages.UpdateBuiltPackages()
-	if err != nil {
-		return err
 	}
 	return nil
 }
@@ -98,7 +95,7 @@ func (sysroot *Sysroot) checkForOverwritingFiles(dirPath string) error {
 	}
 	if len(intersection) > 0 {
 		sysroot.printOverwriteFilesError(intersection, listFilesCount)
-		return fmt.Errorf("trying to overwrite files in sysroot")
+		return bringauto_error.OverwriteFileInSysrootErr
 	}
 	return nil
 }
@@ -132,7 +129,7 @@ func (sysroot *Sysroot) GetDirNameInSysroot() string {
 func (sysroot *Sysroot) GetSysrootPath() string {
 	workingDir, err := os.Getwd()
 	if err != nil {
-		panic(fmt.Errorf("cannot call Getwd - %s", err))
+		panic(fmt.Errorf("cannot call Getwd - %w", err))
 	}
 
 	dirInSysrootName := sysroot.GetDirNameInSysroot()
