@@ -35,7 +35,7 @@ To run tests with additional options, you can use the following flags:
 - `-v`: Show verbose output.
 - `-k <expression>`: Run only tests that match the provided expression.
 - `--collect-only`: List all test cases.
-- `--image <image>`: Specify the Docker image to use for testing. If not provided, the `fedora41` image is used. To use all available images, specify the `all` option.
+- `--image <image>`: Specify the Docker image to use for testing. If not provided, the `fedora40` image is used. To use all available images, specify the `all` option.
 - `--remove_images`: Remove the Docker images before running the tests to ensure a clean environment.
 
 Example:
