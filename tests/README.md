@@ -1,13 +1,5 @@
 # Tests documentation
 
-## TODO
-
-- [ ] Add test documentation
-- [ ] Test if docker remove works
-- [ ] remove dependency on port 1122
-- [ ] check repo consistency on the start of process
-- [ ] error log when package is not supported
-
 ## Requirements
 
 The tests share the same requirements as the program itself and additionally depend on standard Linux utilities and Python 3. Written in Python, they leverage pytest for execution. It is recommended to use a virtual environment for managing Python dependencies.
@@ -63,7 +55,3 @@ To list all test cases, use the following command:
 ```bash
 pytest --collect-only
 ```
-
-## Packager tests
-
-### 1. Test suite
