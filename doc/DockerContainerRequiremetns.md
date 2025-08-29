@@ -17,15 +17,11 @@ Each image that we can use for build our dependencies
 
 - Standard `bash` utility must be installed and reachable for user `root`
 
-## lsb_release and uname
+## os-release and uname
 
-`lsb_release` and `uname` are used to construct platform string.
+`/etc/os-release` file and `uname` are used to construct platform string.
 
-`lsb_release` must support
-
-- `-s` - short print that is easily parsable by machine
-- `-r` - release version (for Debian 11 it prints "11" if used with `-s` switch)
-- `-i` - distribution ID (for Debian it prints "Debian" if used with `-s` switch)
+`/etc/os-release` must include `ID` and `VERSION_ID` fields.
 
 `uname` must support
 
@@ -34,4 +30,4 @@ Each image that we can use for build our dependencies
 # Host system
 
 Docker container forward port 22 of the sshd daemon in the container to the
-port 1122 of the host system.
+specified port (1122 by default) of the host system.
