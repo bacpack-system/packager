@@ -133,7 +133,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
         packager_binary,
         "create-sysroot",
         context=context,
-        image_name="ubuntu2204",
+        image_name="ubuntu2404",
         sysroot_dir=test_sysroot,
         git_lfs=test_repo,
         expected_result=False,
