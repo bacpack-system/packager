@@ -82,13 +82,19 @@ func (config *Config) SaveToJSONConfig(configPath string) error {
 
 // Returns array of builds structs for specific image name. The returned array will contain max one build.
 // It is an array for simple handling of result using for loop.
-func (config *Config) GetBuildStructure(imageName string, platformString *bringauto_package.PlatformString, dockerPort uint16) ([]bringauto_build.Build, error) {
+func (config *Config) GetBuildStructure(
+	imageName      string,
+	platformString *bringauto_package.PlatformString,
+	dockerPort     uint16,
+	useLocalRepo   bool,
+	repoPath       string,
+) ([]bringauto_build.Build, error) {
 	var buildConfigs []bringauto_build.Build
 	for _, value := range config.DockerMatrix.ImageNames {
 		if imageName != "" && imageName != value {
 			continue
 		}
-		build, err := config.fillBuildStructure(imageName, platformString, dockerPort)
+		build, err := config.fillBuildStructure(imageName, platformString, dockerPort, useLocalRepo, repoPath)
 		if err != nil {
 			return []bringauto_build.Build{}, err
 		}
@@ -108,11 +114,23 @@ func (config *Config) GetBuildStructure(imageName string, platformString *bringa
 
 // fillBuildStructure
 // Fills and returns Build structure.
-func (config *Config) fillBuildStructure(dockerImageName string, platformString *bringauto_package.PlatformString, dockerPort uint16) (bringauto_build.Build, error) {
+func (config *Config) fillBuildStructure(
+	dockerImageName string,
+	platformString  *bringauto_package.PlatformString,
+	dockerPort      uint16,
+	useLocalRepo    bool,
+	repoPath        string,
+) (bringauto_build.Build, error) {
 	var err error
 	defaultDocker, err := bringauto_prerequisites.CreateAndInitialize[bringauto_docker.Docker](dockerImageName, dockerPort)
 	if err != nil {
 		return bringauto_build.Build{}, err
+	}
+	if useLocalRepo {
+		err := defaultDocker.SetVolume(repoPath, bringauto_const.ContainerPackageRepoPath)
+		if err != nil {
+			return bringauto_build.Build{}, err
+		}
 	}
 
 	env := &bringauto_build.EnvironmentVariables{
@@ -153,6 +171,7 @@ func (config *Config) fillBuildStructure(dockerImageName string, platformString 
 		Package:      &tmpPackage,
 		BuiltPackage: builtPackage,
 		Docker:       defaultDocker,
+		UseLocalRepo: useLocalRepo,
 	}
 
 	return build, nil

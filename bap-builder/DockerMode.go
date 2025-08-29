@@ -31,7 +31,7 @@ func BuildDockerImage(cmdLine *BuildImageCmdLineArgs, contextPath string) error 
 	if err != nil {
 		return err
 	}
-	return buildSingleDockerImage(*cmdLine.Name, dockerfilePath)
+	return buildSingleDockerImage(*cmdLine.Name, dockerfilePath, contextPath)
 }
 
 // buildAllDockerImages
@@ -42,7 +42,7 @@ func buildAllDockerImages(contextManager bringauto_context.ContextManager) error
 	dockerfilePathList := contextManager.GetAllImagesDockerfilePaths()
 
 	for imageName, dockerfilePath := range dockerfilePathList {
-		err := buildSingleDockerImage(imageName, dockerfilePath)
+		err := buildSingleDockerImage(imageName, dockerfilePath, contextManager.ContextPath)
 		if err != nil {
 			return err
 		}
@@ -53,12 +53,13 @@ func buildAllDockerImages(contextManager bringauto_context.ContextManager) error
 // buildSingleDockerImage
 // builds a single docker image specified by an image name and a path to Dockerfile.
 //
-func buildSingleDockerImage(imageName string, dockerfilePath string) error {
+func buildSingleDockerImage(imageName string, dockerfilePath string, contextPath string) error {
 	logger := bringauto_log.GetLogger()
 	dockerfileDir := path.Dir(dockerfilePath)
 	dockerBuild := bringauto_docker.DockerBuild{
 		DockerfileDir: dockerfileDir,
 		Tag:           imageName,
+		Context:       contextPath,
 	}
 	logger.Info("Build Docker Image: %s", imageName)
 

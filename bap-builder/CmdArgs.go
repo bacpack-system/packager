@@ -55,6 +55,8 @@ type BuildAppCmdLineArgs struct {
 	OutputDir *string
 	// Port for Docker container
 	Port *int
+	// Use local Package Repository inside docker container
+	UseLocalRepo *bool
 }
 
 // CreateSysrootCmdLineArgs
@@ -201,6 +203,15 @@ func (cmd *CmdLineArgs) InitFlags() {
 			Help: "Docker image name for which the Apps will be build. " +
 			"Only Apps that contains image-name in the DockerMatrix will be built. " +
 			"Given Apps will be build by toolchain represented by image-name",
+		},
+	)
+	cmd.BuildAppArgs.UseLocalRepo = cmd.buildAppParser.Flag("", "use-local-repo",
+		&argparse.Options{
+			Required: false,
+			Help: "The build of Apps will use local Package Repository instead of " +
+			"upstream. The same Package Repository from output-dir option will be " +
+			"used. All needed dependencies required by the App's CMakeLists must " +
+			"be present in this Package Repository or the build will fail.",
 		},
 	)
 	cmd.BuildAppArgs.Port = cmd.buildAppParser.Int("p", "port",

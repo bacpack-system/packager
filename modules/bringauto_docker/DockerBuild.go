@@ -13,6 +13,8 @@ type DockerBuild struct {
 	DockerfileDir string
 	// tag which will be used to tag image after build
 	Tag string
+	// build context
+	Context string
 }
 
 // Build given docker image
@@ -65,6 +67,10 @@ func prepareBuildArgs(dockerBuild *DockerBuild) []string {
 	cmdArgs = append(cmdArgs, dockerBuild.DockerfileDir)
 	if dockerBuild.DockerfileDir != "" {
 		cmdArgs = append(cmdArgs, "--tag", dockerBuild.Tag)
+	}
+
+	if dockerBuild.Context != "" {
+		cmdArgs = append(cmdArgs, "--build-context", "package-context=" + dockerBuild.Context)
 	}
 	return cmdArgs
 }
