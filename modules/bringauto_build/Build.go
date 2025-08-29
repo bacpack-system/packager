@@ -135,7 +135,9 @@ func (build *Build) performPreBuildTasks(shellEvaluator *bringauto_ssh.ShellEval
 
 	err = shellEvaluator.RunOverSSH(*build.SSHCredentials)
 	if err != nil {
-		return fmt.Errorf("failed to prepare git repository for Package, check the log file")
+		logger := bringauto_log.GetLogger()
+		logger.Error("Failed to clone or checkout git repository, check the log file, is the git URI and revision correct?")
+		return err
 	}
 
 	return nil

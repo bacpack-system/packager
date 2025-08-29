@@ -62,7 +62,6 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	}
 	dockerRun := (*bringauto_docker.DockerRun)(docker)
 
-	dockerRun.Ports = nil
 	dockerRun.RunAsDaemon = true
 
 	validCmdLine := []string{
@@ -81,9 +80,7 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 		return
 	}
 
-	dockerRun.Ports = map[int]int{
-		1212: 125,
-	}
+	dockerRun.Port = 1212
 	validCmdLine = validCmdLine[:len(validCmdLine)-1]
 	validCmdLine = append(validCmdLine, "-p", "1212:125", dockerRun.ImageName)
 	cmdLine, err = dockerRun.GenerateCmdLine()

@@ -103,6 +103,20 @@ func (session *SSHSession) Login(credentials SSHCredentials) error {
 		return fmt.Errorf("cannot create new SSH session")
 	}
 
+	modes := ssh.TerminalModes{
+		ssh.ECHO:          0,     // disable echoing
+		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
+		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
+	}
+
+	if err := sshSession.RequestPty("xterm", 80, 40, modes); err != nil {
+		err = sshSession.Close()
+		if err != nil {
+			return fmt.Errorf("tty request failed + cannot close session")
+		}
+		return fmt.Errorf("cannot request tty")
+	}
+
 	if session.StdIn != nil {
 		stdin, err := sshSession.StdinPipe()
 		if err != nil {

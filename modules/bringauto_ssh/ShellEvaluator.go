@@ -83,7 +83,7 @@ func (shell *ShellEvaluator) RunOverSSH(credentials SSHCredentials) error {
 
 	raw := shell.getEnvStr() + shell.getPreparingCommandStr() + shell.getCommandStr()
 	safe := strings.ReplaceAll(raw, "'", "'\\''") // Escaping all single quotes
-	cmdStr := "bash -c '" + safe + "'"
+	cmdStr := "bash -li -c '" + safe + "'"
 
 	err = session.Run(cmdStr)
 	if err != nil {
