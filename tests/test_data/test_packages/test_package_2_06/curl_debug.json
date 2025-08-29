@@ -1,0 +1,36 @@
+{
+  "Env": {},
+  "DependsOn": [
+    "test_package_1_06"
+  ],
+  "Git": {
+    "URI": "https://github.com/curl/curl.git",
+    "Revision": "curl-7_79_1"
+  },
+  "Build": {
+    "CMake": {
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  },
+  "Package": {
+    "Name": "test_package_2_06",
+    "VersionTag": "v7.79.1",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": true,
+    "IsDevLib": true,
+    "IsDebug": true
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "fleet-os-2",
+      "debian12",
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}

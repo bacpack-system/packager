@@ -5,8 +5,8 @@ RUN echo root:1234 | chpasswd
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    binutils build-essential flex git libssl-dev lsb-release make \
-    openssh-server patchelf software-properties-common wget libmpfr-dev libmpc-dev libgmp-dev flex  && \
+    binutils build-essential flex git libssl-dev lsb-release make pkg-config \
+    openssh-server patchelf software-properties-common wget libmpfr-dev libmpc-dev libgmp-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth=1 --single-branch --branch=releases/gcc-13.2.0 https://gcc.gnu.org/git/gcc.git /gcc && \

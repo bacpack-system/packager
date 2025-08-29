@@ -66,7 +66,7 @@ Packager. More information about Apps is in [UseCaseScenarios](./doc/UseCaseScen
 2. Build Docker image needed for the build:
 
     ```bash
-    bap-builder build-image --context ./example --name debian12
+    bap-builder build-image --context ./example --image-name debian12
     ```
 
 3. Build all Packages for the given distro:

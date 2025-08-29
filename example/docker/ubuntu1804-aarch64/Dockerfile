@@ -5,7 +5,7 @@ RUN echo root:1234 | chpasswd
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      build-essential make libssl-dev coreutils lsb-release wget g++-8 gcc-8 gcc-8-aarch64-linux-gnu g++-8-aarch64-linux-gnu patchelf unzip openssh-server git && \
+      build-essential make libssl-dev pkg-config coreutils lsb-release wget g++-8 gcc-8 gcc-8-aarch64-linux-gnu g++-8-aarch64-linux-gnu patchelf unzip openssh-server git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
