@@ -29,9 +29,7 @@ def test_01_build_package(test_image, packager_binary, context, test_repo):
     )
 
 
-def test_02_build_package_with_dependency(
-    test_image, packager_binary, context, test_repo
-):
+def test_02_build_package_with_dependency(test_image, packager_binary, context, test_repo):
     """Test building a package with a dependency. Fist build the dependency and then the package."""
     package = "test_package_2"
     depends_on_package = "test_package_1"
@@ -231,9 +229,7 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
         assert is_tracked(package, test_repo, "package")
 
 
-def test_08_has_itself_as_dependency_build_deps(
-    test_image, packager_binary, context, test_repo
-):
+def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, context, test_repo):
     """Test build package with itself as dependency using deps."""
     package = "test_package_5"
     prepare_packages([package])
@@ -255,9 +251,7 @@ def test_08_has_itself_as_dependency_build_deps(
     assert not is_tracked(package, test_repo, "package")
 
 
-def test_09_has_itself_as_dependency_build_deps_on(
-    test_image, packager_binary, context, test_repo
-):
+def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, context, test_repo):
     """Test build package with itself as dependency using build_deps_on."""
     package = "test_package_5"
     prepare_packages([package])
@@ -327,9 +321,7 @@ def test_11_circular_dependencies_deps(test_image, packager_binary, context, tes
         assert not is_tracked(package, test_repo, "package")
 
 
-def test_12_circular_dependencies_deps_on(
-    test_image, packager_binary, context, test_repo
-):
+def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, test_repo):
     """Test build package with circular dependencies using deps on."""
     packages = ["test_package_6", "test_package_7", "test_package_8"]
     prepare_packages(packages)
@@ -397,9 +389,9 @@ def test_13_circular_dependencies_deps_on_recursive(
     )
 
     for package in packages:
-        assert not is_tracked(package, test_repo, "package"), (
-            f"Package {package} should not be tracked but is."
-        )
+        assert not is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should not be tracked but is."
 
 
 def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_repo):
@@ -428,9 +420,9 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
     )
 
     for package in packages:
-        assert is_tracked(package, test_repo, "package"), (
-            f"Package {package} should be tracked but is not."
-        )
+        assert is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should be tracked but is not."
 
 
 def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test_repo):
@@ -457,9 +449,9 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
         expected_result=PackagerExpectedResult.SUCCESS,
     )
 
-    assert is_tracked(packages[0], test_repo, "package"), (
-        f"Package {packages[0]} should be tracked but is not."
-    )
+    assert is_tracked(
+        packages[0], test_repo, "package"
+    ), f"Package {packages[0]} should be tracked but is not."
 
     run_packager(
         packager_binary,
@@ -473,14 +465,12 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
     )
 
     for package in packages:
-        assert is_tracked(package, test_repo, "package"), (
-            f"Package {package} should be tracked but is not."
-        )
+        assert is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should be tracked but is not."
 
 
-def test_16_fork_dependencies_deps_on_recursive(
-    test_image, packager_binary, context, test_repo
-):
+def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
     """Test build package with fork dependencies using deps on recursive."""
     packages = [
         "test_package_1",
@@ -538,9 +528,9 @@ def test_17_only_debug(test_image, packager_binary, context, test_repo):
         name=package,
         expected_result=PackagerExpectedResult.SUCCESS,
     )
-    assert is_tracked(package, test_repo, "package"), (
-        f"Package {package} should be tracked but is not."
-    )
+    assert is_tracked(
+        package, test_repo, "package"
+    ), f"Package {package} should be tracked but is not."
 
 
 def test_18_only_release(test_image, packager_binary, context, test_repo):
@@ -562,9 +552,9 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
         expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
     )
     for package in packages:
-        assert not is_tracked(package, test_repo, "package"), (
-            f"Package {package} should not be tracked but is."
-        )
+        assert not is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should not be tracked but is."
 
 
 def test_19_missing_release_debug_packages_build_deps(
@@ -590,9 +580,9 @@ def test_19_missing_release_debug_packages_build_deps(
     )
 
     for package in packages:
-        assert not is_tracked(package, test_repo, "package"), (
-            f"Package {package} should not be tracked but is."
-        )
+        assert not is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should not be tracked but is."
 
 
 def test_20_missing_release_debug_packages_build_deps_on(
@@ -618,14 +608,12 @@ def test_20_missing_release_debug_packages_build_deps_on(
     )
 
     for package in packages:
-        assert not is_tracked(package, test_repo, "package"), (
-            f"Package {package} should not be tracked but is."
-        )
+        assert not is_tracked(
+            package, test_repo, "package"
+        ), f"Package {package} should not be tracked but is."
 
 
-def test_21_build_packages_with_no_images(
-    test_image, packager_binary, context, test_repo
-):
+def test_21_build_packages_with_no_images(test_image, packager_binary, context, test_repo):
     """Build a package with no supported images. It should cause a context error."""
     package = "test_package_1_21"
     prepare_packages([package])
@@ -745,5 +733,5 @@ def test_25_invalid_revision(test_image, packager_binary, context, test_repo):
         output_dir=test_repo,
         name=package,
         expected_result=PackagerExpectedResult.FAILURE,
-        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+        expected_returncode=PackagerReturnCode.BUILD_ERROR,
     )

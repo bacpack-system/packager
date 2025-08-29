@@ -12,9 +12,7 @@ from test_utils.test_utils import (
 from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
 
-def test_01_create_sysroot(
-    test_image, packager_binary, context, test_repo, test_sysroot
-):
+def test_01_create_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
     """Build package and then create sysroot"""
     packages = ["test_package_1", "test_package_2"]
 
@@ -87,9 +85,7 @@ def test_02_create_sysroot_with_package_on_two_different_images(
     )
 
 
-def test_03_create_sysroot_from_empty_repo(
-    packager_binary, context, test_repo, test_sysroot
-):
+def test_03_create_sysroot_from_empty_repo(packager_binary, context, test_repo, test_sysroot):
     """Create sysroot from empty repo"""
     run_packager(
         packager_binary,
@@ -145,9 +141,7 @@ def test_04_create_sysroot_from_repo_with_packages_for_different_images(
     )
 
 
-def test_05_create_sysroot_from_all_packages(
-    packager_binary, context, test_repo, test_sysroot
-):
+def test_05_create_sysroot_from_all_packages(packager_binary, context, test_repo, test_sysroot):
     """Build all packages and create sysroot from all packages"""
     packages = [f"test_package_{i}" for i in range(1, 5)]
 
@@ -174,9 +168,7 @@ def test_05_create_sysroot_from_all_packages(
     )
 
 
-def test_06_check_data_in_sysroot(
-    test_image, packager_binary, context, test_repo, test_sysroot
-):
+def test_06_check_data_in_sysroot(test_image, packager_binary, context, test_repo, test_sysroot):
     """Check that expected files from the package are present in the created sysroot"""
     packages = ["test_package_1", "test_package_2"]
 
@@ -220,7 +212,17 @@ def test_06_check_data_in_sysroot(
         "release/include/curl/system.h",
         "release/include/curl/typecheck-gcc.h",
         "release/include/curl/urlapi.h",
-        "release/lib64/libcurl.so",
-        "release/lib64/pkgconfig/libcurl.pc",
     ]
+
+    if test_image in ["fedora40", "fedora41"]:
+        files += [
+            "release/lib64/libcurl.so",
+            "release/lib64/pkgconfig/libcurl.pc",
+        ]
+    else:
+        files += [
+            "release/lib/libcurl.so",
+            "release/lib/pkgconfig/libcurl.pc",
+        ]
+
     assert check_if_package_is_in_sysroot(test_sysroot, files)
