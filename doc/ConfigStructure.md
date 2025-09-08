@@ -2,7 +2,7 @@
 
 This document provides an example of the Config file. Note that this example does not follow the
 JSON format strictly because it contains comments and the values are just sample values. For a
-better understanding of the JSON format, check the `example/package` directory in this repository.
+better understanding of the JSON format, check the `example_context/package` directory in this repository.
 
 Not all fields are required, and some fields have default values.
 

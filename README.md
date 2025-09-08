@@ -22,9 +22,9 @@ Standalone binaries are built for Linux kernel >= 5.10.0-amd64.
 Clone the repository and, in the repository root directory, run:
 
 ```bash
-go get bringauto/bap-builder
-cd bap-builder
-go build bringauto/bap-builder
+go get bringauto/cmd/bap-builder
+cd cmd/bap-builder
+go build
 ```
 
 ## Build Standalone Binaries
@@ -66,22 +66,22 @@ Packager. More information about Apps is in [UseCaseScenarios](./doc/UseCaseScen
 2. Build Docker image needed for the build:
 
     ```bash
-    bap-builder build-image --context ./example --image-name debian12
+    bap-builder build-image --context ./example_context --image-name debian12
     ```
 
 3. Build all Packages for the given distro:
 
     ```bash
-    bap-builder build-package --context ./example --image-name debian12 --output-dir ./lfsrepo --all
+    bap-builder build-package --context ./example_context --image-name debian12 --output-dir ./lfsrepo --all
     ```
 
 4. Create sysroot for built Packages:
 
     ```bash
-    bap-builder create-sysroot --context ./example --image-name debian12 --git-lfs ./lfsrepo --sysroot-dir ./new_sysroot
+    bap-builder create-sysroot --context ./example_context --image-name debian12 --git-lfs ./lfsrepo --sysroot-dir ./new_sysroot
     ```
 
-**Note:** If you do not have `bap-builder` in your system path, you need to use `./bap-builder/bap-builder` instead of `bap-builder`.
+**Note:** If you do not have `bap-builder` in your system path, you need to use `./cmd/bap-builder/bap-builder` instead of `bap-builder`.
 
 ## Tests
 
@@ -95,9 +95,9 @@ To run unit tests, run:
 
 The detailed documentation is available in the `doc` directory.
 
-## Example
+## Example Context
 
-In the `example` directory, there is a simple example of how to track dependencies for the `example` project.
+In the `example_context` directory, there is a simple example of Package Context, which stores definitions of Packages and Docker images.
 
 ## Running multiple Packager executables on one system
 

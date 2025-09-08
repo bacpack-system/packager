@@ -5,7 +5,7 @@ Context in `docker` directory.
 
 ## Requirements
 
-The image definitions must comply with [specified requirements](./DockerContainerRequiremetns.md).
+The image definitions must comply with [specified requirements](./DockerContainerRequirements.md).
 
 ## Build context
 
