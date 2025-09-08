@@ -10,9 +10,9 @@ from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 test_config = {
     "test_data_examples": os.path.abspath("test_data/example"),
     "test_apps": os.path.abspath("test_data/example/app"),
-    "test_dockers": os.path.abspath("../example/docker"),
+    "test_dockers": os.path.abspath("../example_context/docker"),
     "test_packages": os.path.abspath("test_data/example/package"),
-    "packager_binary": os.path.abspath("../bap-builder/bap-builder"),
+    "packager_binary": os.path.abspath("../cmd/bap-builder/bap-builder"),
     "test_repo": os.path.abspath("test_data/test_repo"),
     "test_sysroot": os.path.abspath("test_data/test_sysroot"),
     "install_sysroot": os.path.abspath("install_sysroot"),
