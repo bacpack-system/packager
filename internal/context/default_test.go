@@ -50,6 +50,7 @@ func TestMain(m *testing.M) {
 func initContext(contextPath string) (*ContextManager, error) {
 	context := ContextManager {
 		ContextPath: contextPath,
+		ForPackage: true,
 	}
 	err := prerequisites.Initialize(&context)
 	if err != nil {
@@ -105,7 +106,7 @@ func TestGetAllPackageConfigsArray(t *testing.T) {
 
 	configs := context.GetAllPackageConfigsArray(&defaultPlatformString)
 
-	if len(configs) != 4 {
+	if len(configs) != 5 {
 		t.Fatal("wrong number of returned configs")
 	}
 
@@ -184,40 +185,19 @@ func TestGetPackageWithDepsConfigs(t *testing.T) {
 	}
 }
 
-func TestGetPackageWithDepsConfigsNoDepWithBuildType(t *testing.T) {
-	context, err := initContext(Set3DirPath)
-	if err != nil {
-		t.Fatalf("Cannot initialize context - %s", err)
+func TestDistinctBuildTypeInBuildTree(t *testing.T) {
+	_, err := initContext(Set3DirPath)
+	if err == nil {
+		t.Fatalf("Distinct build types in build tree not detected")
 	} 
 
-	_, err = context.GetPackageWithDepsConfigs(Pack2Name)
-	if err == nil {
-		t.Error("GetPackageWithDepsConfigs didn't returned error")
-	}
 }
 
-func TestGetPackageWithDepsConfigsCircularDependency(t *testing.T) {
-	context, err := initContext(Set4DirPath)
-	if err != nil {
-		t.Fatalf("Cannot initialize context - %s", err)
+func TestCircularDependency(t *testing.T) {
+	_, err := initContext(Set4DirPath)
+	if err == nil {
+		t.Fatalf("Circular dependency not detected")
 	} 
-
-	configs, err := context.GetPackageWithDepsConfigs(Pack1Name)
-	if err != nil {
-		t.Fatalf("GetPackageWithDepsConfigs failed - %s", err)
-	}
-
-	if len(configs) != 3 {
-		t.Fatalf("wrong number of returned configs")
-	}
-
-	for _, config := range configs {
-		if (config.Package.Name != Pack1Name &&
-			config.Package.Name != Pack2Name &&
-			config.Package.Name != Pack3Name) {
-			t.Error("wrong returned configs")
-		}
-	}
 }
 
 func TestGetPackageWithDepsOnConfigs(t *testing.T) {
@@ -232,7 +212,7 @@ func TestGetPackageWithDepsOnConfigs(t *testing.T) {
 	}
 
 	if len(configs) != 3 {
-		t.Fatalf("wrong number of returned configs")
+		t.Fatalf("wrong number of returned configs - %d", len(configs))
 	}
 
 	for _, config := range configs {
@@ -265,28 +245,6 @@ func TestGetPackageWithDepsOnConfigsRecursively(t *testing.T) {
 			config.Package.Name != Pack5Name &&
 			config.Package.Name != Pack6Name) {
 			t.Error("wrong returned configs")
-		}
-	}
-}
-
-func TestGetPackageWithDepsOnConfigsRecursivelyCircularDependency(t *testing.T) {
-	context, err := initContext(Set4DirPath)
-	if err != nil {
-		t.Fatalf("Cannot initialize context - %s", err)
-	} 
-
-	configs, err := context.GetPackageWithDepsOnConfigs(Pack1Name, true)
-	if err != nil {
-		t.Fatalf("GetPackageWithDepsOnConfigs failed - %s", err)
-	}
-
-	if len(configs) != 1 {
-		t.Fatalf("wrong number of returned configs")
-	}
-
-	for _, config := range configs {
-		if (config.Package.Name != Pack4Name) {
-			t.Error("wrong returned config")
 		}
 	}
 }

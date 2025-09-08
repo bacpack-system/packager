@@ -10,7 +10,7 @@
     }
   },
   "Package": {
-    "Name": "pack1",
+    "Name": "app1",
     "VersionTag": "v1.0.0",
     "PlatformString": {
       "Mode": "auto"

@@ -546,7 +546,19 @@ func (context *ContextManager) GetPackageWithDepsOnConfigs(packageName string, r
 		return []config.Config{}, err
 	}
 	packsToBuild = removeConfigs(packsToBuild, packsToRemove)
-	return packsToBuild, nil
+	return removeDuplicateConfigs(packsToBuild), nil
+}
+
+func removeDuplicateConfigs(configs []config.Config) []config.Config {
+	seen := make(map[string]bool)
+	var result []config.Config
+	for _, config := range configs {
+		if !seen[config.Package.GetShortPackageName()] {
+			seen[config.Package.GetShortPackageName()] = true
+			result = append(result, config)
+		}
+	}
+	return result
 }
 
 // removeConfigs

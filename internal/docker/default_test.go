@@ -3,12 +3,14 @@ package docker_test
 import (
 	"github.com/bacpack-system/packager/internal/docker"
 	"github.com/bacpack-system/packager/internal/prerequisites"
+	"github.com/bacpack-system/packager/internal/constants"
 	"reflect"
 	"testing"
+	"strconv"
 )
 
 func TestDockerRm_GenerateCmdLine(t *testing.T) {
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]()
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}
@@ -30,7 +32,7 @@ func TestDockerRm_GenerateCmdLine(t *testing.T) {
 }
 
 func TestDockerStop_GenerateCmdLine(t *testing.T) {
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]()
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}
@@ -56,7 +58,7 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	var cmdLineValid bool
 	var err error
 
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]()
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}
@@ -67,6 +69,8 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	validCmdLine := []string{
 		"run",
 		"-d",
+		"-p",
+		strconv.Itoa(constants.DefaultSSHPort) + ":22",
 		dockerRun.ImageName,
 	}
 	cmdLine, err = dockerRun.GenerateCmdLine()
@@ -77,20 +81,6 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	cmdLineValid = reflect.DeepEqual(cmdLine, validCmdLine)
 	if !cmdLineValid {
 		t.Errorf("invalid Docker Run cmd line as a daemon!")
-		return
-	}
-
-	dockerRun.Port = 1212
-	validCmdLine = validCmdLine[:len(validCmdLine)-1]
-	validCmdLine = append(validCmdLine, "-p", "1212:125", dockerRun.ImageName)
-	cmdLine, err = dockerRun.GenerateCmdLine()
-	if err != nil {
-		t.Errorf("cannot generate reference cmd line")
-		return
-	}
-	cmdLineValid = reflect.DeepEqual(cmdLine, validCmdLine)
-	if !cmdLineValid {
-		t.Errorf("invalid Docker Run cmd line with ports!")
 		return
 	}
 
