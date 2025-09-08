@@ -5,7 +5,7 @@ set -e
 TOOLS_INSTALL_DIR="$1"
 TMP_DIR="/tmp/toolchain-install"
 
-TOOLS_PACKAGE_URI="https://github.com/bringauto/packager/releases/download/v1.2.0/bringauto-packager-tools_v1.2.0_x86-64-linux.zip"
+TOOLS_PACKAGE_URI="https://github.com/bacpack-system/packager-tools/releases/download/v1.0.0/bringauto-packager-tools_v1.0.0_x86-64-linux.zip"
 
 if [[ ${TOOLS_INSTALL_DIR} = "" ]]
 then
