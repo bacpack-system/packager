@@ -1,7 +1,7 @@
 package bringauto_docker
 
 import (
-	"bringauto/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
 	"fmt"
 	"os/exec"
 )

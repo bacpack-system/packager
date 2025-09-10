@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bringauto/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
 	"fmt"
 	"github.com/akamensky/argparse"
 )

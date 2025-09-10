@@ -1,6 +1,6 @@
 package bringauto_git
 
-import "bringauto/internal/bringauto_prerequisites"
+import "github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 
 func (git *Git) FillDefault(*bringauto_prerequisites.Args) error {
 	return nil

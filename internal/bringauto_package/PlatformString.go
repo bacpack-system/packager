@@ -2,11 +2,11 @@ package bringauto_package
 
 import (
 	"github.com/acobaugh/osrelease"
-	"bringauto/internal/bringauto_docker"
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_process"
-	"bringauto/internal/bringauto_ssh"
+	"github.com/bacpack-system/packager/internal/bringauto_docker"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_process"
+	"github.com/bacpack-system/packager/internal/bringauto_ssh"
 	"fmt"
 	"os"
 	"regexp"

@@ -1,7 +1,7 @@
 package bringauto_package
 
 import (
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 	"compress/flate"
 	"fmt"
 	"github.com/mholt/archiver/v3"

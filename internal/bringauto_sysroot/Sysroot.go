@@ -1,10 +1,10 @@
 package bringauto_sysroot
 
 import (
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_package"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_error"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_package"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_error"
 	"fmt"
 	"github.com/otiai10/copy"
 	"os"

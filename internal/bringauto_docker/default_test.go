@@ -1,8 +1,8 @@
 package bringauto_docker_test
 
 import (
-	"bringauto/internal/bringauto_docker"
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_docker"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 	"reflect"
 	"testing"
 )

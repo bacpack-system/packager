@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_docker"
-	"bringauto/internal/bringauto_context"
-	"bringauto/internal/bringauto_error"
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_docker"
+	"github.com/bacpack-system/packager/internal/bringauto_context"
+	"github.com/bacpack-system/packager/internal/bringauto_error"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 	"path"
 )
 

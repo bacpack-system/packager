@@ -12,7 +12,7 @@
 package bringauto_process
 
 import (
-	"bringauto/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
 	"os"
 	"sync"
 	"os/signal"

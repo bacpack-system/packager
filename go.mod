@@ -1,4 +1,4 @@
-module bringauto
+module github.com/bacpack-system/packager
 
 go 1.22
 

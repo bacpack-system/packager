@@ -1,12 +1,12 @@
 package bringauto_repository
 
 import (
-	"bringauto/internal/bringauto_package"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_context"
-	"bringauto/internal/bringauto_config"
-	"bringauto/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_package"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_context"
+	"github.com/bacpack-system/packager/internal/bringauto_config"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
 	"bytes"
 	"fmt"
 	"io/fs"

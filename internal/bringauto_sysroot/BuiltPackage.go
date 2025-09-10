@@ -1,7 +1,7 @@
 package bringauto_sysroot
 
 import (
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 )
 
 // Represents one built Package in sysroot. Before build of a Package, this struct is created and

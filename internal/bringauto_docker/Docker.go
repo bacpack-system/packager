@@ -1,9 +1,9 @@
 package bringauto_docker
 
 import (
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_process"
-	"bringauto/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_process"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
 	"fmt"
 	"os"
 	"bytes"

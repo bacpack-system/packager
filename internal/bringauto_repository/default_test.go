@@ -1,10 +1,10 @@
 package bringauto_repository
 
 import (
-	"bringauto/internal/bringauto_testing"
-	"bringauto/internal/bringauto_package"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_testing"
+	"github.com/bacpack-system/packager/internal/bringauto_package"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
 	"fmt"
 	"os"
 	"os/exec"

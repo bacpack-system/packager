@@ -1,6 +1,6 @@
 package bringauto_repository
 
-import "bringauto/internal/bringauto_package"
+import "github.com/bacpack-system/packager/internal/bringauto_package"
 
 // RepositoryInterface is an interface for every package repository.
 // If you want to implement

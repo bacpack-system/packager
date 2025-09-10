@@ -1,7 +1,7 @@
 package bringauto_git_test
 
 import (
-	"bringauto/internal/bringauto_git"
+	"github.com/bacpack-system/packager/internal/bringauto_git"
 	"reflect"
 	"strings"
 	"testing"

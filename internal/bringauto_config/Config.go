@@ -1,13 +1,13 @@
 package bringauto_config
 
 import (
-	"bringauto/internal/bringauto_build"
-	"bringauto/internal/bringauto_const"
-	"bringauto/internal/bringauto_docker"
-	"bringauto/internal/bringauto_git"
-	"bringauto/internal/bringauto_package"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_sysroot"
+	"github.com/bacpack-system/packager/internal/bringauto_build"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_docker"
+	"github.com/bacpack-system/packager/internal/bringauto_git"
+	"github.com/bacpack-system/packager/internal/bringauto_package"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_sysroot"
 	"encoding/json"
 	"fmt"
 	"os"

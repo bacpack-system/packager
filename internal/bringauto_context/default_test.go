@@ -1,9 +1,9 @@
 package bringauto_context
 
 import (
-	"bringauto/internal/bringauto_const"
-	"bringauto/internal/bringauto_package"
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_package"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 	"path/filepath"
 	"testing"
 	"os"

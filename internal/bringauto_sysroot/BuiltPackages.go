@@ -1,8 +1,8 @@
 package bringauto_sysroot
 
 import (
-	"bringauto/internal/bringauto_const"
-	"bringauto/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
 	"encoding/json"
 	"fmt"
 	"os"

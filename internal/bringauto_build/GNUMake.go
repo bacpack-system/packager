@@ -1,7 +1,7 @@
 package bringauto_build
 
 import (
-	"bringauto/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
 	"strconv"
 	"strings"
 )

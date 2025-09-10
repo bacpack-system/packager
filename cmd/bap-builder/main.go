@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_prerequisites"
-	"bringauto/internal/bringauto_process"
-	"bringauto/internal/bringauto_error"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/bringauto_process"
+	"github.com/bacpack-system/packager/internal/bringauto_error"
 	"os"
 	"time"
 	"syscall"

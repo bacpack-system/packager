@@ -1,8 +1,8 @@
 package bringauto_docker
 
 import (
-	"bringauto/internal/bringauto_log"
-	"bringauto/internal/bringauto_process"
+	"github.com/bacpack-system/packager/internal/bringauto_log"
+	"github.com/bacpack-system/packager/internal/bringauto_process"
 	"bytes"
 	"fmt"
 	"regexp"
