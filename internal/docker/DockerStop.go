@@ -1,0 +1,36 @@
+package docker
+
+import (
+	"github.com/bacpack-system/packager/internal/process"
+	"bytes"
+	"fmt"
+)
+
+type DockerStop Docker
+
+// Stop the docker container.
+// Docker container must be run be the DockerRun to stop container by DockerStop
+func (dockerStop *DockerStop) Stop() error {
+	var outBuff, errBuff bytes.Buffer
+	process := process.Process{
+		CommandAbsolutePath: DockerExecutablePathConst,
+		Args: process.ProcessArgs{
+			CmdLineHandler: dockerStop,
+		},
+		StdOut: &outBuff,
+		StdErr: &errBuff,
+	}
+	err := process.Run()
+
+	if err != nil {
+		return fmt.Errorf("DockerRun stop error - %w", err)
+	}
+
+	return nil
+}
+
+func (dockerStop *DockerStop) GenerateCmdLine() ([]string, error) {
+	cmdArgs := make([]string, 0)
+	cmdArgs = append(cmdArgs, "stop", dockerStop.containerId)
+	return cmdArgs, nil
+}

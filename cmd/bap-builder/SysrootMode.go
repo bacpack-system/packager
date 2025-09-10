@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/bacpack-system/packager/internal/bringauto_const"
-	"github.com/bacpack-system/packager/internal/bringauto_context"
-	"github.com/bacpack-system/packager/internal/bringauto_log"
-	"github.com/bacpack-system/packager/internal/bringauto_package"
-	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
-	"github.com/bacpack-system/packager/internal/bringauto_repository"
-	"github.com/bacpack-system/packager/internal/bringauto_error"
+	"github.com/bacpack-system/packager/internal/constants"
+	"github.com/bacpack-system/packager/internal/context"
+	"github.com/bacpack-system/packager/internal/log"
+	"github.com/bacpack-system/packager/internal/bacpack_package"
+	"github.com/bacpack-system/packager/internal/prerequisites"
+	"github.com/bacpack-system/packager/internal/repository"
+	"github.com/bacpack-system/packager/internal/packager_error"
 	"fmt"
 	"io"
 	"os"
@@ -29,13 +29,13 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 		return err
 	}
 	if !dirEmpty {
-		return fmt.Errorf("%w - given sysroot directory is not empty", bringauto_error.CreatingSysrootErr)
+		return fmt.Errorf("%w - given sysroot directory is not empty", packager_error.CreatingSysrootErr)
 	}
 
-	repo := bringauto_repository.GitLFSRepository{
+	repo := repository.GitLFSRepository{
 		GitRepoPath: *cmdLine.Repo,
 	}
-	err = bringauto_prerequisites.Initialize(&repo)
+	err = prerequisites.Initialize(&repo)
 	if err != nil {
 		return err
 	}
@@ -43,31 +43,31 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 	if err != nil {
 		return err
 	}
-	logger := bringauto_log.GetLogger()
+	logger := log.GetLogger()
 
-	contextManager := bringauto_context.ContextManager{
+	contextManager := context.ContextManager{
 		ContextPath: contextPath,
 		ForPackage: true,
 	}
-	err = bringauto_prerequisites.Initialize(&contextManager)
+	err = prerequisites.Initialize(&contextManager)
 	if err != nil {
 		logger.Error("Context consistency error - %s", err)
-		return bringauto_error.ContextErr
+		return packager_error.ContextErr
 	}
 	logger.Info("Checking Git Lfs directory consistency")
 	err = repo.CheckGitLfsConsistency(&contextManager, platformString, *cmdLine.ImageName)
 	if err != nil {
-		return bringauto_error.GitLfsErr
+		return packager_error.GitLfsErr
 	}
 	packages, err := contextManager.GetAllPackagesStructs(platformString)
 	if err != nil {
-		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
+		return fmt.Errorf("%w - %s", packager_error.CreatingSysrootErr, err)
 	}
 
 	logger.Info("Creating sysroot directory from packages")
 	err = unzipAllPackagesToDir(packages, &repo, *cmdLine.Sysroot)
 	if err != nil {
-		return fmt.Errorf("%w - %s", bringauto_error.CreatingSysrootErr, err)
+		return fmt.Errorf("%w - %s", packager_error.CreatingSysrootErr, err)
 	}
 
 	return nil
@@ -75,10 +75,10 @@ func CreateSysroot(cmdLine *CreateSysrootCmdLineArgs, contextPath string) error 
 
 // unzipAllPackagesToDir
 // Unzips all given Packages in repo to specified dirPath.
-func unzipAllPackagesToDir(packages []bringauto_package.Package, repo *bringauto_repository.GitLFSRepository, dirPath string) error {
+func unzipAllPackagesToDir(packages []bacpack_package.Package, repo *repository.GitLFSRepository, dirPath string) error {
 	anyPackageCopied := false
 	for _, pack := range packages {
-		packPath := path.Join(repo.CreatePath(pack, bringauto_const.PackageDirName), pack.GetFullPackageName() + bringauto_package.ZipExt)
+		packPath := path.Join(repo.CreatePath(pack, constants.PackageDirName), pack.GetFullPackageName() + bacpack_package.ZipExt)
 		_, err := os.Stat(packPath)
 		if err == nil { // Package exists in Git Lfs
 			var sysrootPath string

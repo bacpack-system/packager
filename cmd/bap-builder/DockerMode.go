@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/bacpack-system/packager/internal/bringauto_log"
-	"github.com/bacpack-system/packager/internal/bringauto_docker"
-	"github.com/bacpack-system/packager/internal/bringauto_context"
-	"github.com/bacpack-system/packager/internal/bringauto_error"
-	"github.com/bacpack-system/packager/internal/bringauto_prerequisites"
+	"github.com/bacpack-system/packager/internal/log"
+	"github.com/bacpack-system/packager/internal/docker"
+	"github.com/bacpack-system/packager/internal/context"
+	"github.com/bacpack-system/packager/internal/packager_error"
+	"github.com/bacpack-system/packager/internal/prerequisites"
 	"path"
 )
 
@@ -13,14 +13,14 @@ import (
 // process Docker mode of cmd line
 //
 func BuildDockerImage(cmdLine *BuildImageCmdLineArgs, contextPath string) error {
-	contextManager := bringauto_context.ContextManager{
+	contextManager := context.ContextManager{
 		ContextPath: contextPath,
 	}
-	err := bringauto_prerequisites.Initialize(&contextManager)
+	err := prerequisites.Initialize(&contextManager)
 	if err != nil {
-		logger := bringauto_log.GetLogger()
+		logger := log.GetLogger()
 		logger.Error("Context consistency error - %s", err)
-		return bringauto_error.ContextErr
+		return packager_error.ContextErr
 	}
 	buildAll := cmdLine.All
 	if *buildAll {
@@ -38,7 +38,7 @@ func BuildDockerImage(cmdLine *BuildImageCmdLineArgs, contextPath string) error 
 // builds all docker images in the given contextPath.
 // It returns nil if everything is ok, or not nil in case of error
 //
-func buildAllDockerImages(contextManager bringauto_context.ContextManager) error {
+func buildAllDockerImages(contextManager context.ContextManager) error {
 	dockerfilePathList := contextManager.GetAllImagesDockerfilePaths()
 
 	for imageName, dockerfilePath := range dockerfilePathList {
@@ -54,9 +54,9 @@ func buildAllDockerImages(contextManager bringauto_context.ContextManager) error
 // builds a single docker image specified by an image name and a path to Dockerfile.
 //
 func buildSingleDockerImage(imageName string, dockerfilePath string, contextPath string) error {
-	logger := bringauto_log.GetLogger()
+	logger := log.GetLogger()
 	dockerfileDir := path.Dir(dockerfilePath)
-	dockerBuild := bringauto_docker.DockerBuild{
+	dockerBuild := docker.DockerBuild{
 		DockerfileDir: dockerfileDir,
 		Tag:           imageName,
 		Context:       contextPath,
@@ -68,7 +68,7 @@ func buildSingleDockerImage(imageName string, dockerfilePath string, contextPath
 	err := dockerBuild.Build()
 	if err != nil {
 		logger.ErrorIndent("Can't build image - %s", err)
-		return bringauto_error.BuildErr
+		return packager_error.BuildErr
 	}
 	logger.InfoIndent("Build OK")
 	return nil

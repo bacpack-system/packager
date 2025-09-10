@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bacpack-system/packager/internal/bringauto_const"
+	"github.com/bacpack-system/packager/internal/constants"
 	"fmt"
 	"github.com/akamensky/argparse"
 )
@@ -126,7 +126,7 @@ func (cmd *CmdLineArgs) InitFlags() {
 		&argparse.Options{
 			Required: false,
 			Help:     "Host port for docker container ssh bind",
-			Default:  bringauto_const.DefaultSSHPort,
+			Default:  constants.DefaultSSHPort,
 		},
 	)
 	cmd.BuildPackageArgs.Name = cmd.buildPackageParser.String("", "name",
@@ -218,7 +218,7 @@ func (cmd *CmdLineArgs) InitFlags() {
 		&argparse.Options{
 			Required: false,
 			Help:     "Host port for docker container ssh bind",
-			Default:  bringauto_const.DefaultSSHPort,
+			Default:  constants.DefaultSSHPort,
 		},
 	)
 
@@ -262,7 +262,7 @@ func (cmd *CmdLineArgs) InitFlags() {
 		&argparse.Options{
 			Required: false,
 			Help:     "Host port for docker container ssh bind",
-			Default:  bringauto_const.DefaultSSHPort,
+			Default:  constants.DefaultSSHPort,
 		},
 	)
 }
