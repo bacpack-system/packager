@@ -11,6 +11,7 @@ import (
 	"github.com/bacpack-system/packager/internal/ssh"
 	"encoding/json"
 	"os"
+	"bytes"
 )
 
 // Build
@@ -59,7 +60,10 @@ func (config *Config) LoadJSONConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(mbytes, config)
+	dec := json.NewDecoder(bytes.NewReader(mbytes))
+	dec.DisallowUnknownFields()
+
+	err = dec.Decode(config)
 	if err != nil {
 		return err
 	}
