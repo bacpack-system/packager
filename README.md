@@ -22,20 +22,24 @@ Standalone binaries are built for Linux kernel >= 5.10.0-amd64.
 Clone the repository and, in the repository root directory, run:
 
 ```bash
-go get bringauto/cmd/bap-builder
 cd cmd/bap-builder
 go build
 ```
 
 ## Build Standalone Binaries
 
-To build a complete release package, use the `build.sh` script.
+To build a complete release package, use the `go-package.sh` script.
 
-Additional requirements for `build.sh`:
+Additional requirements for `go-package.sh`:
 
 - zip
-- uname
 - sed
+
+Example usage:
+
+```bash
+./go-package.sh linux x86-64 .
+```
 
 ## Usage
 
