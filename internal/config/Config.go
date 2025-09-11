@@ -8,11 +8,9 @@ import (
 	"github.com/bacpack-system/packager/internal/bacpack_package"
 	"github.com/bacpack-system/packager/internal/prerequisites"
 	"github.com/bacpack-system/packager/internal/sysroot"
+	"github.com/bacpack-system/packager/internal/ssh"
 	"encoding/json"
-	"fmt"
 	"os"
-
-	"github.com/jinzhu/copier"
 )
 
 // Build
@@ -98,15 +96,7 @@ func (config *Config) GetBuildStructure(
 		if err != nil {
 			return []build.Build{}, err
 		}
-		defaultBuild, err := prerequisites.CreateAndInitialize[build.Build](imageName, dockerPort)
-		if err != nil {
-			return []build.Build{}, fmt.Errorf("cannot initialize Build struct - %w", err)
-		}
-		err = copier.CopyWithOption(defaultBuild, build_obj, copier.Option{DeepCopy: true, IgnoreEmpty: true})
-		if err != nil {
-			return []build.Build{}, fmt.Errorf("cannot initialize Build struct - %w", err)
-		}
-		buildConfigs = append(buildConfigs, *defaultBuild)
+		buildConfigs = append(buildConfigs, build_obj)
 	}
 
 	return buildConfigs, nil
@@ -131,6 +121,10 @@ func (config *Config) fillBuildStructure(
 		if err != nil {
 			return build.Build{}, err
 		}
+	}
+	defaultSSHCredentials, err := prerequisites.CreateAndInitialize[ssh.SSHCredentials]()
+	if err != nil {
+		return build.Build{}, err
 	}
 
 	env := &build.EnvironmentVariables{
@@ -164,15 +158,21 @@ func (config *Config) fillBuildStructure(
 		return build.Build{}, err
 	}
 
-	build := build.Build{
-		Env:          env,
-		Git:          &config.Git,
-		CMake:        config.Build.CMake,
-		Package:      &tmpPackage,
-		BuiltPackage: builtPackage,
-		Docker:       defaultDocker,
-		UseLocalRepo: useLocalRepo,
+	build_obj := &build.Build{
+		Env:            env,
+		Docker:         defaultDocker,
+		Git:            &config.Git,
+		CMake:          config.Build.CMake,
+		SSHCredentials: defaultSSHCredentials,
+		Package:        &tmpPackage,
+		BuiltPackage:   builtPackage,
+		UseLocalRepo:   useLocalRepo,
 	}
 
-	return build, nil
+	err = prerequisites.Initialize(build_obj)
+	if err != nil {
+		return build.Build{}, err
+	}
+
+	return *build_obj, nil
 }

@@ -5,7 +5,6 @@ go 1.22
 require (
 	github.com/acobaugh/osrelease v0.1.0
 	github.com/akamensky/argparse v1.4.0
-	github.com/jinzhu/copier v0.4.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/sftp v1.13.6
