@@ -3,7 +3,8 @@
 go.sum
 install_sysroot
 localInstall
-log
+cmd/bap-builder/log
+tests/log
 *.zip
 
 # integration tests

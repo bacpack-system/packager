@@ -71,9 +71,9 @@ def test_sysroot():
 def packager_binary():
     """Compile the Go application binary."""
 
-    subprocess.run(["go", "get", "bringauto/bap-builder"], check=True)
+    subprocess.run(["go", "get", "bringauto/cmd/bap-builder"], check=True)
     subprocess.run(
-        ["go", "build", "-o", test_config["packager_binary"], "../bap-builder"],
+        ["go", "build", "-o", test_config["packager_binary"], "../cmd/bap-builder"],
         check=True,
     )
 

@@ -16,7 +16,7 @@ Build single image specified by name.
 
 ```bash
 packager build-image
-  --context ./example \
+  --context ./example_context \
   --name debian
 ```
 
@@ -28,7 +28,7 @@ Build all images in Context.
 
 ```bash
 packager build-image
-  --context ./example \
+  --context ./example_context \
   --all
 ```
 
@@ -81,7 +81,7 @@ graph TD
 
 ```bash
 packager build-package
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --name G \
   --output-dir ./git-lfs-repo
@@ -122,7 +122,7 @@ graph TD
 
 ```bash
 packager build-package
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --name G \
   --build-deps \
@@ -173,7 +173,7 @@ graph TD
 
 ```bash
 packager build-package
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --name G \
   --build-deps-on \
@@ -232,7 +232,7 @@ graph TD
 
 ```bash
 packager build-package
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --name G \
   --build-deps-on-recursive \
@@ -302,7 +302,7 @@ graph TD
 
 ```bash
 packager build-package
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --all \
   --output-dir ./git-lfs-repo
@@ -324,7 +324,7 @@ Build all Apps in Context.
 
 ```bash
 packager build-app
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --all \
   --output-dir ./git-lfs-repo
@@ -338,7 +338,7 @@ Build single App in Context.
 
 ```bash
 packager build-app
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --name app-name \
   --output-dir ./git-lfs-repo
@@ -358,7 +358,7 @@ Creates sysroot from Packages in Package Repository for `debian` image in `new_s
 
 ```bash
 packager create-sysroot
-  --context ./example \
+  --context ./example_context \
   --image-name debian \
   --git-lfs ./git-lfs-repo \
   --sysroot-dir new_sysroot
