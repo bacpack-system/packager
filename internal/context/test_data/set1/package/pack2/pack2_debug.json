@@ -1,22 +1,25 @@
 {
   "Env": {},
   "Git": {
-    "URI": "https://github.com/bringauto/app1.git",
+    "URI": "https://github.com/bringauto/pack2.git",
     "Revision": "v1.0.0"
   },
   "Build": {
     "CMake": {
-      "Defines": {}
+      "Defines": {
+        "BRINGAUTO_INSTALL": "ON",
+        "BRINGAUTO_SYSTEM_DEP": "ON"
+      }
     }
   },
   "Package": {
-    "Name": "app1",
+    "Name": "pack2",
     "VersionTag": "v1.0.0",
     "PlatformString": {
       "Mode": "auto"
     },
-    "IsLibrary": false,
-    "IsDevLib": false,
+    "IsLibrary": true,
+    "IsDevLib": true,
     "IsDebug": true
   },
   "DockerMatrix": {
