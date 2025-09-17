@@ -6,20 +6,14 @@ import (
 	"strings"
 )
 
-// GNUMake cmd line interface for standard GNU Make utility
-type GNUMake struct {
-	// Map of the cmd line arguments where map_key represents cmd option
-	// and map_value value of the option
-	CMDLineVars map[string]string
+const (
+	makeJobsCount = 10
+)
 
-	// number of jobs passed to '-j'. Default: 10
-	jobsCount int
-}
+// GNUMake cmd line interface for standard GNU Make utility
+type GNUMake struct {}
 
 func (make *GNUMake) FillDefault(*prerequisites.Args) error {
-	*make = GNUMake{
-		jobsCount: 10,
-	}
 	return nil
 }
 
@@ -32,7 +26,7 @@ func (make *GNUMake) CheckPrerequisites(*prerequisites.Args) error {
 }
 
 func (make *GNUMake) ConstructCMDLine() []string {
-	cmdBuild := []string{"make", "-j", strconv.Itoa(make.jobsCount)}
+	cmdBuild := []string{"make", "-j", strconv.Itoa(makeJobsCount)}
 	cmdInstall := []string{"make", "install"}
 	return []string{
 		strings.Join(cmdBuild, " "),
