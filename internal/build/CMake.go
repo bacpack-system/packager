@@ -5,21 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 )
 
 type CMake struct {
+	BuildSystem  *BuildSystem
 	Defines      map[string]string
 	CMakeListDir string
-	SourceDir    string `json:"-"`
 }
 
 func (cmake *CMake) FillDefault(*prerequisites.Args) error {
 	*cmake = CMake{
-		Defines: map[string]string{
-			"CMAKE_BUILD_TYPE": "Debug",
-		},
 		CMakeListDir: "." + string(os.PathSeparator),
 	}
 	return nil
@@ -30,43 +26,35 @@ func (cmake *CMake) FillDynamic(*prerequisites.Args) error {
 }
 
 func (cmake *CMake) CheckPrerequisites(*prerequisites.Args) error {
+	if cmake.BuildSystem != nil {
+		_, found := cmake.Defines["CMAKE_INSTALL_PREFIX"]
+		if found {
+			return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX define")
+		}
+		_, found = cmake.Defines["CMAKE_PREFIX_PATH"]
+		if found {
+			return fmt.Errorf("do not specify CMAKE_PREFIX_PATH define")
+		}
+	}
 	return nil
 }
 
 func (cmake *CMake) ConstructCMDLine() []string {
+	cmake.UpdateDefines()
 	var cmdLine []string
 	cmdLine = append(cmdLine, "cmake")
 	for key, value := range cmake.Defines {
-		if !validateVariableName(key) {
-			panic(fmt.Errorf("invalid CMake variable: %s", key))
+		if !validateDefineName(key) {
+			panic(fmt.Errorf("invalid CMake define: %s", key))
 		}
-		valuePair := "-D" + key + "=" + escapeVariableValue(value)
+		valuePair := "-D" + key + "=" + escapeDefineValue(value)
 		cmdLine = append(cmdLine, valuePair)
 	}
-	if cmake.SourceDir == "" {
-		panic(fmt.Errorf("cmake source source directory does not exist"))
-	}
-	cmdLine = append(cmdLine, path.Join(cmake.SourceDir, cmake.CMakeListDir))
+	cmdLine = append(cmdLine, path.Join(cmake.BuildSystem.SourceDir, cmake.CMakeListDir))
 	return []string{strings.Join(cmdLine, " ")}
 }
 
-func (cmake *CMake) SetDefine(key string, value string) {
-	_, prefixpathFound := cmake.Defines[key]
-	if prefixpathFound {
-		panic(fmt.Errorf("cmake define - do not specify %s", value))
-	}
-	cmake.Defines[key] = value
-}
-
-func validateVariableName(varName string) bool {
-	regexp, regexpErr := regexp.CompilePOSIX("^[0-9a-zA-Z_]+$")
-	if regexpErr != nil {
-		panic(fmt.Errorf("invalid regexp for CMake variable validation"))
-		return false
-	}
-	return regexp.MatchString(varName)
-}
-
-func escapeVariableValue(varValue string) string {
-	return "\"" + varValue + "\""
+func (cmake *CMake) UpdateDefines() {
+	cmake.Defines["CMAKE_INSTALL_PREFIX"] = cmake.BuildSystem.InstallPrefix
+	cmake.Defines["CMAKE_PREFIX_PATH"] = cmake.BuildSystem.PrefixPath
 }
