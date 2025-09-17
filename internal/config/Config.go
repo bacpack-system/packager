@@ -19,6 +19,7 @@ import (
 // (CMake, autoconf, ...)
 type Build struct {
 	CMake *build.CMake
+	Meson *build.Meson
 }
 
 type DockerMatrix struct {
@@ -130,6 +131,14 @@ func (config *Config) fillBuildStructure(
 	if err != nil {
 		return build.Build{}, err
 	}
+	buildSystem := build.BuildSystem{
+		CMake: config.Build.CMake,
+		Meson: config.Build.Meson,
+	}
+	err = prerequisites.Initialize(&buildSystem)
+	if err != nil {
+		return build.Build{}, err
+	}
 
 	env := &build.EnvironmentVariables{
 		Env: config.Env,
@@ -142,10 +151,7 @@ func (config *Config) fillBuildStructure(
 	if err != nil {
 		return build.Build{}, err
 	}
-	err = prerequisites.Initialize(config.Build.CMake)
-	if err != nil {
-		return build.Build{}, err
-	}
+
 	builtPackage, _ := prerequisites.CreateAndInitialize[sysroot.BuiltPackage](
 		config.Package.GetShortPackageName(),
 		"",                                 // Will be filled later after build will have valid sysroot
@@ -166,7 +172,7 @@ func (config *Config) fillBuildStructure(
 		Env:            env,
 		Docker:         defaultDocker,
 		Git:            &config.Git,
-		CMake:          config.Build.CMake,
+		BuildSystem:    &buildSystem,
 		SSHCredentials: defaultSSHCredentials,
 		Package:        &tmpPackage,
 		BuiltPackage:   builtPackage,
