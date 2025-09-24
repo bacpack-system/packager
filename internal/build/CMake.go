@@ -15,9 +15,9 @@ type CMake struct {
 }
 
 func (cmake *CMake) FillDefault(*prerequisites.Args) error {
-	*cmake = CMake{
-		CMakeListDir: "." + string(os.PathSeparator),
-	}
+	cmake.CMakeListDir = "." + string(os.PathSeparator)
+	cmake.Defines = map[string]string{}
+
 	return nil
 }
 

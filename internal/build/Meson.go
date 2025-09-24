@@ -17,6 +17,8 @@ type Meson struct {
 }
 
 func (meson *Meson) FillDefault(*prerequisites.Args) error {
+	meson.Options = map[string]string{}
+	meson.Defines = map[string]string{}
 	return nil
 }
 
