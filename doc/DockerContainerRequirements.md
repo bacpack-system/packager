@@ -11,7 +11,16 @@ Each image that we can use for build our dependencies
 
 ## CMake
 
+Required if any Package built for given image uses CMake build system.
+
 - CMake >= 3.21 must be installed in the system and reachable for user `root`
+
+## Meson
+
+Required if any Package built for given image uses Meson build system.
+
+- Meson must be installed in the system and reachable for user `root`
+- Ninja must be installed in the system and reachable for user `root`
 
 ## Bash
 

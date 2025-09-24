@@ -20,7 +20,7 @@ Each Package/App has a Config file in the JSON format (Config file details in [C
 - the Packages are build from first item of the list (head of the list) to the last Package of the
   list.
 
-During the build the Package files installed by installation feature of the CMake are copied
+During the build the Package files installed by installation feature of the CMake/Meson are copied
 to the `install_sysroot` directory located in the working directory of the builder. If Package
 build files would overwrite any files already present in sysroot, the build fails (more in
 [Sysroot]).

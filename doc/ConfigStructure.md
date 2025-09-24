@@ -21,7 +21,7 @@ Not all fields are required, and some fields have default values.
     "URI": "https://github.com/bringauto/example-repo.git", // Valid Git URI that can be used with the "git clone" command
     "Revision": "v1.2.0" // Valid git hash, tag, or branch
   },
-  "Build": { // Build configuration settings using CMake, including various CMake options
+  "Build": { // Build configuration settings using CMake (or Meson - example below), including various CMake options
     "CMake": {
       "CMakeListDir": "/cmake", // Directory where the CMakeLists.txt is located. Default value is "./", path is relative to the module's Git root
       "Defines": { // CMake variables passed with the CMake -D switch
@@ -44,6 +44,44 @@ Not all fields are required, and some fields have default values.
     "ImageNames":  [ "ubuntu1804", "ubuntu2004", "debian11" ]
   }
 }
+```
+
+## Build systems
+
+The "Build" structure in Config specifies option specific to the build system. Currently, only CMake and
+Meson are supported. The "Build" structure can contain only one of CMake or Meson structures.
+
+CMake example (fields comments above):
+
+``` json
+...
+  "Build": {
+    "CMake": {
+      "CMakeListDir": "/cmake",
+      "Defines": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MY_NICE_VAR": "VarValue"
+      }
+    }
+  }
+...
+```
+
+Meson example:
+
+``` json
+...
+  "Build": {
+    "Meson": {
+      "Options": { // Any number of Meson options passed as --option=value
+        "buildtype": "debug" // Passed as --buildtype=debug to meson executable
+      },
+      "Defines": { // Any number of Meson defines passed as -Ddefine=value
+        "DEFINE": "value" // Passed as -DDEFINE=value to meson executable
+      }
+    }
+  }
+...
 ```
 
 ## Version_Tag
