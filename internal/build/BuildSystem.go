@@ -15,6 +15,9 @@ type BuildSystem struct {
 	Meson         *Meson
 }
 
+var defineRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z_]+$")
+var optionRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z-]+$")
+
 // FillDefault
 // It fills up defaults for all members in the Build structure.
 func (buildSystem *BuildSystem) FillDefault(args *prerequisites.Args) error {
@@ -62,11 +65,7 @@ func (buildSystem *BuildSystem) ConstructCMDLine() []string {
 }
 
 func validateDefineName(varName string) bool {
-	regexp, regexpErr := regexp.CompilePOSIX("^[0-9a-zA-Z_]+$")
-	if regexpErr != nil {
-		panic(fmt.Errorf("invalid regexp for define validation"))
-	}
-	return regexp.MatchString(varName)
+	return defineRegexp.MatchString(varName)
 }
 
 func escapeDefineValue(varValue string) string {
@@ -74,9 +73,5 @@ func escapeDefineValue(varValue string) string {
 }
 
 func validateOptionName(varName string) bool {
-	regexp, regexpErr := regexp.CompilePOSIX("^[0-9a-zA-Z-]+$")
-	if regexpErr != nil {
-		panic(fmt.Errorf("invalid regexp for define validation"))
-	}
-	return regexp.MatchString(varName)
+	return optionRegexp.MatchString(varName)
 }
