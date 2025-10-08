@@ -31,16 +31,18 @@ func (cmake *CMake) CheckPrerequisites(*prerequisites.Args) error {
 			return fmt.Errorf("invalid CMake define: %s", key)
 		}
 	}
-	if cmake.BuildSystem != nil {
-		_, found := cmake.Defines["CMAKE_INSTALL_PREFIX"]
-		if found {
-			return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX define")
-		}
-		_, found = cmake.Defines["CMAKE_PREFIX_PATH"]
-		if found {
-			return fmt.Errorf("do not specify CMAKE_PREFIX_PATH define")
-		}
+	if cmake.BuildSystem == nil {
+		return fmt.Errorf("BuildSystem is required for CMake")
 	}
+	_, found := cmake.Defines["CMAKE_INSTALL_PREFIX"]
+	if found {
+		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX define")
+	}
+	_, found = cmake.Defines["CMAKE_PREFIX_PATH"]
+	if found {
+		return fmt.Errorf("do not specify CMAKE_PREFIX_PATH define")
+	}
+	
 	return nil
 }
 

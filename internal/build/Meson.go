@@ -37,15 +37,16 @@ func (meson *Meson) CheckPrerequisites(*prerequisites.Args) error {
 			return fmt.Errorf("invalid Meson define: %s", key)
 		}
 	}
-	if meson.BuildSystem != nil {
-		_, found := meson.Options["prefix"]
-		if found {
-			return fmt.Errorf("do not specify prefix option")
-		}
-		_, found = meson.Options["cmake-prefix-path"]
-		if found {
-			return fmt.Errorf("do not specify cmake-prefix-path option")
-		}
+	if meson.BuildSystem == nil {
+		return fmt.Errorf("BuildSystem is required for Meson")
+	}
+	_, found := meson.Options["prefix"]
+	if found {
+		return fmt.Errorf("do not specify prefix option")
+	}
+	_, found = meson.Options["cmake-prefix-path"]
+	if found {
+		return fmt.Errorf("do not specify cmake-prefix-path option")
 	}
 	return nil
 }
