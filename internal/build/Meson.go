@@ -27,6 +27,16 @@ func (meson *Meson) FillDynamic(*prerequisites.Args) error {
 }
 
 func (meson *Meson) CheckPrerequisites(*prerequisites.Args) error {
+	for key := range meson.Options {
+		if !validateOptionName(key) {
+			return fmt.Errorf("invalid Meson option: %s", key)
+		}
+	}
+	for key := range meson.Defines {
+		if !validateDefineName(key) {
+			return fmt.Errorf("invalid Meson define: %s", key)
+		}
+	}
 	if meson.BuildSystem != nil {
 		_, found := meson.Options["prefix"]
 		if found {
@@ -46,16 +56,10 @@ func (meson *Meson) ConstructCMDLine() []string {
 	cmdSetup = append(cmdSetup, "meson")
 	cmdSetup = append(cmdSetup, "setup")
 	for key, value := range meson.Options {
-		if !validateOptionName(key) {
-			panic(fmt.Errorf("invalid Meson option: %s", key))
-		}
 		valuePair := "--" + key + "=" + value
 		cmdSetup = append(cmdSetup, valuePair)
 	}
 	for key, value := range meson.Defines {
-		if !validateDefineName(key) {
-			panic(fmt.Errorf("invalid Meson define: %s", key))
-		}
 		valuePair := "-D" + key + "=" + escapeDefineValue(value)
 		cmdSetup = append(cmdSetup, valuePair)
 	}

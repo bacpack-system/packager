@@ -26,6 +26,11 @@ func (cmake *CMake) FillDynamic(*prerequisites.Args) error {
 }
 
 func (cmake *CMake) CheckPrerequisites(*prerequisites.Args) error {
+	for key := range cmake.Defines {
+		if !validateDefineName(key) {
+			return fmt.Errorf("invalid CMake define: %s", key)
+		}
+	}
 	if cmake.BuildSystem != nil {
 		_, found := cmake.Defines["CMAKE_INSTALL_PREFIX"]
 		if found {
@@ -44,9 +49,6 @@ func (cmake *CMake) ConstructCMDLine() []string {
 	var cmdLine []string
 	cmdLine = append(cmdLine, "cmake")
 	for key, value := range cmake.Defines {
-		if !validateDefineName(key) {
-			panic(fmt.Errorf("invalid CMake define: %s", key))
-		}
 		valuePair := "-D" + key + "=" + escapeDefineValue(value)
 		cmdLine = append(cmdLine, valuePair)
 	}

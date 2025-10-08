@@ -35,6 +35,7 @@ type Config struct {
 	Package      bacpack_package.Package
 	DockerMatrix DockerMatrix
 	DependsOn    []string
+	BuildSystem  build.BuildSystem `json:"-"`
 }
 
 func (config *Config) FillDefault(*prerequisites.Args) error {
@@ -68,7 +69,17 @@ func (config *Config) LoadJSONConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	return nil
+
+	return config.initConfig()
+}
+
+func (config *Config) initConfig() error {
+	config.BuildSystem = build.BuildSystem{
+		CMake: config.Build.CMake,
+		Meson: config.Build.Meson,
+	}
+	err := prerequisites.Initialize(&config.BuildSystem)
+	return err
 }
 
 func (config *Config) SaveToJSONConfig(configPath string) error {
@@ -131,14 +142,6 @@ func (config *Config) fillBuildStructure(
 	if err != nil {
 		return build.Build{}, err
 	}
-	buildSystem := build.BuildSystem{
-		CMake: config.Build.CMake,
-		Meson: config.Build.Meson,
-	}
-	err = prerequisites.Initialize(&buildSystem)
-	if err != nil {
-		return build.Build{}, err
-	}
 
 	env := &build.EnvironmentVariables{
 		Env: config.Env,
@@ -172,7 +175,7 @@ func (config *Config) fillBuildStructure(
 		Env:            env,
 		Docker:         defaultDocker,
 		Git:            &config.Git,
-		BuildSystem:    &buildSystem,
+		BuildSystem:    &config.BuildSystem,
 		SSHCredentials: defaultSSHCredentials,
 		Package:        &tmpPackage,
 		BuiltPackage:   builtPackage,
