@@ -25,6 +25,7 @@
   "DockerMatrix": {
     "ImageNames": [
       "ubuntu2404",
+      "fedora40",
       "fedora41"
     ]
   }
