@@ -15,7 +15,6 @@ type BuildSystem struct {
 	Meson         *Meson
 }
 
-var defineRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z_]+$")
 var optionRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z-]+$")
 
 // FillDefault
@@ -62,10 +61,6 @@ func (buildSystem *BuildSystem) ConstructCMDLine() []string {
 	} else {
 		return []string{}
 	}
-}
-
-func validateDefineName(varName string) bool {
-	return defineRegexp.MatchString(varName)
 }
 
 func escapeDefineValue(varValue string) string {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"regexp"
 )
 
 type CMake struct {
@@ -13,6 +14,8 @@ type CMake struct {
 	Defines      map[string]string
 	CMakeListDir string
 }
+
+var cmakeDefineRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z_]+$")
 
 func (cmake *CMake) FillDefault(*prerequisites.Args) error {
 	cmake.CMakeListDir = "." + string(os.PathSeparator)
@@ -27,7 +30,7 @@ func (cmake *CMake) FillDynamic(*prerequisites.Args) error {
 
 func (cmake *CMake) CheckPrerequisites(*prerequisites.Args) error {
 	for key := range cmake.Defines {
-		if !validateDefineName(key) {
+		if !cmakeValidateDefineName(key) {
 			return fmt.Errorf("invalid CMake define: %s", key)
 		}
 	}
@@ -61,4 +64,8 @@ func (cmake *CMake) ConstructCMDLine() []string {
 func (cmake *CMake) UpdateDefines() {
 	cmake.Defines["CMAKE_INSTALL_PREFIX"] = cmake.BuildSystem.InstallPrefix
 	cmake.Defines["CMAKE_PREFIX_PATH"] = cmake.BuildSystem.PrefixPath
+}
+
+func cmakeValidateDefineName(varName string) bool {
+	return cmakeDefineRegexp.MatchString(varName)
 }

@@ -4,11 +4,14 @@ import (
 	"github.com/bacpack-system/packager/internal/prerequisites"
 	"fmt"
 	"strings"
+	"regexp"
 )
 
 const (
 	mesonBuildDirConst = "build"
 )
+
+var mesonDefineRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z.:_-]+$")
 
 type Meson struct {
 	BuildSystem *BuildSystem
@@ -33,7 +36,7 @@ func (meson *Meson) CheckPrerequisites(*prerequisites.Args) error {
 		}
 	}
 	for key := range meson.Defines {
-		if !validateDefineName(key) {
+		if !mesonValidateDefineName(key) {
 			return fmt.Errorf("invalid Meson define: %s", key)
 		}
 	}
@@ -78,4 +81,8 @@ func (meson *Meson) ConstructCMDLine() []string {
 func (meson *Meson) UpdateOptions() {
 	meson.Options["prefix"] = meson.BuildSystem.InstallPrefix
 	meson.Options["cmake-prefix-path"] = meson.BuildSystem.PrefixPath
+}
+
+func mesonValidateDefineName(varName string) bool {
+	return mesonDefineRegexp.MatchString(varName)
 }
