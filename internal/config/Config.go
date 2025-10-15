@@ -112,6 +112,7 @@ func (config *Config) GetBuildStructure(
 		if err != nil {
 			return []build.Build{}, err
 		}
+		build_obj.BuildSystem.UpdateBuildSystemPointers()
 		buildConfigs = append(buildConfigs, build_obj)
 	}
 

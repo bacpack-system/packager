@@ -30,10 +30,8 @@ func (buildSystem *BuildSystem) FillDynamic(*prerequisites.Args) error {
 		if err != nil {
 			return err
 		}
-		buildSystem.CMake.BuildSystem = buildSystem
-	} else if buildSystem.Meson != nil {
-		buildSystem.Meson.BuildSystem = buildSystem
 	}
+	buildSystem.UpdateBuildSystemPointers()
 	return nil
 }
 
@@ -60,6 +58,15 @@ func (buildSystem *BuildSystem) ConstructCMDLine() []string {
 		return buildSystem.Meson.ConstructCMDLine()
 	} else {
 		return []string{}
+	}
+}
+
+func (buildSystem *BuildSystem) UpdateBuildSystemPointers() {
+	if buildSystem.CMake != nil {
+		buildSystem.CMake.BuildSystem = buildSystem
+	}
+	if buildSystem.Meson != nil {
+		buildSystem.Meson.BuildSystem = buildSystem
 	}
 }
 
