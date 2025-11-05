@@ -13,6 +13,8 @@ const (
 
 var mesonDefineRegexp *regexp.Regexp = regexp.MustCompilePOSIX("^[0-9a-zA-Z.:_-]+$")
 
+// Meson
+// Represents Meson build system. Its main task is to create a Meson command line.
 type Meson struct {
 	BuildSystem *BuildSystem
 	Options      map[string]string
@@ -55,7 +57,7 @@ func (meson *Meson) CheckPrerequisites(*prerequisites.Args) error {
 }
 
 func (meson *Meson) ConstructCMDLine() []string {
-	meson.UpdateOptions()
+	meson.updateOptions()
 	var cmdSetup []string
 	cmdSetup = append(cmdSetup, "meson")
 	cmdSetup = append(cmdSetup, "setup")
@@ -78,7 +80,8 @@ func (meson *Meson) ConstructCMDLine() []string {
 	}
 }
 
-func (meson *Meson) UpdateOptions() {
+// updateOptions updates Meson options with values from BuildSystem
+func (meson *Meson) updateOptions() {
 	meson.Options["prefix"] = meson.BuildSystem.InstallPrefix
 	meson.Options["cmake-prefix-path"] = meson.BuildSystem.PrefixPath
 }

@@ -6,6 +6,8 @@ import (
 	"regexp"
 )
 
+// BuildSystem
+// Represents build system. Its main task is to create command line for specific build system.
 type BuildSystem struct {
 	SourceDir     string
 	InstallPrefix string
@@ -61,6 +63,7 @@ func (buildSystem *BuildSystem) ConstructCMDLine() []string {
 	}
 }
 
+// UpdateBuildSystemPointers updates pointers to BuildSystem in all build system specific structs
 func (buildSystem *BuildSystem) UpdateBuildSystemPointers() {
 	if buildSystem.CMake != nil {
 		buildSystem.CMake.BuildSystem = buildSystem

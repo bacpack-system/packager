@@ -9,6 +9,8 @@ import (
 	"regexp"
 )
 
+// CMake
+// Represents CMake build system. Its main task is to create a CMake command line.
 type CMake struct {
 	BuildSystem  *BuildSystem
 	Defines      map[string]string
@@ -50,7 +52,7 @@ func (cmake *CMake) CheckPrerequisites(*prerequisites.Args) error {
 }
 
 func (cmake *CMake) ConstructCMDLine() []string {
-	cmake.UpdateDefines()
+	cmake.updateDefines()
 	var cmdLine []string
 	cmdLine = append(cmdLine, "cmake")
 	for key, value := range cmake.Defines {
@@ -61,7 +63,8 @@ func (cmake *CMake) ConstructCMDLine() []string {
 	return []string{strings.Join(cmdLine, " ")}
 }
 
-func (cmake *CMake) UpdateDefines() {
+// updateDefines updates CMake defines with values from BuildSystem
+func (cmake *CMake) updateDefines() {
 	cmake.Defines["CMAKE_INSTALL_PREFIX"] = cmake.BuildSystem.InstallPrefix
 	cmake.Defines["CMAKE_PREFIX_PATH"] = cmake.BuildSystem.PrefixPath
 }
