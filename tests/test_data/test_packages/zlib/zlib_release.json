@@ -1,32 +1,31 @@
 {
   "Env": {},
   "Git": {
-    "URI": "https://github.com/bringauto/io-module.git",
-    "Revision": "v1.3.2"
+    "URI": "https://github.com/madler/zlib.git",
+    "Revision": "v1.2.11"
   },
   "Build": {
     "CMake": {
       "Defines": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BRINGAUTO_INSTALL": "ON",
-        "FLEET_PROTOCOL_BUILD_EXTERNAL_SERVER": "OFF"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   },
   "Package": {
-    "Name": "io-module",
-    "VersionTag": "v1.3.2",
+    "Name": "zlib",
+    "VersionTag": "v1.2.11",
     "PlatformString": {
       "Mode": "auto"
     },
-    "IsLibrary": false,
-    "IsDevLib": false,
+    "IsLibrary": true,
+    "IsDevLib": true,
     "IsDebug": false
   },
   "DockerMatrix": {
     "ImageNames": [
       "fleet-os-2",
       "debian12",
+      "ubuntu1804-aarch64",
       "ubuntu2404",
       "fedora40",
       "fedora41"

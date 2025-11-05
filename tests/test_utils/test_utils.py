@@ -203,6 +203,7 @@ def run_packager(
     build_deps: bool = False,
     build_deps_on: bool = False,
     build_deps_on_recursive: bool = False,
+    use_local_repo: bool = False,
     help: bool = False,
     all: bool = False,
     expected_result: PackagerExpectedResult = PackagerExpectedResult.NOT_APPLICABLE,
@@ -267,6 +268,9 @@ def run_packager(
 
     if build_deps_on_recursive:
         parameters.append("--build-deps-on-recursive")
+    
+    if use_local_repo:
+        parameters.append("--use-local-repo")
 
     print("\033[95m\nRunning command:", " ".join(parameters), "\033[0m")
 

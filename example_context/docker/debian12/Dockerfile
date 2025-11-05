@@ -34,6 +34,11 @@ RUN echo "export CMLIB_DIR=/cmakelib" >> /root/.bashrc && \
     echo "export CXX=/usr/local/bin/g++" >> /root/.bashrc && \
     echo "export LD_LIBRARY_PATH=/usr/local/lib64" >> /root/.bashrc
 
+# Install Fleet Protocol's CMCONF system
+COPY --from=package-context config/CMCONF_FLEET_PROTOCOLConfig.cmake /etc
+ENV CMLIB_DIR=/cmakelib
+RUN cmake -DCMCONF_INSTALL_AS_SYMLINK=ON -P /etc/CMCONF_FLEET_PROTOCOLConfig.cmake
+
 RUN sed -ri 's/#?PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd
 

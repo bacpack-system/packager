@@ -6,6 +6,7 @@ from test_utils.test_utils import (
     is_tracked,
     does_app_support_image,
     clean_sysroot,
+    prepare_packages,
 )
 
 from test_utils.common import PackagerExpectedResult, PackagerReturnCode
@@ -147,3 +148,55 @@ def test_04_build_all_apps_when_port_1122_is_used(
         pytest.skip("Port 1122 is already in use, skipping test")
     finally:
         sock.close()
+
+def test_05_build_app_local_repo(test_image, packager_binary, context, test_repo):
+    """Test building a single app using local Package Repository."""
+    app = "io-module"
+
+    if not does_app_support_image(app, test_image):
+        pytest.skip(f"App {app} does not support image {test_image}")
+
+    run_packager(
+        packager_binary,
+        "build-app",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=app,
+        use_local_repo=True,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=(
+            PackagerReturnCode.BUILD_ERROR
+            if does_app_support_image(app, test_image)
+            else PackagerReturnCode.DEFAULT_ERROR
+        ),
+    )
+    dep_packages = ["nlohmann-json", "zlib", "fleet-protocol-interface", "fleet-protocol-cpp"]
+    prepare_packages(dep_packages)
+    for package in dep_packages:
+        run_packager(
+            packager_binary,
+            "build-package",
+            context=context,
+            image_name=test_image,
+            output_dir=test_repo,
+            name=package,
+            expected_result=PackagerExpectedResult.SUCCESS,
+        )
+
+    run_packager(
+        packager_binary,
+        "build-app",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=app,
+        use_local_repo=True,
+        expected_result=PackagerExpectedResult.SUCCESS,
+        expected_returncode=(
+            PackagerReturnCode.SUCCESS
+            if does_app_support_image(app, test_image)
+            else PackagerReturnCode.DEFAULT_ERROR
+        ),
+    )
+    

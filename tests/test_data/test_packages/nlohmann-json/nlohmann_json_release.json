@@ -1,26 +1,26 @@
 {
   "Env": {},
+  "DependsOn": [],
   "Git": {
-    "URI": "https://github.com/bringauto/io-module.git",
-    "Revision": "v1.3.2"
+    "URI": "https://github.com/nlohmann/json.git",
+    "Revision": "v3.10.5"
   },
   "Build": {
     "CMake": {
       "Defines": {
         "CMAKE_BUILD_TYPE": "Release",
-        "BRINGAUTO_INSTALL": "ON",
-        "FLEET_PROTOCOL_BUILD_EXTERNAL_SERVER": "OFF"
+        "JSON_BuildTests": "OFF"
       }
     }
   },
   "Package": {
-    "Name": "io-module",
-    "VersionTag": "v1.3.2",
+    "Name": "nlohmann-json",
+    "VersionTag": "v3.10.5",
     "PlatformString": {
       "Mode": "auto"
     },
-    "IsLibrary": false,
-    "IsDevLib": false,
+    "IsLibrary": true,
+    "IsDevLib": true,
     "IsDebug": false
   },
   "DockerMatrix": {
