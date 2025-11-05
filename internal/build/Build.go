@@ -24,8 +24,7 @@ type Build struct {
 	Env            *EnvironmentVariables
 	Docker         *docker.Docker
 	Git            *git.Git
-	CMake          *CMake
-	GNUMake        *GNUMake
+	BuildSystem    *BuildSystem
 	SSHCredentials *ssh.SSHCredentials
 	Package        *bacpack_package.Package
 	BuiltPackage   *sysroot.BuiltPackage
@@ -63,14 +62,8 @@ func (build *Build) FillDefault(args *prerequisites.Args) error {
 		}
 		build.SSHCredentials.Port = build.Docker.Port
 	}
-	if build.CMake == nil {
-		build.CMake, err = prerequisites.CreateAndInitialize[CMake]()
-		if err != nil {
-			return err
-		}
-	}
-	if build.GNUMake == nil {
-		build.GNUMake, err = prerequisites.CreateAndInitialize[GNUMake]()
+	if build.BuildSystem == nil {
+		build.BuildSystem, err = prerequisites.CreateAndInitialize[BuildSystem]()
 		if err != nil {
 			return err
 		}
@@ -162,13 +155,8 @@ func (build *Build) prepareForBuild() error {
 	}
 
 	build.Git.ClonePath = dockerGitCloneDirConst
-	build.CMake.SourceDir = dockerGitCloneDirConst
-
-	_, found := build.CMake.Defines["CMAKE_INSTALL_PREFIX"]
-	if found {
-		return fmt.Errorf("do not specify CMAKE_INSTALL_PREFIX")
-	}
-	build.CMake.Defines["CMAKE_INSTALL_PREFIX"] = constants.DockerInstallDirConst
+	build.BuildSystem.SourceDir = dockerGitCloneDirConst
+	build.BuildSystem.InstallPrefix = constants.DockerInstallDirConst
 
 	if build.sysroot != nil {
 		build.sysroot.CreateSysrootDir()
@@ -177,7 +165,7 @@ func (build *Build) prepareForBuild() error {
 		if err != nil {
 			return err
 		}
-		build.CMake.SetDefine("CMAKE_PREFIX_PATH", "/sysroot")
+		build.BuildSystem.PrefixPath = "/sysroot"
 	}
 
 	return nil
@@ -256,8 +244,7 @@ func (build *Build) RunBuild() (error, bool) { // Long function - it is hard to 
 	buildChain := BuildChain{
 		Chain: []CMDLineInterface{
 			build.Env,
-			build.CMake,
-			build.GNUMake,
+			build.BuildSystem,
 		},
 	}
 

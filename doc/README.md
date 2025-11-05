@@ -73,19 +73,21 @@ Each Package name consist from three parts:
 - [Image Definition]
 - [Docker Container Requirements]
 - [Build a Reliable Package Source]
-- [CMake Project Requirements]
+- [Build System Project Requirements]
 - [Build Process]
 - [Package Dependencies]
 - [Use Case Scenarios]
+- [Package Repository]
+- [Sysroot]
 
-[Context Structure]:               ./ContextStructure.md
-[Config Structure]:                ./ConfigStructure.md
-[Docker Container Requirements]:   ./DockerContainerRequirements.md
-[Image Definition]:                ./ImageDefinition.md
-[CMake Project Requirements]:      ./CMakeProjectRequirements.md
-[Build a Reliable Package Source]: ./ReliablePackageSource.md
-[Build Process]:                   ./BuildProcess.md
-[Package Dependencies]:            ./PackageDependencies.md
-[Use Case Scenarios]:              ./UseCaseScenarios.md
-[Package Repository]:              ./PackageRepository.md
-[Sysroot]:                         ./Sysroot.md
+[Context Structure]:                 ./ContextStructure.md
+[Config Structure]:                  ./ConfigStructure.md
+[Docker Container Requirements]:     ./DockerContainerRequirements.md
+[Image Definition]:                  ./ImageDefinition.md
+[Build System Project Requirements]: ./BuildSystemProjectRequirements.md
+[Build a Reliable Package Source]:   ./ReliablePackageSource.md
+[Build Process]:                     ./BuildProcess.md
+[Package Dependencies]:              ./PackageDependencies.md
+[Use Case Scenarios]:                ./UseCaseScenarios.md
+[Package Repository]:                ./PackageRepository.md
+[Sysroot]:                           ./Sysroot.md
