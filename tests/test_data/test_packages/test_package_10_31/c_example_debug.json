@@ -1,0 +1,32 @@
+{
+  "Env": {},
+  "DependsOn": [],
+  "Git": {
+    "URI": "https://github.com/squidfarts/c-example.git",
+    "Revision": "master"
+  },
+  "Build": {
+    "Meson": {
+      "Options": {
+        "": "debug"
+      }
+    }
+  },
+  "Package": {
+    "Name": "test_package_10_31",
+    "VersionTag": "v1.0.0",
+    "PlatformString": {
+      "Mode": "auto"
+    },
+    "IsLibrary": false,
+    "IsDevLib": false,
+    "IsDebug": true
+  },
+  "DockerMatrix": {
+    "ImageNames": [
+      "ubuntu2404",
+      "fedora40",
+      "fedora41"
+    ]
+  }
+}
