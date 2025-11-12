@@ -3,7 +3,7 @@
   "DependsOn": [],
   "Git": {
     "URI": "https://github.com/jarro2783/cxxopts.git",
-    "Revision": "v3.0.5"
+    "Revision": "v3.1.0"
   },
   "Build": {
     "CMake": {
@@ -16,7 +16,7 @@
   },
   "Package": {
     "Name": "cxxopts",
-    "VersionTag": "v3.0.5",
+    "VersionTag": "v3.1.0",
     "PlatformString": {
       "Mode": "auto"
     },
@@ -27,7 +27,7 @@
   "DockerMatrix": {
     "ImageNames": [
       "fleet-os-2",
-      "debian12",
+      "debian13",
       "ubuntu2404",
       "fedora40",
       "fedora41"

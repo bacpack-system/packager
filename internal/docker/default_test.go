@@ -10,7 +10,7 @@ import (
 )
 
 func TestDockerRm_GenerateCmdLine(t *testing.T) {
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian13", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}
@@ -32,7 +32,7 @@ func TestDockerRm_GenerateCmdLine(t *testing.T) {
 }
 
 func TestDockerStop_GenerateCmdLine(t *testing.T) {
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian13", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}
@@ -58,7 +58,7 @@ func TestDockerRun_GenerateCmdLine(t *testing.T) {
 	var cmdLineValid bool
 	var err error
 
-	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian12", uint16(constants.DefaultSSHPort))
+	dock, err := prerequisites.CreateAndInitialize[docker.Docker]("debian13", uint16(constants.DefaultSSHPort))
 	if err != nil {
 		t.Fatalf("cannot create Docker instance - %s", err)
 	}

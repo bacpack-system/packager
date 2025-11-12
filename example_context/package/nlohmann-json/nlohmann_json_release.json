@@ -26,7 +26,7 @@
   "DockerMatrix": {
     "ImageNames": [
       "fleet-os-2",
-      "debian12",
+      "debian13",
       "ubuntu2404",
       "fedora40",
       "fedora41"
