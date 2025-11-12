@@ -753,6 +753,8 @@ def test_26_meson_build(test_image, packager_binary, context, test_repo):
         expected_result=PackagerExpectedResult.SUCCESS,
     )
 
+    assert is_tracked(package, test_repo, "package")
+
 def test_27_cmake_invalid_define(test_image, packager_binary, context, test_repo):
     """Test building a package with an CMake define with invalid characters."""
     package = "test_package_1_27"

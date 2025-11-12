@@ -18,8 +18,8 @@
     "PlatformString": {
       "Mode": "auto"
     },
-    "IsLibrary": false,
-    "IsDevLib": false,
+    "IsLibrary": true,
+    "IsDevLib": true,
     "IsDebug": true
   },
   "DockerMatrix": {
