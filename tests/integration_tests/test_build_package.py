@@ -735,3 +735,146 @@ def test_25_invalid_revision(test_image, packager_binary, context, test_repo):
         expected_result=PackagerExpectedResult.FAILURE,
         expected_returncode=PackagerReturnCode.BUILD_ERROR,
     )
+
+def test_26_meson_build(test_image, packager_binary, context, test_repo):
+    """Test building a package using Meson build system."""
+    package = "test_package_10"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.SUCCESS,
+    )
+
+    assert is_tracked(package, test_repo, "package")
+
+def test_27_cmake_invalid_define(test_image, packager_binary, context, test_repo):
+    """Test building a package with an CMake define with invalid characters."""
+    package = "test_package_1_27"
+    prepare_packages([package])
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_28_meson_invalid_define(test_image, packager_binary, context, test_repo):
+    """Test building a package with an Meson define with invalid characters."""
+    package = "test_package_10_28"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_29_meson_invalid_option(test_image, packager_binary, context, test_repo):
+    """Test building a package with an Meson option with invalid characters."""
+    package = "test_package_10_29"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_30_meson_empty_define(test_image, packager_binary, context, test_repo):
+    """Test building a package with an Meson define with empty name."""
+    package = "test_package_10_30"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_31_meson_empty_option(test_image, packager_binary, context, test_repo):
+    """Test building a package with an Meson option with empty name."""
+    package = "test_package_10_31"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_32_cmake_empty_define(test_image, packager_binary, context, test_repo):
+    """Test building a package with an CMake define with empty name."""
+    package = "test_package_1_32"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
+
+def test_33_cmake_wrong_define_type(test_image, packager_binary, context, test_repo):
+    """Test building a package with an CMake define with non-string value."""
+    package = "test_package_1_33"
+    prepare_packages([package])
+    if not does_package_support_image(package, test_image):
+        return
+
+    run_packager(
+        packager_binary,
+        "build-package",
+        context=context,
+        image_name=test_image,
+        output_dir=test_repo,
+        name=package,
+        expected_result=PackagerExpectedResult.FAILURE,
+        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+    )
