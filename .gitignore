@@ -13,3 +13,4 @@ tests/**/__pycache__/
 tests/test_data/test_repo
 tests/test_data/example/package
 /tests/test_data/test_sysroot
+tests/test_data/test_context

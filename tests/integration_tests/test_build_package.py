@@ -11,7 +11,7 @@ from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
 def test_01_build_package(test_image, packager_binary, context, test_repo):
     """Test building a package with no dependencies."""
-    package = "test_package_1"
+    package = "test-package-a"
     prepare_packages([package])
 
     run_packager(
@@ -31,8 +31,8 @@ def test_01_build_package(test_image, packager_binary, context, test_repo):
 
 def test_02_build_package_with_dependency(test_image, packager_binary, context, test_repo):
     """Test building a package with a dependency. Fist build the dependency and then the package."""
-    package = "test_package_2"
-    depends_on_package = "test_package_1"
+    package = "test-package-b"
+    depends_on_package = "test-package-a"
     prepare_packages([package, depends_on_package])
 
     if not does_package_support_image(depends_on_package, test_image):
@@ -71,8 +71,8 @@ def test_03_build_package_dependency_with_build_deps(
     test_image, packager_binary, context, test_repo
 ):
     """Test build package with deps on."""
-    package = "test_package_2"
-    depends_on_package = "test_package_1"
+    package = "test-package-b"
+    depends_on_package = "test-package-a"
     prepare_packages([package, depends_on_package])
 
     if not does_packages_support_image([package, depends_on_package], test_image):
@@ -97,7 +97,7 @@ def test_04_build_multiple_package_dependency_with_build_deps(
     test_image, packager_binary, context, test_repo
 ):
     """Test build package with multiple dependencies using deps on."""
-    packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
+    packages = ["test-package-a", "test-package-b", "test-package-c", "test-package-d"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -121,8 +121,8 @@ def test_05_build_package_dependency_with_build_deps_on(
     test_image, packager_binary, context, test_repo
 ):
     """First build dependency and then build package with deps on"""
-    package = "test_package_2"
-    depends_on_package = "test_package_1"
+    package = "test-package-b"
+    depends_on_package = "test-package-a"
     prepare_packages([package, depends_on_package])
 
     if not does_packages_support_image([package, depends_on_package], test_image):
@@ -159,10 +159,10 @@ def test_06_build_multiple_package_dependency_with_build_deps_on(
 ):
     """Test build package with multiple dependencies using deps on."""
     packages = [
-        "test_package_1_06",
-        "test_package_2_06",
-        "test_package_3_06",
-        "test_package_4_06",
+        "test-package-a",
+        "test-package-b",
+        "test-package-c",
+        "test-package-d",
     ]
     prepare_packages(packages)
 
@@ -200,7 +200,7 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
     test_image, packager_binary, context, test_repo
 ):
     """Test build package with multiple dependencies using deps on recursive."""
-    packages = ["test_package_1", "test_package_2", "test_package_3", "test_package_4"]
+    packages = ["test-package-a", "test-package-b", "test-package-c", "test-package-d"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -231,7 +231,7 @@ def test_07_build_multiple_package_dependency_with_build_deps_on_recursive(
 
 def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, context, test_repo):
     """Test build package with itself as dependency using deps."""
-    package = "test_package_5"
+    package = "test-package-circ-dep-a"
     prepare_packages([package])
 
     if not does_package_support_image(package, test_image):
@@ -253,7 +253,7 @@ def test_08_has_itself_as_dependency_build_deps(test_image, packager_binary, con
 
 def test_09_has_itself_as_dependency_build_deps_on(test_image, packager_binary, context, test_repo):
     """Test build package with itself as dependency using build_deps_on."""
-    package = "test_package_5"
+    package = "test-package-circ-dep-a"
     prepare_packages([package])
 
     if not does_package_support_image(package, test_image):
@@ -277,7 +277,7 @@ def test_10_has_itself_as_dependency_build_deps_on_recursive(
     test_image, packager_binary, context, test_repo
 ):
     """Test build package with itself as dependency using build_deps_on_recursive."""
-    package = "test_package_5"
+    package = "test-package-circ-dep-a"
     prepare_packages([package])
 
     if not does_package_support_image(package, test_image):
@@ -299,7 +299,7 @@ def test_10_has_itself_as_dependency_build_deps_on_recursive(
 
 def test_11_circular_dependencies_deps(test_image, packager_binary, context, test_repo):
     """Test build package with circular dependencies using deps."""
-    packages = ["test_package_6", "test_package_7", "test_package_8"]
+    packages = ["test-package-circ-dep-b", "test-package-circ-dep-c", "test-package-circ-dep-d"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -323,7 +323,7 @@ def test_11_circular_dependencies_deps(test_image, packager_binary, context, tes
 
 def test_12_circular_dependencies_deps_on(test_image, packager_binary, context, test_repo):
     """Test build package with circular dependencies using deps on."""
-    packages = ["test_package_6", "test_package_7", "test_package_8"]
+    packages = ["test-package-circ-dep-b", "test-package-circ-dep-c", "test-package-circ-dep-d"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -359,7 +359,7 @@ def test_13_circular_dependencies_deps_on_recursive(
     test_image, packager_binary, context, test_repo
 ):
     """Test build package with circular dependencies using deps on recursive."""
-    packages = ["test_package_6", "test_package_7", "test_package_8"]
+    packages = ["test-package-circ-dep-b", "test-package-circ-dep-c", "test-package-circ-dep-d"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -397,11 +397,11 @@ def test_13_circular_dependencies_deps_on_recursive(
 def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_repo):
     """Test build package with fork dependencies using deps."""
     packages = [
-        "test_package_9",
-        "test_package_1",
-        "test_package_2",
-        "test_package_3",
-        "test_package_4",
+        "test-package-e",
+        "test-package-a",
+        "test-package-b",
+        "test-package-c",
+        "test-package-d",
     ]
     prepare_packages(packages)
 
@@ -428,11 +428,11 @@ def test_14_fork_dependencies_deps(test_image, packager_binary, context, test_re
 def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test_repo):
     """Test build package with fork dependencies using deps on."""
     packages = [
-        "test_package_1",
-        "test_package_2",
-        "test_package_3",
-        "test_package_4",
-        "test_package_9",
+        "test-package-a",
+        "test-package-b",
+        "test-package-c",
+        "test-package-d",
+        "test-package-e",
     ]
     prepare_packages(packages)
 
@@ -473,11 +473,11 @@ def test_15_fork_dependencies_deps_on(test_image, packager_binary, context, test
 def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, context, test_repo):
     """Test build package with fork dependencies using deps on recursive."""
     packages = [
-        "test_package_1",
-        "test_package_2",
-        "test_package_3",
-        "test_package_4",
-        "test_package_9",
+        "test-package-a",
+        "test-package-b",
+        "test-package-c",
+        "test-package-d",
+        "test-package-e",
     ]
     prepare_packages(packages)
 
@@ -513,7 +513,7 @@ def test_16_fork_dependencies_deps_on_recursive(test_image, packager_binary, con
 
 def test_17_only_debug(test_image, packager_binary, context, test_repo):
     """Test building a package with only debug version."""
-    package = "test_package_1_17"
+    package = "test-package-a-17"
     prepare_packages([package])
 
     if not does_package_support_image(package, test_image):
@@ -535,10 +535,10 @@ def test_17_only_debug(test_image, packager_binary, context, test_repo):
 
 def test_18_only_release(test_image, packager_binary, context, test_repo):
     """Test building a package with only release version."""
-    packages = ["test_package_1_18"]
-    prepare_packages(packages)
+    package = "test-package-a-18"
+    prepare_packages([package])
 
-    if not does_package_support_image(packages[-1], test_image):
+    if not does_package_support_image(package, test_image):
         return
 
     run_packager(
@@ -547,21 +547,19 @@ def test_18_only_release(test_image, packager_binary, context, test_repo):
         context=context,
         image_name=test_image,
         output_dir=test_repo,
-        name=packages[-1],
-        expected_result=PackagerExpectedResult.FAILURE,
-        expected_returncode=PackagerReturnCode.CONTEXT_ERROR,
+        name=package,
+        expected_result=PackagerExpectedResult.SUCCESS,
     )
-    for package in packages:
-        assert not is_tracked(
-            package, test_repo, "package"
-        ), f"Package {package} should not be tracked but is."
+    assert is_tracked(
+        package, test_repo, "package"
+    ), f"Package {package} should be tracked but is not."
 
 
 def test_19_missing_release_debug_packages_build_deps(
     test_image, packager_binary, context, test_repo
 ):
     """Test building a package where the dependency is missing debug version"""
-    packages = ["test_package_1_17", "test_package_2_17"]
+    packages = ["test-package-a-17", "test-package-b-17"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -589,7 +587,7 @@ def test_20_missing_release_debug_packages_build_deps_on(
     test_image, packager_binary, context, test_repo
 ):
     """Test building a package where the deps on is missing release version"""
-    packages = ["test_package_1_17", "test_package_2_17"]
+    packages = ["test-package-a-17", "test-package-b-17"]
     prepare_packages(packages)
 
     if not does_packages_support_image(packages, test_image):
@@ -615,7 +613,7 @@ def test_20_missing_release_debug_packages_build_deps_on(
 
 def test_21_build_packages_with_no_images(test_image, packager_binary, context, test_repo):
     """Build a package with no supported images. It should cause a context error."""
-    package = "test_package_1_21"
+    package = "test-package-a-21"
     prepare_packages([package])
 
     run_packager(
@@ -636,8 +634,8 @@ def test_22_build_packages_where_dependency_is_not_supported(
     test_image, packager_binary, context, test_repo
 ):
     """Dependent package is not supported by the image, but the package itself is supported, so it should not be built."""
-    package = "test_package_1_22"
-    dependents_on_package = "test_package_2_22"
+    package = "test-package-b"
+    dependents_on_package = "test-package-a-22"
     prepare_packages([package, dependents_on_package])
 
     if not does_package_support_image(package, test_image):
@@ -663,8 +661,8 @@ def test_23_build_packages_where_package_is_not_supported(
     test_image, packager_binary, context, test_repo
 ):
     """Dependent package is supported but the package itself is not supported, so nothing should be built."""
-    package = "test_package_2_23"
-    dependents_on_package = "test_package_1_23"
+    package = "test-package-b-23"
+    dependents_on_package = "test-package-a"
     prepare_packages([package, dependents_on_package])
 
     if not does_package_support_image(dependents_on_package, test_image):
@@ -688,7 +686,7 @@ def test_23_build_packages_where_package_is_not_supported(
 
 def test_24_build_same_package_twice(test_image, packager_binary, context, test_repo):
     """Build the same package twice in a row to check if the second build is skipped."""
-    package = "test_package_1"
+    package = "test-package-a"
     prepare_packages([package])
 
     run_packager(
@@ -722,7 +720,7 @@ def test_24_build_same_package_twice(test_image, packager_binary, context, test_
 
 def test_25_invalid_revision(test_image, packager_binary, context, test_repo):
     """Test building a package with an invalid revision."""
-    package = "test_package_1_25"
+    package = "test-package-a-25"
     prepare_packages([package])
 
     run_packager(
@@ -738,7 +736,7 @@ def test_25_invalid_revision(test_image, packager_binary, context, test_repo):
 
 def test_26_meson_build(test_image, packager_binary, context, test_repo):
     """Test building a package using Meson build system."""
-    package = "test_package_10"
+    package = "test-package-f"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -757,7 +755,7 @@ def test_26_meson_build(test_image, packager_binary, context, test_repo):
 
 def test_27_cmake_invalid_define(test_image, packager_binary, context, test_repo):
     """Test building a package with an CMake define with invalid characters."""
-    package = "test_package_1_27"
+    package = "test-package-a-27"
     prepare_packages([package])
 
     run_packager(
@@ -773,7 +771,7 @@ def test_27_cmake_invalid_define(test_image, packager_binary, context, test_repo
 
 def test_28_meson_invalid_define(test_image, packager_binary, context, test_repo):
     """Test building a package with an Meson define with invalid characters."""
-    package = "test_package_10_28"
+    package = "test-package-f-28"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -791,7 +789,7 @@ def test_28_meson_invalid_define(test_image, packager_binary, context, test_repo
 
 def test_29_meson_invalid_option(test_image, packager_binary, context, test_repo):
     """Test building a package with an Meson option with invalid characters."""
-    package = "test_package_10_29"
+    package = "test-package-f-29"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -809,7 +807,7 @@ def test_29_meson_invalid_option(test_image, packager_binary, context, test_repo
 
 def test_30_meson_empty_define(test_image, packager_binary, context, test_repo):
     """Test building a package with an Meson define with empty name."""
-    package = "test_package_10_30"
+    package = "test-package-f-30"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -827,7 +825,7 @@ def test_30_meson_empty_define(test_image, packager_binary, context, test_repo):
 
 def test_31_meson_empty_option(test_image, packager_binary, context, test_repo):
     """Test building a package with an Meson option with empty name."""
-    package = "test_package_10_31"
+    package = "test-package-f-31"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -845,7 +843,7 @@ def test_31_meson_empty_option(test_image, packager_binary, context, test_repo):
 
 def test_32_cmake_empty_define(test_image, packager_binary, context, test_repo):
     """Test building a package with an CMake define with empty name."""
-    package = "test_package_1_32"
+    package = "test-package-a-32"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return
@@ -863,7 +861,7 @@ def test_32_cmake_empty_define(test_image, packager_binary, context, test_repo):
 
 def test_33_cmake_wrong_define_type(test_image, packager_binary, context, test_repo):
     """Test building a package with an CMake define with non-string value."""
-    package = "test_package_1_33"
+    package = "test-package-a-33"
     prepare_packages([package])
     if not does_package_support_image(package, test_image):
         return

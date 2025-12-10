@@ -7,18 +7,40 @@ import shutil
 
 from test_utils.common import PackagerReturnCode, PackagerExpectedResult
 
+TEST_CONTEXT_URL = "https://github.com/bacpack-system/test-context.git"
+TEST_CONTEXT_PATH = "test_data/test_context"
+
 test_config = {
-    "test_data_examples": os.path.abspath("test_data/example"),
-    "test_apps": os.path.abspath("test_data/example/app"),
-    "test_dockers": os.path.abspath("../example_context/docker"),
-    "test_packages": os.path.abspath("test_data/example/package"),
+    "test_apps": os.path.abspath(TEST_CONTEXT_PATH + "/app"),
+    "test_dockers": os.path.abspath(TEST_CONTEXT_PATH + "/docker"),
+    "test_packages": os.path.abspath(TEST_CONTEXT_PATH + "/package"),
     "packager_binary": os.path.abspath("../cmd/bap-builder/bap-builder"),
     "test_repo": os.path.abspath("test_data/test_repo"),
     "test_sysroot": os.path.abspath("test_data/test_sysroot"),
     "install_sysroot": os.path.abspath("install_sysroot"),
-    "test_packages_source": os.path.abspath("test_data/test_packages"),
+    "test_packages_source": os.path.abspath(TEST_CONTEXT_PATH + "/test_packages"),
+    "test_context": os.path.abspath(TEST_CONTEXT_PATH),
+    "test_images": [],
 }
-test_config["test_images"] = sorted(os.listdir(test_config["test_dockers"]))
+
+
+def init_context():
+    """Update the context with the latest changes from the repository."""
+    os.makedirs(test_config["test_context"], exist_ok=True)
+    if os.path.exists(test_config["test_context"] + "/.git"):
+        test_context = git.Repo(test_config["test_context"])
+        test_context.git.pull()
+    else:
+        test_context = git.Repo.clone_from(
+            TEST_CONTEXT_URL, test_config["test_context"]
+        )
+
+        test_context.git.checkout("BAF-1202/test-context") # TODO remove
+    
+    test_config["test_images"] = sorted(os.listdir(test_config["test_dockers"]))
+
+
+init_context()
 
 
 def init_test_repo():
@@ -208,6 +230,7 @@ def run_packager(
     all: bool = False,
     expected_result: PackagerExpectedResult = PackagerExpectedResult.NOT_APPLICABLE,
     expected_returncode: PackagerReturnCode = PackagerReturnCode.SUCCESS,
+    show_output: bool = True,
 ) -> subprocess.CompletedProcess:
     """TODO"""
 
@@ -272,22 +295,24 @@ def run_packager(
     if use_local_repo:
         parameters.append("--use-local-repo")
 
-    print("\033[95m\nRunning command:", " ".join(parameters), "\033[0m")
+    if show_output:
+        print("\033[95m\nRunning command:", " ".join(parameters), "\033[0m")
 
     result = subprocess.Popen(
-        parameters,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+            parameters,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
 
     stdout, stderr = result.communicate()
 
-    print("-" * 10, "Stdout", "-" * 10)
-    print(stdout)
-    print("-" * 10, "Stderr", "-" * 10)
-    print(stderr)
+    if show_output:
+        print("-" * 10, "Stdout", "-" * 10)
+        print(stdout)
+        print("-" * 10, "Stderr", "-" * 10)
+        print(stderr)
 
     if expected_result == PackagerExpectedResult.SUCCESS:
         assert result.returncode == PackagerReturnCode.SUCCESS.value
