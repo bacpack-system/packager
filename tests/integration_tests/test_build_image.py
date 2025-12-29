@@ -60,7 +60,7 @@ def test_04_build_multiple_images_at_once(packager_binary, context):
         )
 
     threads = []
-    images = ["fedora40", "fedora41"]
+    images = ["fedora43", "ubuntu2404"]
     for image in images:
         t = threading.Thread(target=build_image, args=(image,))
         t.start()
@@ -69,5 +69,5 @@ def test_04_build_multiple_images_at_once(packager_binary, context):
     for t in threads:
         t.join()
 
-    assert does_image_exist("fedora40")
-    assert does_image_exist("fedora41")
+    assert does_image_exist("fedora43")
+    assert does_image_exist("ubuntu2404")

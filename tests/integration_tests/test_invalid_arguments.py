@@ -27,9 +27,8 @@ def test_02_run_with_invalid_command(packager_binary):
     assert "ERROR" in stdout
 
 
-def test_03_run_with_nonexisting_image(packager_binary):
+def test_03_run_with_nonexisting_image(packager_binary, context):
     """Run packager with a non-existing image"""
-    context = os.path.abspath(os.path.join("test_data", "example"))
 
     result = run_packager(
         packager_binary,
@@ -44,9 +43,8 @@ def test_03_run_with_nonexisting_image(packager_binary):
     assert "Failed to build Docker image:" in stdout
 
 
-def test_04_run_with_nonexisting_package(test_image, packager_binary, test_repo):
+def test_04_run_with_nonexisting_package(test_image, packager_binary, test_repo, context):
     """Run packager with a non-existing package"""
-    context = os.path.abspath(os.path.join("test_data", "example"))
 
     result = run_packager(
         packager_binary,
@@ -62,9 +60,8 @@ def test_04_run_with_nonexisting_package(test_image, packager_binary, test_repo)
     assert "ERROR" in stdout
 
 
-def test_05_run_with_nonexisting_app(test_image, packager_binary, test_repo):
+def test_05_run_with_nonexisting_app(test_image, packager_binary, test_repo, context):
     """Run packager with a non-existing app"""
-    context = os.path.abspath(os.path.join("test_data", "example"))
 
     result = run_packager(
         packager_binary,

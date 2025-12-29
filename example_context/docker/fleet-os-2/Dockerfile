@@ -42,6 +42,11 @@ RUN chmod +x /root/init_toolchain.sh && \
 COPY os-release /etc/os-release
 COPY uname.txt /root/tools/
 
+# Install Fleet Protocol's CMCONF system
+COPY --from=package-context config/CMCONF_FLEET_PROTOCOLConfig.cmake /etc
+ENV CMLIB_DIR=/cmakelib
+RUN cmake -DCMCONF_INSTALL_AS_SYMLINK=ON -P /etc/CMCONF_FLEET_PROTOCOLConfig.cmake
+
 RUN apt-get update && \
     apt-get purge -y \
       wget unzip && \

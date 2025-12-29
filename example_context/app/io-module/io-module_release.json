@@ -2,7 +2,7 @@
   "Env": {},
   "Git": {
     "URI": "https://github.com/bringauto/io-module.git",
-    "Revision": "v1.3.2"
+    "Revision": "v1.3.3"
   },
   "Build": {
     "CMake": {
@@ -14,7 +14,7 @@
   },
   "Package": {
     "Name": "io-module",
-    "VersionTag": "v1.3.2",
+    "VersionTag": "v1.3.3",
     "PlatformString": {
       "Mode": "auto"
     },
@@ -25,7 +25,7 @@
   "DockerMatrix": {
     "ImageNames": [
       "fleet-os-2",
-      "debian12",
+      "debian13",
       "ubuntu2404",
       "fedora40",
       "fedora41"

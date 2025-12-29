@@ -65,6 +65,9 @@ func (cmake *CMake) ConstructCMDLine() []string {
 
 // updateDefines updates CMake defines with values from BuildSystem
 func (cmake *CMake) updateDefines() {
+	if cmake.Defines == nil {
+		cmake.Defines = map[string]string{}
+	}
 	cmake.Defines["CMAKE_INSTALL_PREFIX"] = cmake.BuildSystem.InstallPrefix
 	cmake.Defines["CMAKE_PREFIX_PATH"] = cmake.BuildSystem.PrefixPath
 }
