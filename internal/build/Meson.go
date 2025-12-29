@@ -82,6 +82,9 @@ func (meson *Meson) ConstructCMDLine() []string {
 
 // updateOptions updates Meson options with values from BuildSystem
 func (meson *Meson) updateOptions() {
+	if meson.Options == nil {
+		meson.Options = map[string]string{}
+	}
 	meson.Options["prefix"] = meson.BuildSystem.InstallPrefix
 	meson.Options["cmake-prefix-path"] = meson.BuildSystem.PrefixPath
 }
