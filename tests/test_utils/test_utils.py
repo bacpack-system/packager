@@ -34,8 +34,6 @@ def init_context():
         test_context = git.Repo.clone_from(
             TEST_CONTEXT_URL, test_config["test_context"]
         )
-
-        test_context.git.checkout("BAF-1202/test-context") # TODO remove
     
     test_config["test_images"] = sorted(os.listdir(test_config["test_dockers"]))
 
@@ -299,12 +297,12 @@ def run_packager(
         print("\033[95m\nRunning command:", " ".join(parameters), "\033[0m")
 
     result = subprocess.Popen(
-            parameters,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        parameters,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
 
     stdout, stderr = result.communicate()
 
